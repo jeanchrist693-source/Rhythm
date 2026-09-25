@@ -80,6 +80,12 @@ Future<T?> remplacerEcran<T>(BuildContext context, Widget enfant) async {
 
 bool _transitionEnCours = false;
 
+/// Une transition part (ou le clavier descend avant elle, 280 ms) : un
+/// « Enregistrer » touché deux fois pendant ce temps ne doit pas enregistrer
+/// deux fois (deux recettes, deux entrées au journal) — l'écran qui ferme
+/// après avoir enregistré commence par `if (transitionEnCours) return;`.
+bool get transitionEnCours => _transitionEnCours;
+
 bool reserverTransition(BuildContext context) {
   if (_transitionEnCours) return false;
   _transitionEnCours = true;

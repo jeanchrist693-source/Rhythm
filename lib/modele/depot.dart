@@ -49,6 +49,7 @@ class Depot {
     'sortiesAlim',
     'recettesAlim',
     'planAlim',
+    'conservationIa',
   ];
 
   /// Ce qui est en base, par table puis par id (le JSON tel qu'écrit) : le

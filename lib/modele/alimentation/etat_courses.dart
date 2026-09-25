@@ -215,12 +215,36 @@ class CoursesNotifier extends Notifier<EtatCourses> {
     ),
   );
 
+  /// Un repère de conservation appris de l'IA pour [nom] (hors du guide) :
+  /// gardé, il sert désormais partout (rangement, fiche, déplacement).
+  void apprendreConservation(String nom, Conservation c) {
+    final cle = cleConservation(nom);
+    if (cle.isEmpty) return;
+    _muter(
+      state.copierAvec(
+        conservations: {
+          ...state.conservations,
+          cle: Conservation(
+            [cle],
+            c.rayon,
+            c.ideal,
+            c.conseil,
+            frigo: c.frigo,
+            congelo: c.congelo,
+            ambiant: c.ambiant,
+            ouvert: c.ouvert,
+          ),
+        },
+      ),
+    );
+  }
+
   /// Ouvert aujourd'hui : la date ne peut que raccourcir.
   void ouvrir(String id) {
     final a = state.enReserve(id);
     if (a == null) return;
     final le = jourDe(_maintenant);
-    final g = conservationDArticle(a);
+    final g = conservationDArticle(a, apprises: state.conservations);
     modifierRange(
       a.copierAvec(
         ouvertLe: () => le,
@@ -237,7 +261,12 @@ class CoursesNotifier extends Notifier<EtatCourses> {
     modifierRange(
       a.copierAvec(
         emplacement: ou,
-        peremption: () => peremptionApresDeplacement(a, ou, le),
+        peremption: () => peremptionApresDeplacement(
+          a,
+          ou,
+          le,
+          apprises: state.conservations,
+        ),
       ),
     );
   }

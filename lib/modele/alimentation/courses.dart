@@ -20,6 +20,7 @@
 //   rappels de péremption.
 // Lecture TOLÉRANTE partout.
 
+import 'conservation.dart';
 import 'taxes.dart';
 
 // ═══ Rayons, emplacements, unités ═══════════════════════════════════════════
@@ -660,6 +661,7 @@ class EtatCourses {
     this.achats = const [],
     this.sorties = const [],
     this.reglages = const ReglagesCourses(),
+    this.conservations = const {},
   });
 
   final List<ArticleListe> liste;
@@ -669,6 +671,10 @@ class EtatCourses {
   final List<Achat> achats;
   final List<Sortie> sorties;
   final ReglagesCourses reglages;
+
+  /// Les repères de conservation APPRIS de l'IA pour des aliments hors du
+  /// guide, par clé (`cleConservation`).
+  final Map<String, Conservation> conservations;
 
   ArticleListe? article(String id) {
     for (final a in liste) {
@@ -690,12 +696,14 @@ class EtatCourses {
     List<Achat>? achats,
     List<Sortie>? sorties,
     ReglagesCourses? reglages,
+    Map<String, Conservation>? conservations,
   }) => EtatCourses(
     liste: liste ?? this.liste,
     gardeManger: gardeManger ?? this.gardeManger,
     achats: achats ?? this.achats,
     sorties: sorties ?? this.sorties,
     reglages: reglages ?? this.reglages,
+    conservations: conservations ?? this.conservations,
   );
 
   Map<String, dynamic> versDocument() => {
@@ -704,6 +712,7 @@ class EtatCourses {
     'gardeManger': [for (final a in gardeManger) a.versJson()],
     'achatsAlim': [for (final a in achats) a.versJson()],
     'sortiesAlim': [for (final s in sorties) s.versJson()],
+    'conservationIa': [for (final c in conservations.values) c.versJson()],
     'reglagesCourses': reglages.versJson(),
   };
 
@@ -721,6 +730,10 @@ class EtatCourses {
       sorties: liste('sortiesAlim', Sortie.depuisJson)
         ..sort((a, b) => a.date.compareTo(b.date)),
       reglages: ReglagesCourses.depuisJson(document['reglagesCourses']),
+      conservations: {
+        for (final c in liste('conservationIa', Conservation.depuisJson))
+          c.expressions.first: c,
+      },
     );
   }
 }

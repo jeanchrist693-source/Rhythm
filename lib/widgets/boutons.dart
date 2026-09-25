@@ -85,10 +85,16 @@ class BoutonPlein extends StatelessWidget {
 }
 
 class BoutonContour extends StatelessWidget {
-  const BoutonContour({super.key, required this.libelle, required this.onTap});
+  const BoutonContour({
+    super.key,
+    required this.libelle,
+    required this.onTap,
+    this.hauteur = 44,
+  });
 
   final String libelle;
   final VoidCallback onTap;
+  final double hauteur;
 
   @override
   Widget build(BuildContext context) => Semantics(
@@ -96,11 +102,11 @@ class BoutonContour extends StatelessWidget {
     child: PressionEchelle(
       onTap: onTap,
       child: Container(
-        height: 44,
+        height: hauteur,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(22),
+          borderRadius: BorderRadius.circular(hauteur / 2),
           border: Border.all(color: RhythmCouleurs.bordBouton),
         ),
         child: Text(libelle, style: RhythmTypo.texte(13, poids: 500)),

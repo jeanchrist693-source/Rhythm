@@ -116,6 +116,7 @@ class _RecetteFormulaireEcranState extends ConsumerState<RecetteFormulaireEcran>
   }
 
   void _enregistrer() {
+    if (transitionEnCours) return;
     final tr = context.tr;
     final nom = _nom.text.trim();
     if (nom.isEmpty) {
@@ -166,10 +167,12 @@ class _RecetteFormulaireEcranState extends ConsumerState<RecetteFormulaireEcran>
       for (final i in _ingredients)
         if (i.libre) i.nom,
     ];
-    final regions = <String>{
-      for (final r in ref.watch(recettesProvider).recettes) ?r.region,
-      ...kRegionsCulinaires,
-    }.toList();
+    // Les régions à soi déjà données à une recette (« Créole »), hors des
+    // grandes régions : proposées à leur tour.
+    final autres = <String>{
+      for (final r in ref.watch(recettesProvider).recettes)
+        if (r.region != null && grandeRegionDe(r.region) == null) r.region!,
+    }.toList()..sort();
     String minutes(int m) => m == 0 ? '—' : f.minutes(m);
 
     return PageSecondaire(
@@ -308,12 +311,11 @@ class _RecetteFormulaireEcranState extends ConsumerState<RecetteFormulaireEcran>
               onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: 12),
-            RangeePuces<String>(
-              options: [for (final r in regions) (r, r)],
-              valeur: _region.text.trim(),
-              onChanged: (r) => setState(
-                () => _region.text = _region.text.trim() == r ? '' : r,
-              ),
+            ChoixRegion(
+              valeur: _region.text,
+              aucune: tr.aucune,
+              autres: autres,
+              onChanged: (r) => setState(() => _region.text = r ?? ''),
             ),
           ],
         ),

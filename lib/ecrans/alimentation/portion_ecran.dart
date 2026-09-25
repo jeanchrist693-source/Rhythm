@@ -223,6 +223,7 @@ class _PortionEcranState extends ConsumerState<PortionEcran>
   }
 
   void _enregistrer() {
+    if (transitionEnCours) return;
     final tr = context.tr;
     final f = context.formats;
     final notifier = ref.read(alimentationProvider.notifier);

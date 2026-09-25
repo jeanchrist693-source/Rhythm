@@ -95,6 +95,7 @@ class _EntreeRapideEcranState extends ConsumerState<EntreeRapideEcran>
   }
 
   void _enregistrer() {
+    if (transitionEnCours) return;
     final tr = context.tr;
     final f = context.formats;
     final kcal = ChampNombre.lire(_kcal);

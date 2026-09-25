@@ -3,9 +3,13 @@
 // MES RECETTES — le livre : « Nouvelle recette » et « Ma semaine » à portée
 // de pouce ; la recherche (nom, région, ingrédients), le moment (déjeuner,
 // dîner, collation, souper), le TRI (récentes, A à Z, protéines, calories,
-// rapides — retenu), la région s'il y en a ; chaque recette avec ses
+// rapides — retenu), la région s'il y en a (la grande région — « Afrique
+// de l'Ouest » —, puis ses cuisines) ; une capsule choisie, touchée de
+// nouveau, se retire ; chaque recette avec ses
 // portions, son temps, ses protéines et ses calories par portion. Livre
-// vide : les huit recettes de départ, d'un toucher.
+// vide : les huit recettes de départ, d'un toucher. L'IA (palier 4) :
+// « Idées » (des recettes générées, région et moment choisis) et
+// « Importer une recette » (un texte collé, structuré).
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -28,6 +32,8 @@ import '../../../widgets/page_secondaire.dart';
 import '../../../widgets/pictos.dart';
 import '../../../widgets/suivi_clavier.dart';
 import '../../../widgets/toast.dart';
+import '../ia/idees_ecran.dart';
+import '../ia/importer_ecran.dart';
 import '../pieces_alimentation.dart';
 import 'pieces_recettes.dart';
 import 'plan_ecran.dart';
@@ -78,12 +84,38 @@ class _RecettesEcranState extends ConsumerState<RecettesEcran>
     final notifier = ref.read(recettesProvider.notifier);
     final titre = tr.mesRecettes;
     final requete = _recherche.text.trim();
-    final regions = <String>{for (final r in etat.recettes) ?r.region}.toList()
-      ..sort();
+    // Les grandes régions du livre et, dans chacune, les cuisines qu'il a
+    // (une rangée de plus seulement s'il y a de quoi choisir) ; les régions
+    // à soi à la fin.
+    final utilisees = {for (final r in etat.recettes) ?r.region};
+    RegionCulinaire? dansLeLivre(RegionCulinaire g) {
+      if (!utilisees.any((u) => dansLaRegion(u, g.nom))) return null;
+      final cuisines = [
+        for (final c in g.cuisines)
+          if (utilisees.any((u) => memeRegion(u, c))) c,
+      ];
+      final elleMeme = utilisees.any((u) => memeRegion(u, g.nom));
+      return RegionCulinaire(
+        g.nom,
+        cuisines.length + (elleMeme ? 1 : 0) >= 2 ? cuisines : const [],
+      );
+    }
+
+    final regions = [for (final g in kRegionsCulinaires) ?dansLeLivre(g)];
+    final autres = [
+      for (final u in utilisees)
+        if (grandeRegionDe(u) == null) u,
+    ]..sort();
+    // Un filtre dont plus aucune recette ne relève (supprimée) s'efface.
+    final region =
+        _region != null &&
+            etat.recettes.any((r) => dansLaRegion(r.region, _region!))
+        ? _region
+        : null;
     final visibles = trierRecettes([
       for (final r in etat.recettes)
         if ((_moment == null || r.moments.contains(_moment)) &&
-            (_region == null || r.region == _region) &&
+            (region == null || dansLaRegion(r.region, region)) &&
             recetteRepond(r, requete))
           r,
     ], etat.reglages.tri);
@@ -118,6 +150,11 @@ class _RecettesEcranState extends ConsumerState<RecettesEcran>
                   pousserEcran(context, RecetteFormulaireEcran(retour: titre)),
             ),
             BoutonCapsule(
+              picto: Picto.etincelles,
+              libelle: tr.iaIdeesCourt,
+              onTap: () => pousserEcran(context, IdeesEcran(retour: titre)),
+            ),
+            BoutonCapsule(
               picto: Picto.calendrier,
               libelle: tr.maSemaine,
               onTap: () => pousserEcran(context, PlanEcran(retour: titre)),
@@ -139,6 +176,14 @@ class _RecettesEcranState extends ConsumerState<RecettesEcran>
               ),
               const SizedBox(height: 10),
               Text(tr.recettesDeDepartDetail, style: RhythmTypo.petit),
+              const SizedBox(height: 16),
+              const Filet(),
+              LigneReglage(
+                libelle: tr.iaImporter,
+                detail: tr.iaImporterDetailCourt,
+                onTap: () =>
+                    pousserEcran(context, ImporterEcran(retour: titre)),
+              ),
             ],
           )
         else ...[
@@ -158,7 +203,9 @@ class _RecettesEcranState extends ConsumerState<RecettesEcran>
                   for (final m in MomentRepas.values) (m, m.libelle(tr)),
                 ],
                 valeur: _moment,
-                onChanged: (m) => setState(() => _moment = m),
+                // Le moment choisi, touché de nouveau : « Tout ».
+                onChanged: (m) =>
+                    setState(() => _moment = m == _moment ? null : m),
               ),
               const SizedBox(height: 10),
               RangeePuces<TriRecettes>(
@@ -169,14 +216,13 @@ class _RecettesEcranState extends ConsumerState<RecettesEcran>
                 onChanged: (t) =>
                     notifier.modifierReglages(etat.reglages.copierAvec(tri: t)),
               ),
-              if (regions.isNotEmpty) ...[
+              if (regions.isNotEmpty || autres.isNotEmpty) ...[
                 const SizedBox(height: 10),
-                RangeePuces<String?>(
-                  options: [
-                    (null, tr.toutesLesRegions),
-                    for (final r in regions) (r, r),
-                  ],
-                  valeur: _region,
+                ChoixRegion(
+                  valeur: region,
+                  aucune: tr.toutesLesRegions,
+                  regions: regions,
+                  autres: autres,
                   onChanged: (r) => setState(() => _region = r),
                 ),
               ],
@@ -203,10 +249,17 @@ class _RecettesEcranState extends ConsumerState<RecettesEcran>
                 ),
             ],
           ),
-          if (departManquantes)
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Filet(),
+              LigneReglage(
+                libelle: tr.iaImporter,
+                detail: tr.iaImporterDetailCourt,
+                onTap: () =>
+                    pousserEcran(context, ImporterEcran(retour: titre)),
+              ),
+              if (departManquantes) ...[
                 const Filet(),
                 LigneReglage(
                   libelle: tr.recettesDeDepart,
@@ -214,7 +267,8 @@ class _RecettesEcranState extends ConsumerState<RecettesEcran>
                   onTap: _depart,
                 ),
               ],
-            ),
+            ],
+          ),
           Text(
             tr.macrosCalculees,
             style: RhythmTypo.texte(11, couleur: RhythmCouleurs.texte40),

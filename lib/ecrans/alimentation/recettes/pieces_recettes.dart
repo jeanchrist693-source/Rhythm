@@ -5,12 +5,15 @@
 // - [detailRecette] : « 4 portions · 35 min · 40 g de protéines » ;
 // - [TexteEtape] : une étape, ses minuteurs soulignés en pêche — touchables
 //   dans le mode cuisine ;
-// - [BarreMinuteurs] : les minuteurs en cours, posés en bas du mode cuisine
-//   (noir, un filet au-dessus — comme la caisse du magasin) ;
+// - [BarreCuisine] : le bas FIXE du mode cuisine — les minuteurs en cours,
+//   puis « Précédente » / « Suivante » (noir, un filet au-dessus — comme la
+//   caisse du magasin) ;
 // - [SeptJours] : les sept jours à partir d'aujourd'hui (la semaine
 //   prévue) ;
 // - [RangeePuces] : un choix en capsules sur UNE rangée qui défile de côté
-//   (les filtres du livre : une rangée chacun, pas trois).
+//   (les filtres du livre : une rangée chacun, pas trois) ;
+// - [ChoixRegion] : la région en deux rangées — la grande région, puis ses
+//   cuisines.
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -62,13 +65,46 @@ class TexteEtape extends StatefulWidget {
 }
 
 class _TexteEtapeState extends State<TexteEtape> {
-  final List<TapGestureRecognizer> _gestes = [];
+  /// Les minuteurs repérés et leurs gestes, gardés tant que le texte ne
+  /// change pas : le mode cuisine se redessine toutes les 250 ms quand un
+  /// minuteur tourne, et un geste recréé à chaque fois annulait le toucher
+  /// en cours (« 10 minutes » ne réagissait qu'une fois sur deux).
+  late List<RepereMinuteur> _reperes;
+  List<TapGestureRecognizer?> _gestes = const [];
+
+  @override
+  void initState() {
+    super.initState();
+    _preparer();
+  }
+
+  @override
+  void didUpdateWidget(TexteEtape ancien) {
+    super.didUpdateWidget(ancien);
+    if (ancien.texte != widget.texte ||
+        (ancien.onMinuteur == null) != (widget.onMinuteur == null)) {
+      _liberer();
+      _preparer();
+    }
+  }
+
+  void _preparer() {
+    _reperes = minuteursDans(widget.texte);
+    _gestes = [
+      for (final r in _reperes)
+        widget.onMinuteur == null
+            ? null
+            // Le rappel lu au moment du toucher : toujours le dernier.
+            : (TapGestureRecognizer()
+                ..onTap = () => widget.onMinuteur?.call(r)),
+    ];
+  }
 
   void _liberer() {
     for (final g in _gestes) {
-      g.dispose();
+      g?.dispose();
     }
-    _gestes.clear();
+    _gestes = const [];
   }
 
   @override
@@ -79,22 +115,15 @@ class _TexteEtapeState extends State<TexteEtape> {
 
   @override
   Widget build(BuildContext context) {
-    _liberer();
     final t = widget.texte;
-    final reperes = minuteursDans(t);
     final morceaux = <InlineSpan>[];
     var i = 0;
-    for (final r in reperes) {
+    for (final (k, r) in _reperes.indexed) {
       if (r.debut > i) morceaux.add(TextSpan(text: t.substring(i, r.debut)));
-      TapGestureRecognizer? geste;
-      if (widget.onMinuteur != null) {
-        geste = TapGestureRecognizer()..onTap = () => widget.onMinuteur!(r);
-        _gestes.add(geste);
-      }
       morceaux.add(
         TextSpan(
           text: t.substring(r.debut, r.fin),
-          recognizer: geste,
+          recognizer: _gestes[k],
           style: const TextStyle(
             color: RhythmCouleurs.peche,
             decoration: TextDecoration.underline,
@@ -114,24 +143,32 @@ class _TexteEtapeState extends State<TexteEtape> {
   }
 }
 
-/// La hauteur de la barre des minuteurs (le bas de la page passe dessus).
-double hauteurBarreMinuteurs(int n) => n == 0 ? 0 : 30.0 + 64 * n;
+/// La hauteur de la barre du mode cuisine, marge du système en moins (le
+/// bas de la page passe dessus) : un filet, les minuteurs (64 chacun), la
+/// rangée du [BarreCuisine.pied] (48).
+double hauteurBarreCuisine(int minuteurs) => 73.0 + 64 * minuteurs;
 
-/// Les minuteurs en cours : ce qu'il reste (ou « C'est l'heure » en
-/// corail), une minute de plus, arrêter.
-class BarreMinuteurs extends StatelessWidget {
-  const BarreMinuteurs({
+/// Le bas FIXE du mode cuisine : les minuteurs en cours — ce qu'il reste (ou
+/// « C'est l'heure » en corail), une minute de plus, arrêter —, puis le
+/// [pied] (« Précédente » / « Suivante »), toujours au même endroit, quelle
+/// que soit l'étape.
+class BarreCuisine extends StatelessWidget {
+  const BarreCuisine({
     super.key,
     required this.minuteurs,
     required this.maintenant,
     required this.onPlus,
     required this.onArreter,
+    required this.pied,
   });
 
   final List<MinuteurCuisine> minuteurs;
   final DateTime maintenant;
   final ValueChanged<String> onPlus;
   final ValueChanged<String> onArreter;
+
+  /// Une rangée de 48 de haut.
+  final Widget pied;
 
   @override
   Widget build(BuildContext context) {
@@ -154,7 +191,7 @@ class BarreMinuteurs extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Filet(couleur: RhythmCouleurs.filetGrille),
-            const SizedBox(height: 6),
+            SizedBox(height: minuteurs.isEmpty ? 12 : 6),
             for (final m in minuteurs)
               SizedBox(
                 height: 64,
@@ -209,6 +246,8 @@ class BarreMinuteurs extends StatelessWidget {
                   ],
                 ),
               ),
+            if (minuteurs.isNotEmpty) const SizedBox(height: 6),
+            SizedBox(height: 48, child: pied),
           ],
         ),
       ),
@@ -262,8 +301,10 @@ class SeptJours extends StatelessWidget {
 }
 
 /// Un choix en capsules sur une rangée qui défile de côté ; les capsules
-/// passent sous la marge jusqu'au bord de l'écran.
-class RangeePuces<T> extends StatelessWidget {
+/// passent sous la marge jusqu'au bord de l'écran. À l'ouverture, la
+/// capsule choisie est ramenée dans la rangée si elle était au loin
+/// (« Vietnamienne », en modifiant une recette).
+class RangeePuces<T> extends StatefulWidget {
   const RangeePuces({
     super.key,
     required this.options,
@@ -276,26 +317,141 @@ class RangeePuces<T> extends StatelessWidget {
   final ValueChanged<T> onChanged;
 
   @override
+  State<RangeePuces<T>> createState() => _RangeePucesState<T>();
+}
+
+class _RangeePucesState<T> extends State<RangeePuces<T>> {
+  final _defilement = ScrollController();
+  final _choisie = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _montrerChoisie());
+  }
+
+  @override
+  void dispose() {
+    _defilement.dispose();
+    super.dispose();
+  }
+
+  /// Seulement la rangée défile (pas la page : `Scrollable.ensureVisible`
+  /// ferait aussi descendre le formulaire jusqu'à elle).
+  void _montrerChoisie() {
+    final puce = _choisie.currentContext?.findRenderObject();
+    final rangee = context.findRenderObject();
+    if (!mounted ||
+        puce is! RenderBox ||
+        rangee is! RenderBox ||
+        !_defilement.hasClients) {
+      return;
+    }
+    final x = puce.localToGlobal(Offset.zero, ancestor: rangee).dx;
+    if (x >= 0 && x + puce.size.width <= rangee.size.width) return;
+    final p = _defilement.position;
+    _defilement.jumpTo(
+      (p.pixels + x - 24).clamp(p.minScrollExtent, p.maxScrollExtent),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) => SizedBox(
     height: 40,
-    child: ListView.separated(
+    child: SingleChildScrollView(
+      controller: _defilement,
       scrollDirection: Axis.horizontal,
       clipBehavior: Clip.none,
-      itemCount: options.length,
-      separatorBuilder: (_, _) => const SizedBox(width: 8),
-      itemBuilder: (_, i) {
-        final (v, libelle) = options[i];
-        return Center(
-          child: Puce(
-            libelle: libelle,
-            choisie: v == valeur,
-            onTap: () {
-              HapticFeedback.selectionClick();
-              onChanged(v);
-            },
-          ),
-        );
-      },
+      child: Row(
+        children: [
+          for (final (i, (v, libelle)) in widget.options.indexed) ...[
+            if (i > 0) const SizedBox(width: 8),
+            Puce(
+              key: v == widget.valeur ? _choisie : null,
+              libelle: libelle,
+              choisie: v == widget.valeur,
+              onTap: () {
+                HapticFeedback.selectionClick();
+                widget.onChanged(v);
+              },
+            ),
+          ],
+        ],
+      ),
     ),
   );
+}
+
+/// La RÉGION en deux rangées : les grandes régions (« Afrique de
+/// l'Ouest »), puis, l'une choisie, ses cuisines (« Sénégalaise »).
+/// Retirer un choix : toucher de nouveau la capsule choisie — une cuisine
+/// rend sa grande région, une grande région rend [aucune] — ou toucher
+/// [aucune], la première capsule.
+class ChoixRegion extends StatelessWidget {
+  const ChoixRegion({
+    super.key,
+    required this.valeur,
+    required this.aucune,
+    required this.onChanged,
+    this.regions = kRegionsCulinaires,
+    this.autres = const [],
+  });
+
+  /// La région choisie ; `null` ou vide : aucune.
+  final String? valeur;
+
+  /// La première capsule (« Aucune », « Toutes les régions »).
+  final String aucune;
+  final ValueChanged<String?> onChanged;
+  final List<RegionCulinaire> regions;
+
+  /// Des régions à soi, hors des grandes régions (« Créole »).
+  final List<String> autres;
+
+  @override
+  Widget build(BuildContext context) {
+    final v = valeur?.trim() ?? '';
+    final choisie = v.isEmpty
+        ? null
+        : regions.where((g) => dansLaRegion(v, g.nom)).firstOrNull;
+    final autre = v.isEmpty || choisie != null
+        ? null
+        : autres.where((a) => memeRegion(a, v)).firstOrNull;
+    // '' : la capsule « aucune » ; `null` : rien de choisi à l'écran (une
+    // région tapée à la main, pas encore dans les capsules).
+    final enHaut = v.isEmpty ? '' : choisie?.nom ?? autre;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        RangeePuces<String>(
+          options: [
+            ('', aucune),
+            for (final g in regions) (g.nom, g.nom),
+            for (final a in autres) (a, a),
+          ],
+          valeur: enHaut,
+          onChanged: (x) {
+            if (x.isEmpty) {
+              onChanged(null);
+            } else if (x != enHaut) {
+              onChanged(x);
+            } else {
+              // La capsule choisie, touchée de nouveau : une cuisine
+              // remonte à sa grande région, la grande région s'efface.
+              onChanged(memeRegion(v, x) ? null : x);
+            }
+          },
+        ),
+        if (choisie != null && choisie.cuisines.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          RangeePuces<String>(
+            key: ValueKey(choisie.nom),
+            options: [for (final c in choisie.cuisines) (c, c)],
+            valeur: choisie.cuisines.where((c) => memeRegion(c, v)).firstOrNull,
+            onChanged: (c) => onChanged(memeRegion(c, v) ? choisie.nom : c),
+          ),
+        ],
+      ],
+    );
+  }
 }

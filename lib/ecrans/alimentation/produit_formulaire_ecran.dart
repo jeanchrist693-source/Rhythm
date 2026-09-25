@@ -98,6 +98,7 @@ class _ProduitFormulaireEcranState extends ConsumerState<ProduitFormulaireEcran>
   }
 
   void _enregistrer() {
+    if (transitionEnCours) return;
     final tr = context.tr;
     final nom = _nom.text.trim();
     final kcal = ChampNombre.lire(_kcal);

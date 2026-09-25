@@ -8,9 +8,10 @@
 // remplit, toucher le dernier le vide). Au-dessus, le CONSEIL DU JOUR et
 // les sept derniers jours (toucher un jour passé l'affiche : on note après
 // coup). Un repas encore vide dit ce qui est PRÉVU (« Prévu : chili sin
-// carne »). Puis ce qui est À CONSOMMER BIENTÔT au garde-manger, mes
-// recettes, ma semaine, la liste de courses, le garde-manger, les objectifs
-// et « Mes produits ». Le gourmand mange en haut à droite.
+// carne »). Puis ce qui est À CONSOMMER BIENTÔT au garde-manger (et des
+// idées pour l'utiliser), l'ASSISTANT (l'IA : idées, semaine, écart,
+// bilan), mes recettes, ma semaine, la liste de courses, le garde-manger,
+// les objectifs et « Mes produits ». Le gourmand mange en haut à droite.
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -50,6 +51,8 @@ import 'courses/article_garde_manger_ecran.dart';
 import 'courses/courses_ecran.dart';
 import 'courses/garde_manger_ecran.dart';
 import 'courses/pieces_courses.dart';
+import 'ia/assistant_ecran.dart';
+import 'ia/idees_ecran.dart';
 import 'moment_ecran.dart';
 import 'noter_ecran.dart';
 import 'objectifs_ecran.dart';
@@ -169,11 +172,35 @@ class _AlimentationEcranState extends ConsumerState<AlimentationEcran> {
                     ArticleGardeMangerEcran(id: a.id, retour: retour),
                   ),
                 ),
+              const Filet(),
+              LigneReglage(
+                gauche: const PictoCercle(
+                  Picto.etincelles,
+                  couleur: RhythmCouleurs.peche,
+                ),
+                libelle: tr.iaIdeesPourLesUtiliser,
+                detail: tr.iaIdeesPourLesUtiliserDetail,
+                onTap: () => pousserEcran(
+                  context,
+                  IdeesEcran(retour: retour, antiGaspillage: true),
+                ),
+              ),
             ],
           ),
         Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            const Filet(),
+            LigneReglage(
+              gauche: const PictoCercle(
+                Picto.etincelles,
+                couleur: RhythmCouleurs.peche,
+              ),
+              libelle: tr.iaAssistant,
+              detail: tr.iaAssistantDetail,
+              onTap: () =>
+                  pousserEcran(context, AssistantEcran(retour: retour)),
+            ),
             const Filet(),
             LigneReglage(
               gauche: const PictoCercle(

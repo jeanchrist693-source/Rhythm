@@ -75,6 +75,7 @@ class _ArticleListeEcranState extends ConsumerState<ArticleListeEcran>
   }
 
   void _enregistrer(ArticleListe a) {
+    if (transitionEnCours) return;
     final nom = _nom.text.trim();
     final v = ChampNombre.lire(_quantite);
     // Plusieurs quantités fusionnées (« 2 + 150 g ») : gardées tant qu'on

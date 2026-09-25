@@ -151,6 +151,7 @@ class _PanierEcranState extends ConsumerState<PanierEcran>
   }
 
   void _auPanier() {
+    if (transitionEnCours) return;
     final tr = context.tr;
     final l = _ligne;
     if (l == null) {

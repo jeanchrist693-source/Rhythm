@@ -73,6 +73,7 @@ class _ChoisirPlatEcranState extends ConsumerState<ChoisirPlatEcran>
   }
 
   void _prevoir(String nom, {String? recette, String? produit, String? libre}) {
+    if (transitionEnCours) return;
     ref
         .read(recettesProvider.notifier)
         .planifier(

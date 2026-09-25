@@ -39,6 +39,7 @@ import '../../../widgets/suivi_clavier.dart';
 import '../../../widgets/toast.dart';
 import '../pieces_alimentation.dart';
 import '../recettes/portion_recette_ecran.dart';
+import '../ia/conservation_ia.dart';
 import 'pieces_courses.dart';
 
 class ArticleGardeMangerEcran extends ConsumerStatefulWidget {
@@ -107,7 +108,11 @@ class _ArticleGardeMangerEcranState
     final auj = jourDe(ref.read(aujourdhuiProvider));
     setState(() {
       _rayon = rayonDe(nom, base);
-      final g = conservationDe(nom, _rayon);
+      final g = conservationDe(
+        nom,
+        _rayon,
+        apprises: ref.read(coursesProvider).conservations,
+      );
       if (!_ouChoisi) {
         _ou = g.expressions.isEmpty
             ? (_rayon.emplacement ?? Emplacement.armoire)
@@ -118,6 +123,7 @@ class _ArticleGardeMangerEcranState
   }
 
   void _ranger() {
+    if (transitionEnCours) return;
     final tr = context.tr;
     final nom = _nom.text.trim();
     if (nom.isEmpty) {
@@ -159,7 +165,9 @@ class _ArticleGardeMangerEcranState
   // ═══ L'ajout ════════════════════════════════════════════════════════════
 
   Widget _formulaire(AppLocalizations tr, DateTime auj) {
-    final g = conservationDe(_nom.text, _rayon);
+    final apprises = ref.watch(coursesProvider).conservations;
+    final g = conservationDe(_nom.text, _rayon, apprises: apprises);
+    final nom = _nom.text.trim();
     String unite(Unite u) =>
         u.symbole ?? (u == Unite.paquet ? tr.unitePaquet : tr.uniteUnite);
     return PageSecondaire(
@@ -179,12 +187,28 @@ class _ArticleGardeMangerEcranState
               actionClavier: TextInputAction.next,
               onChanged: _nomChange,
             ),
-            if (_nom.text.trim().isNotEmpty) ...[
+            if (nom.isNotEmpty) ...[
               const SizedBox(height: 10),
               Text(
                 g.conseil,
                 style: RhythmTypo.texte(13, couleur: RhythmCouleurs.peche),
               ),
+              if (repereDeLIa(nom, apprises)) ...[
+                const SizedBox(height: 4),
+                Text(tr.iaRepereDeLIa, style: RhythmTypo.petit),
+              ] else if (nom.length >= 3 && horsDuGuide(nom, apprises)) ...[
+                const SizedBox(height: 12),
+                DemandeConservation(
+                  nom: nom,
+                  rayon: _rayon,
+                  onAppris: (c) => setState(() {
+                    if (!_ouChoisi) _ou = c.ideal;
+                    if (!_dateChoisie) {
+                      _date = peremptionProposee(c, _ou, jourDe(auj));
+                    }
+                  }),
+                ),
+              ],
             ],
           ],
         ),
@@ -263,7 +287,8 @@ class _ArticleGardeMangerEcranState
   Widget _fiche(AppLocalizations tr, DateTime auj, ArticleGardeManger a) {
     final f = context.formats;
     final notifier = ref.read(coursesProvider.notifier);
-    final g = conservationDArticle(a);
+    final apprises = ref.watch(coursesProvider).conservations;
+    final g = conservationDArticle(a, apprises: apprises);
     final jours = joursRestants(a, auj);
     final q = a.quantite;
     final recette = ref.watch(recettesProvider).recette(a.recetteId);
@@ -322,6 +347,32 @@ class _ArticleGardeMangerEcranState
             if (durees.isNotEmpty) ...[
               const SizedBox(height: 8),
               Text(durees.join('\n'), style: RhythmTypo.detail),
+            ],
+            if (!a.restes && repereDeLIa(a.nom, apprises)) ...[
+              const SizedBox(height: 8),
+              Text(tr.iaRepereDeLIa, style: RhythmTypo.petit),
+            ] else if (!a.restes && horsDuGuide(a.nom, apprises)) ...[
+              const SizedBox(height: 14),
+              DemandeConservation(
+                nom: a.nom,
+                rayon: a.rayon,
+                onAppris: (c) {
+                  // La date proposée par le rayon (pas choisie à la main)
+                  // suit le nouveau repère.
+                  final entre = jourDe(a.entre);
+                  final avant = peremptionProposee(
+                    conservationDuRayon(a.rayon),
+                    a.emplacement,
+                    entre,
+                  );
+                  final apres = peremptionProposee(c, a.emplacement, entre);
+                  if (apres != null && a.peremption == avant) {
+                    notifier.modifierRange(
+                      a.copierAvec(peremption: () => apres),
+                    );
+                  }
+                },
+              ),
             ],
           ],
         ),

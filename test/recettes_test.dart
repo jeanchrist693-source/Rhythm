@@ -14,6 +14,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rhythm/l10n/app_localizations.dart';
 import 'package:rhythm/modele/alimentation/alimentation.dart';
+import 'package:rhythm/modele/alimentation/base_aliments.dart' show motsDe;
 import 'package:rhythm/modele/alimentation/calculs_alimentation.dart';
 import 'package:rhythm/modele/alimentation/calculs_recettes.dart';
 import 'package:rhythm/modele/alimentation/courses.dart';
@@ -432,6 +433,65 @@ void main() {
       expect(ids('haitienne'), ['depart-riz-colle']);
       expect(ids('boeuf'), ['depart-pate-chinois']);
       expect(ids(''), hasLength(8));
+      // La grande région aussi : le riz collé est haïtien, donc des
+      // Caraïbes.
+      expect(ids('caraibes'), ['depart-riz-colle']);
+    });
+
+    test('les régions : une cuisine et sa grande région', () {
+      expect(grandeRegionDe('Sénégalaise')?.nom, "Afrique de l'Ouest");
+      expect(grandeRegionDe('senegalaise')?.nom, "Afrique de l'Ouest");
+      expect(grandeRegionDe("Afrique de l'Ouest")?.nom, "Afrique de l'Ouest");
+      expect(grandeRegionDe('Québécoise')?.nom, 'Amérique du Nord');
+      expect(grandeRegionDe('Haïtienne')?.nom, 'Caraïbes');
+      expect(grandeRegionDe('Créole'), isNull);
+      expect(grandeRegionDe(null), isNull);
+      expect(dansLaRegion('Sénégalaise', "Afrique de l'Ouest"), isTrue);
+      expect(dansLaRegion('Sénégalaise', 'Sénégalaise'), isTrue);
+      expect(dansLaRegion("Afrique de l'Ouest", 'Sénégalaise'), isFalse);
+      expect(dansLaRegion('Marocaine', "Afrique de l'Ouest"), isFalse);
+      expect(dansLaRegion('Créole', 'Créole'), isTrue);
+      expect(dansLaRegion(null, 'Europe'), isFalse);
+      // Les cinq Afriques, l'Europe, les Amériques, l'Asie.
+      final noms = [for (final g in kRegionsCulinaires) g.nom];
+      expect(
+        noms,
+        containsAll([
+          "Afrique de l'Ouest",
+          'Afrique du Nord',
+          'Afrique centrale',
+          "Afrique de l'Est",
+          'Afrique australe',
+          'Europe',
+          'Amérique du Nord',
+          'Amérique latine',
+          'Caraïbes',
+          "Asie de l'Est",
+          'Asie du Sud',
+          'Asie du Sud-Est',
+        ]),
+      );
+    });
+
+    test('les régions : une donnée propre', () {
+      final vues = <String>{};
+      for (final g in kRegionsCulinaires) {
+        expect(g.cuisines, isNotEmpty, reason: g.nom);
+        for (final nom in [g.nom, ...g.cuisines]) {
+          // Chaque nom une seule fois (une cuisine n'a qu'une grande
+          // région), apostrophes droites, pas d'espace fine.
+          expect(vues.add(motsDe(nom).join(' ')), isTrue, reason: nom);
+          expect(nom.contains('’') || nom.contains(' '), isFalse);
+          expect(nom.trim(), nom);
+        }
+      }
+      // Les anciennes régions sont relues sous leur nouveau nom.
+      final r = Recette.depuisJson({
+        'id': 'r',
+        'nom': 'Thiéboudienne',
+        'region': 'Ouest-africaine',
+      })!;
+      expect(r.region, "Afrique de l'Ouest");
     });
 
     test('le tri', () {

@@ -20,12 +20,14 @@
 // - les RESTES (jusqu'à quand : 3 jours au frigo, 3 mois au congélateur —
 //   Thermoguide) ; la DÉCONGÉLATION (ce qu'un repas prévu demande et qui
 //   n'est qu'au congélateur) ;
+// - les RÉGIONS : une cuisine et sa grande région (« Sénégalaise » est en
+//   « Afrique de l'Ouest ») ;
 // - le LIVRE : la recherche, le tri ; le lien avec le JOURNAL.
 
 import '../../utils/dates.dart';
 import '../modeles.dart';
 import 'alimentation.dart';
-import 'base_aliments.dart' show motsRecherche, simplifier;
+import 'base_aliments.dart' show motsDe, motsRecherche, simplifier;
 import 'calculs_courses.dart';
 import 'conservation.dart';
 import 'courses.dart';
@@ -654,15 +656,51 @@ List<Decongelation> decongelationsDu(
   return resultat;
 }
 
+// ═══ Les régions ════════════════════════════════════════════════════════════
+
+/// Deux noms de région, à la casse et aux accents près.
+bool memeRegion(String a, String b) =>
+    motsDe(a).join(' ') == motsDe(b).join(' ');
+
+/// La grande région de [region] : elle-même (« Afrique de l'Ouest ») ou
+/// celle d'une de ses cuisines (« Sénégalaise ») ; `null` pour une région à
+/// soi (« Créole »).
+RegionCulinaire? grandeRegionDe(String? region) {
+  if (region == null) return null;
+  for (final g in kRegionsCulinaires) {
+    if (memeRegion(g.nom, region) ||
+        g.cuisines.any((c) => memeRegion(c, region))) {
+      return g;
+    }
+  }
+  return null;
+}
+
+/// La région d'une recette entre-t-elle dans [filtre] : la même, ou une
+/// cuisine de la grande région [filtre] (« Sénégalaise » est en « Afrique
+/// de l'Ouest ») ?
+bool dansLaRegion(String? region, String filtre) {
+  if (region == null) return false;
+  if (memeRegion(region, filtre)) return true;
+  final g = grandeRegionDe(region);
+  return g != null && memeRegion(g.nom, filtre);
+}
+
 // ═══ Le livre ═══════════════════════════════════════════════════════════════
 
-/// La recette répond-elle à [requete] (son nom, sa région, ses
+/// La recette répond-elle à [requete] (son nom, sa région — et sa grande
+/// région : « afrique » trouve le thiéboudienne sénégalais —, ses
 /// ingrédients) ?
 bool recetteRepond(Recette r, String requete) {
   final q = motsRecherche(requete);
   if (q.isEmpty) return true;
   final mots = motsRecherche(
-    [r.nom, r.region ?? '', for (final i in r.ingredients) i.nom].join(' '),
+    [
+      r.nom,
+      r.region ?? '',
+      grandeRegionDe(r.region)?.nom ?? '',
+      for (final i in r.ingredients) i.nom,
+    ].join(' '),
   );
   return q.every((m) => mots.any((w) => w.startsWith(m)));
 }

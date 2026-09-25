@@ -15,6 +15,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:rhythm/app/rhythm_app.dart';
 import 'package:rhythm/ecrans/alimentation/pieces_alimentation.dart';
+import 'package:rhythm/ecrans/alimentation/recettes/pieces_recettes.dart';
 import 'package:rhythm/modele/alimentation/alimentation.dart';
 import 'package:rhythm/modele/alimentation/base_aliments.dart';
 import 'package:rhythm/modele/alimentation/courses.dart';
@@ -24,6 +25,7 @@ import 'package:rhythm/modele/alimentation/etat_recettes.dart';
 import 'package:rhythm/modele/alimentation/recettes.dart';
 import 'package:rhythm/modele/etat_sante.dart';
 import 'package:rhythm/modele/modeles.dart';
+import 'package:rhythm/widgets/boutons.dart';
 import 'package:rhythm/widgets/pictos.dart';
 
 import 'outils/polices.dart';
@@ -140,6 +142,133 @@ void main() {
     expect(find.textContaining('Restes : 3 portions'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('mode cuisine : « Précédente » et « Suivante » ne bougent pas', (
+    tester,
+  ) async {
+    final c = await _demarrer(tester);
+    await _toucher(tester, find.text('Mes recettes'));
+    await _toucher(tester, find.text('Chili sin carne'));
+    await _toucher(tester, find.text('Cuisiner'));
+    Rect plein(String libelle) => tester.getRect(
+      find.ancestor(of: find.text(libelle), matching: find.byType(BoutonPlein)),
+    );
+    Rect precedente() => tester.getRect(
+      find.ancestor(
+        of: find.text('Précédente'),
+        matching: find.byType(BoutonContour),
+      ),
+    );
+    // « Précédente » est là dès la première étape (éteinte) : « Suivante »
+    // garde sa largeur.
+    final suivante = plein('Suivante');
+    final avant = precedente();
+    // Un minuteur lancé : il se pose AU-DESSUS des boutons.
+    await tester.ensureVisible(find.text('Minuteur 5 min'));
+    await tester.pumpAndSettle();
+    expect(plein('Suivante'), suivante);
+    await tester.tap(find.text('Minuteur 5 min'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(plein('Suivante'), suivante);
+    expect(precedente(), avant);
+    await tester.tap(find.bySemanticsLabel('Arrêter le minuteur'));
+    await tester.pump();
+    expect(c.read(minuteursProvider), isEmpty);
+    await tester.pumpAndSettle();
+    // Des étapes avec et sans minuteur, courtes et longues : les boutons
+    // restent sous le doigt, jusqu'à « C'est prêt ».
+    for (var i = 0; i < 3; i++) {
+      await tester.tap(find.text('Suivante'));
+      await _naviguer(tester);
+      expect(precedente(), avant);
+      expect(plein(i < 2 ? 'Suivante' : "C'est prêt"), suivante);
+    }
+    await tester.tap(find.text('Précédente'));
+    await _naviguer(tester);
+    expect(find.text('ÉTAPE 3 SUR 4'), findsOneWidget);
+    expect(plein('Suivante'), suivante);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+    'la région : choisir, préciser, retirer ; un seul enregistrement',
+    (tester) async {
+      final c = await _demarrer(tester);
+      await _toucher(tester, find.text('Mes recettes'));
+      await _toucher(tester, find.text('Nouvelle recette'));
+      await tester.enterText(find.byType(TextField).first, 'thiéboudienne');
+      await tester.pumpAndSettle();
+      FocusManager.instance.primaryFocus?.unfocus();
+      await tester.pumpAndSettle();
+
+      final bloc = find.byKey(const ValueKey('region'));
+      String region() => tester
+          .widget<TextField>(
+            find.descendant(of: bloc, matching: find.byType(TextField)),
+          )
+          .controller!
+          .text;
+      // Les capsules (le champ, lui aussi, montre la région choisie).
+      Future<void> puce(String nom) async {
+        final f = find.descendant(
+          of: find.byType(ChoixRegion),
+          matching: find.text(nom),
+        );
+        await tester.ensureVisible(f);
+        await tester.pumpAndSettle();
+        await tester.tap(f);
+        await tester.pumpAndSettle();
+      }
+
+      await puce("Afrique de l'Ouest");
+      expect(region(), "Afrique de l'Ouest");
+      await puce('Sénégalaise');
+      expect(region(), 'Sénégalaise');
+      // La cuisine touchée de nouveau : retour à la grande région ; la grande
+      // région touchée de nouveau : plus de région.
+      await puce('Sénégalaise');
+      expect(region(), "Afrique de l'Ouest");
+      await puce("Afrique de l'Ouest");
+      expect(region(), '');
+      expect(find.text('Sénégalaise'), findsNothing);
+      // « Aucune » retire tout d'un toucher.
+      await puce('Europe');
+      await puce('Italienne');
+      expect(region(), 'Italienne');
+      await puce('Aucune');
+      expect(region(), '');
+      await puce("Afrique de l'Ouest");
+      await puce('Sénégalaise');
+
+      // « Enregistrer » touché deux fois de suite, clavier ouvert (l'écran
+      // attend 280 ms qu'il descende avant de partir) : une seule recette.
+      final enregistrer = find.text('Enregistrer');
+      await tester.ensureVisible(enregistrer);
+      await tester.pumpAndSettle();
+      tester.view.viewInsets = const FakeViewPadding(bottom: 900);
+      await tester.pump();
+      await tester.tap(enregistrer);
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.tap(enregistrer, warnIfMissed: false);
+      tester.view.resetViewInsets();
+      await _naviguer(tester);
+      final faites = [
+        for (final r in c.read(recettesProvider).recettes)
+          if (r.nom == 'Thiéboudienne') r,
+      ];
+      expect(faites.single.region, 'Sénégalaise');
+
+      // Le livre : la grande région en capsule filtre ses cuisines.
+      await _retour(tester);
+      await puce("Afrique de l'Ouest");
+      expect(find.text('Thiéboudienne'), findsOneWidget);
+      expect(find.text('Pâté chinois'), findsNothing);
+      await puce("Afrique de l'Ouest");
+      expect(find.text('Pâté chinois'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets('écrire une recette : un ingrédient de la base, des étapes', (
     tester,

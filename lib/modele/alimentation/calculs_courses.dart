@@ -269,9 +269,10 @@ ArticleGardeManger? rangementPropose(
   required DateTime date,
   required Bareme bareme,
   String? magasin,
+  Map<String, Conservation> apprises = const {},
 }) {
   if (!l.rayon.alimentaire) return null;
-  final g = conservationDe(l.nom, l.rayon);
+  final g = conservationDe(l.nom, l.rayon, apprises: apprises);
   final ou = g.expressions.isEmpty
       ? (l.rayon.emplacement ?? Emplacement.armoire)
       : g.ideal;
@@ -290,19 +291,23 @@ ArticleGardeManger? rangementPropose(
 
 /// Le repère de conservation d'un aliment rangé : celui des RESTES pour
 /// les restes d'une recette (« Saumon (restes) » n'est plus du saumon cru),
-/// sinon le guide.
-Conservation conservationDArticle(ArticleGardeManger a) => a.restes
+/// sinon le guide (ou ce que l'IA en a appris).
+Conservation conservationDArticle(
+  ArticleGardeManger a, {
+  Map<String, Conservation> apprises = const {},
+}) => a.restes
     ? (guideDe('reste') ?? conservationDuRayon(Rayon.autre))
-    : conservationDe(a.nom, a.rayon);
+    : conservationDe(a.nom, a.rayon, apprises: apprises);
 
 /// Déplacé à [ou] [le] : la date suit le guide (au congélateur, elle
 /// s'allonge ; décongelé au frigo, 1 à 2 jours).
 DateTime? peremptionApresDeplacement(
   ArticleGardeManger a,
   Emplacement ou,
-  DateTime le,
-) {
-  final g = conservationDArticle(a);
+  DateTime le, {
+  Map<String, Conservation> apprises = const {},
+}) {
+  final g = conservationDArticle(a, apprises: apprises);
   if (a.emplacement == Emplacement.congelateur && ou == Emplacement.frigo) {
     // Décongelé : à cuisiner vite.
     final d = g.frigo?.$1 ?? 2;

@@ -137,24 +137,195 @@ class Ingredient {
 
 // ═══ La recette ═════════════════════════════════════════════════════════════
 
-/// Des régions (cuisines) proposées au formulaire — et, au palier 4, au
-/// générateur de recettes. Une donnée, en français.
-const List<String> kRegionsCulinaires = [
-  'Québécoise',
-  'Haïtienne',
-  'Française',
-  'Italienne',
-  'Méditerranéenne',
-  'Libanaise',
-  'Marocaine',
-  'Ouest-africaine',
-  'Mexicaine',
-  'Indienne',
-  'Chinoise',
-  'Japonaise',
-  'Thaïlandaise',
-  'Vietnamienne',
+/// Une GRANDE RÉGION culinaire (« Afrique de l'Ouest ») et ses cuisines
+/// (« Sénégalaise », « Ivoirienne »…). La région d'une recette est l'une ou
+/// l'autre : la grande région quand on ne précise pas.
+class RegionCulinaire {
+  const RegionCulinaire(this.nom, this.cuisines);
+
+  final String nom;
+  final List<String> cuisines;
+}
+
+/// Les régions proposées au formulaire — et, au palier 4, au générateur de
+/// recettes. Une donnée, en français.
+const List<RegionCulinaire> kRegionsCulinaires = [
+  RegionCulinaire('Amérique du Nord', [
+    'Québécoise',
+    'Acadienne',
+    'Canadienne',
+    'Autochtone',
+    'Américaine',
+    'Cajun',
+    'Tex-mex',
+  ]),
+  RegionCulinaire('Caraïbes', [
+    'Haïtienne',
+    'Antillaise',
+    'Jamaïcaine',
+    'Cubaine',
+    'Dominicaine',
+    'Portoricaine',
+    'Trinidadienne',
+  ]),
+  RegionCulinaire('Amérique latine', [
+    'Mexicaine',
+    'Guatémaltèque',
+    'Salvadorienne',
+    'Hondurienne',
+    'Costaricienne',
+    'Colombienne',
+    'Vénézuélienne',
+    'Péruvienne',
+    'Équatorienne',
+    'Bolivienne',
+    'Brésilienne',
+    'Argentine',
+    'Chilienne',
+    'Uruguayenne',
+  ]),
+  RegionCulinaire("Afrique de l'Ouest", [
+    'Sénégalaise',
+    'Ivoirienne',
+    'Malienne',
+    'Guinéenne',
+    'Burkinabè',
+    'Ghanéenne',
+    'Togolaise',
+    'Béninoise',
+    'Nigériane',
+    'Nigérienne',
+    'Mauritanienne',
+    'Gambienne',
+    'Sierra-léonaise',
+    'Libérienne',
+    'Cap-verdienne',
+  ]),
+  RegionCulinaire('Afrique du Nord', [
+    'Marocaine',
+    'Algérienne',
+    'Tunisienne',
+    'Libyenne',
+    'Égyptienne',
+    'Soudanaise',
+  ]),
+  RegionCulinaire('Afrique centrale', [
+    'Camerounaise',
+    'Congolaise',
+    'Gabonaise',
+    'Centrafricaine',
+    'Tchadienne',
+    'Équato-guinéenne',
+    'Angolaise',
+  ]),
+  RegionCulinaire("Afrique de l'Est", [
+    'Éthiopienne',
+    'Érythréenne',
+    'Somalienne',
+    'Djiboutienne',
+    'Kényane',
+    'Ougandaise',
+    'Tanzanienne',
+    'Rwandaise',
+    'Burundaise',
+  ]),
+  RegionCulinaire('Afrique australe', [
+    'Sud-africaine',
+    'Mozambicaine',
+    'Zimbabwéenne',
+    'Zambienne',
+    'Malawienne',
+    'Botswanaise',
+    'Namibienne',
+  ]),
+  RegionCulinaire('Océan Indien', [
+    'Malgache',
+    'Mauricienne',
+    'Réunionnaise',
+    'Comorienne',
+    'Seychelloise',
+  ]),
+  RegionCulinaire('Europe', [
+    'Française',
+    'Belge',
+    'Suisse',
+    'Italienne',
+    'Espagnole',
+    'Portugaise',
+    'Grecque',
+    'Méditerranéenne',
+    'Britannique',
+    'Irlandaise',
+    'Allemande',
+    'Autrichienne',
+    'Néerlandaise',
+    'Scandinave',
+    'Polonaise',
+    'Ukrainienne',
+    'Russe',
+    'Hongroise',
+    'Roumaine',
+    'Balkanique',
+  ]),
+  RegionCulinaire('Moyen-Orient', [
+    'Libanaise',
+    'Syrienne',
+    'Palestinienne',
+    'Jordanienne',
+    'Israélienne',
+    'Turque',
+    'Irakienne',
+    'Iranienne',
+    'Yéménite',
+    'Saoudienne',
+  ]),
+  RegionCulinaire('Asie du Sud', [
+    'Indienne',
+    'Pakistanaise',
+    'Bangladaise',
+    'Sri-lankaise',
+    'Népalaise',
+  ]),
+  RegionCulinaire('Asie centrale et Caucase', [
+    'Afghane',
+    'Ouzbèke',
+    'Kazakhe',
+    'Géorgienne',
+    'Arménienne',
+    'Azerbaïdjanaise',
+  ]),
+  RegionCulinaire("Asie de l'Est", [
+    'Chinoise',
+    'Cantonaise',
+    'Sichuanaise',
+    'Japonaise',
+    'Coréenne',
+    'Taïwanaise',
+    'Mongole',
+  ]),
+  RegionCulinaire('Asie du Sud-Est', [
+    'Thaïlandaise',
+    'Vietnamienne',
+    'Cambodgienne',
+    'Laotienne',
+    'Birmane',
+    'Malaisienne',
+    'Singapourienne',
+    'Indonésienne',
+    'Philippine',
+  ]),
+  RegionCulinaire('Océanie', [
+    'Australienne',
+    'Néo-zélandaise',
+    'Polynésienne',
+    'Hawaïenne',
+  ]),
 ];
+
+/// Les régions d'avant les grandes régions, relues sous leur nouveau nom.
+const Map<String, String> _anciennesRegions = {
+  'Ouest-africaine': "Afrique de l'Ouest",
+};
 
 class Recette {
   const Recette({
@@ -295,7 +466,10 @@ class Recette {
       ],
       preparation: minutes('prep'),
       cuisson: minutes('cuisson'),
-      region: _texte(j['region']),
+      region: switch (_texte(j['region'])) {
+        final r? => _anciennesRegions[r] ?? r,
+        null => null,
+      },
       note: _texte(j['note']),
       seCongele: j['congele'] == true,
       cuisinee: [

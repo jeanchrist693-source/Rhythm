@@ -445,7 +445,8 @@ maquette lui plaît : on le garde, on l'enrichit sans s'en éloigner.
    l'IA ; jamais de libération ni de nom envoyés ; pas d'avis médical.
    **Demandé le 25 sept. 2026 (pour ce palier)** : la GÉNÉRATION DE
    RECETTES laisse CHOISIR LA RÉGION (la cuisine : québécoise, haïtienne,
-   italienne… — `kRegionsCulinaires`, déjà au formulaire des recettes) et
+   italienne… — `kRegionsCulinaires`, déjà au formulaire des recettes :
+   16 GRANDES RÉGIONS et leurs cuisines, `ChoixRegion`) et
    LE TYPE DE REPAS (le moment : déjeuner, dîner, collation, souper — à
    préciser avec l'utilisateur : aussi la catégorie, soupe / plat /
    dessert ?) avant de générer ; la recette générée entre au livre avec sa
@@ -594,8 +595,14 @@ pour le palier 3 »). Tout HORS LIGNE.
   valeur nutritive, quantité facultative) ; ses nutriments FIGÉS à la
   saisie (la recette se lit sans la base). [Recette] : moments
   (plusieurs), portions, ingrédients, étapes (une par entrée), préparation
-  et cuisson, RÉGION (`kRegionsCulinaires`, la cuisine d'où elle vient),
-  note, « se congèle bien », jours cuisinés. [RepasPrevu] : une recette, un
+  et cuisson, RÉGION (la cuisine d'où elle vient : une GRANDE RÉGION —
+  « Afrique de l'Ouest » — ou l'une de ses cuisines — « Sénégalaise » ;
+  `kRegionsCulinaires` = 16 `RegionCulinaire` : Amérique du Nord,
+  Caraïbes, Amérique latine, les cinq Afriques — Ouest, Nord, centrale,
+  Est, australe —, océan Indien, Europe, Moyen-Orient, Asie du Sud, Asie
+  centrale et Caucase, Asie de l'Est, Asie du Sud-Est, Océanie ; demande
+  de l'utilisateur, 25 sept. — l'ancienne « Ouest-africaine » est relue
+  « Afrique de l'Ouest »), note, « se congèle bien », jours cuisinés. [RepasPrevu] : une recette, un
   produit (une collation achetée) ou « autre chose » (« Souper chez des
   amis »), un jour, un moment, des portions. [ReglagesRecettes] : portions
   d'un repas prévu (le foyer), rappel de décongélation et son heure (20 h),
@@ -620,20 +627,29 @@ pour le palier 3 »). Tout HORS LIGNE.
   à la main ; les restes n'y comptent pas) ; `restesJusquau` (Thermoguide :
   3 jours au frigo, 3 mois au congélateur) ; `decongelationsDu` (ce qu'un
   repas prévu demande et qui n'est QU'au congélateur — ou ses restes
-  congelés) ; recherche (nom, région, ingrédients) et TRI (récentes, A à Z,
-  protéines, calories, rapides).
+  congelés) ; RÉGIONS (`grandeRegionDe`, `dansLaRegion` : « Sénégalaise »
+  est en « Afrique de l'Ouest », à la casse et aux accents près) ;
+  recherche (nom, région ET grande région, ingrédients) et TRI (récentes,
+  A à Z, protéines, calories, rapides).
 - **« Même aliment »** (`memeAliment`, `calculs_courses.dart`) : la clé
   recouvre l'autre (« lait » ↔ « lait 2 % ») ET le rayon deviné est le
   même — « beurre » ne décompte pas le « beurre d'arachide ».
 - **Écrans** (`ecrans/alimentation/recettes/`) : `recettes_ecran` (le
   livre : Nouvelle recette, Ma semaine, recherche, moment / tri / région
-  en rangées de capsules qui DÉFILENT de côté — `RangeePuces` —, livre
-  vide → « Recettes de départ »), `recette_ecran` (la fiche : par portion,
+  en rangées de capsules qui DÉFILENT de côté — `RangeePuces`, la capsule
+  choisie ramenée dans la rangée à l'ouverture ; la région : les grandes
+  régions du livre, puis leurs cuisines s'il y a de quoi choisir ; une
+  capsule choisie, touchée de nouveau, se retire —, livre vide →
+  « Recettes de départ »), `recette_ecran` (la fiche : par portion,
   temps, Cuisiner, À la liste, Planifier, Noter au journal, restes, portions
   ajustables dans le titre des ingrédients, menthe « déjà là », étapes aux
   minuteurs soulignés), `recette_formulaire_ecran` (nom, moments, ce
   qu'elle donne, temps, ingrédients, étapes UNE PAR LIGNE avec les
-  minuteurs repérés en direct, région en capsules, note, se congèle, par
+  minuteurs repérés en direct, région — `ChoixRegion` : « Aucune » puis
+  les grandes régions, l'une choisie → ses cuisines ; toucher de nouveau la
+  capsule choisie la RETIRE (une cuisine rend sa grande région, la grande
+  région rend « aucune ») ; les régions tapées à la main reviennent en
+  capsules —, note, se congèle, par
   portion en direct ; nouvelle → la fiche remplace le formulaire ;
   supprimer en deux temps → retour au livre, `retirerEcrans(context, 2)`),
   `ingredient_ecran` (chercher : produits puis FCÉN, « Ingrédient libre » ;
@@ -642,7 +658,17 @@ pour le palier 3 »). Tout HORS LIGNE.
   `cuisine_ecran` (MODE CUISINE : écran allumé, portions, mise en place
   cochée — toute cochée, elle se replie, « Revoir » —, étapes une à une en
   Bricolage 23, minuteurs d'un toucher, toutes les étapes, « C'est
-  prêt »), `pret_ecran` (j'en mange maintenant + moment → JOURNAL ; restes
+  prêt » ; « Précédente » / « Suivante » dans une BARRE FIXE en bas —
+  `BarreCuisine`, les minuteurs en cours au-dessus — : une étape plus
+  longue ou sans minuteur ne les fait plus SAUTER sous le doigt (retour de
+  l'utilisateur, 25 sept.) ; « Précédente » toujours là, éteinte à la
+  première étape ; l'étape changée hors de l'écran, la page défile jusqu'à
+  elle ; l'étape ENTIÈRE — texte ET boutons de minuteur, `_Etape` — change
+  en FONDU ENCHAÎNÉ (l'ancienne s'efface, puis la nouvelle paraît :
+  jamais deux textes superposés) pendant que la hauteur du bloc GLISSE
+  (`AnimatedSize`, 300 ms, les deux ensemble) : la liste des étapes
+  descend ou remonte en douceur — retour de l'utilisateur : le minuteur
+  disparaissait AVANT le texte, puis tout sautait à la fin du fondu), `pret_ecran` (j'en mange maintenant + moment → JOURNAL ; restes
   au frigo / au congélateur — d'emblée au congélateur pour un lot ≥ 4
   portions qui se congèle — / pas de restes ; garde-manger décompté, coché
   quand on le sait), `ajout_liste_ecran` (« À la liste » d'une recette ou
@@ -836,11 +862,20 @@ test/recettes_test.dart   étapes, minuteurs, quantités, besoins (placard,
                           journal + restes + garde-manger, restes mangés,
                           plan, départ), JSON, rappels, conseil du soir
 test/recettes_ecrans_test.dart  au doigt : fiche → cuisine (minuteur,
-                          étapes) → prêt ; écrire une recette ; ma semaine
-                          (prévoir, liste, lot) ; restes d'un toucher ;
-                          petit écran
+                          étapes) → prêt ; les boutons du mode cuisine
+                          qui ne bougent pas ; la région (choisir,
+                          préciser, retirer, filtrer le livre) et
+                          « Enregistrer » touché deux fois clavier ouvert ;
+                          écrire une recette ; ma semaine (prévoir, liste,
+                          lot) ; restes d'un toucher ; petit écran
 test/outils/captures_alimentation_test.dart  (en plus) « captures des
-                          recettes » (c01 à c28, à 17 h 30)
+                          recettes » (c01 à c28 et c17b — la région —, à
+                          17 h 30)
+test/outils/transitions_test.dart  les transitions vers les écrans
+                          secondaires, aller et retour, image par image
+                          (0 à 700 ms, animations réelles) ; le changement
+                          d'étape du mode cuisine (images + position de la
+                          liste des étapes, image par image)
 test/outils/captures_test.dart  captures PNG hors appareil (format maquette
                           390 × 844 et S26 Ultra), scène d'ouverture image
                           par image :
@@ -1014,6 +1049,35 @@ lancer aussi DEPUIS L'ICÔNE.
 - Deux sessions en même temps (l'autre sur le corps 3D) : un
   `flutter test` complet peut échouer « au chargement » pendant qu'un
   fichier de l'autre change — relancer avant de conclure.
+- ⛔ Double ENREGISTREMENT : entre un toucher et la prochaine image,
+  Flutter absorbe les touchers (le Navigator, pendant un push / pop) ;
+  mais CLAVIER OUVERT, `pousserEcran` / `retirerEcran` / `remplacerEcran`
+  attendent 280 ms qu'il descende — un second « Enregistrer » passait
+  (deux recettes, deux entrées au journal). Tout écran qui ENREGISTRE puis
+  se ferme, avec un champ de texte, commence par
+  `if (transitionEnCours) return;`. Testé (clavier simulé :
+  `tester.view.viewInsets`) — sans clavier, le test ne voit rien.
+- Un `TextSpan` à `recognizer` recréé à chaque `build` annule le toucher
+  en cours quand l'écran se redessine souvent (le mode cuisine, toutes les
+  250 ms dès qu'un minuteur tourne) : `TexteEtape` garde ses gestes tant
+  que le texte ne change pas.
+- Une rangée qui défile de côté : `Scrollable.ensureVisible` fait défiler
+  TOUS les ancêtres (la page aussi) — pour ramener la capsule choisie,
+  calculer le décalage et `jumpTo` sur la rangée seule (`RangeePuces`).
+- ⛔ `AnimatedSwitcher` à `layoutBuilder` en `Stack` : l'ancien enfant
+  RETIENT la hauteur (le max des deux) jusqu'à la fin du fondu, puis tout
+  saute ; et ce qui est HORS du switcher (les boutons de minuteur) change
+  tout de suite, avant le texte. Tout ce qui change avec l'étape va DANS le
+  switcher ; les anciens enfants en `Positioned` (sans taille) ; la
+  hauteur dans un `AnimatedSize` de même durée.
+- Films de tests : un `pump(durée)` UNIQUE après un toucher ne rend
+  qu'UNE image — les animations y démarrent à 0 (écran noir, onglet pas
+  changé) ; et un écran poussé naît HORS SCÈNE à sa première image
+  (`find` ne le voit pas) : `pump()` puis `pump(durée)`, ou des pas de
+  100 ms.
+- Tests : `find.text` trouve aussi le texte d'un CHAMP (`EditableText`) —
+  une capsule dont le libellé est aussi dans le champ : chercher sous son
+  widget (`find.descendant(of: find.byType(ChoixRegion), …)`).
 
 ## 6. Prochaines étapes (à valider avec l'utilisateur)
 
@@ -1022,8 +1086,9 @@ lancer aussi DEPUIS L'ICÔNE.
   soutien discret sur l'écran verrouillé).
 - **Alimentation : palier 3 livré (à tester), puis 4 (IA)** — § 3
   quater ; on n'avance qu'après les retours de l'utilisateur sur le palier
-  précédent. Au palier 4 : choisir la RÉGION et le TYPE DE REPAS avant de
-  générer une recette (demande du 25 sept.). En suspens : héberger le
+  précédent. Au palier 4 : choisir la RÉGION (les grandes régions et leurs
+  cuisines, `ChoixRegion`) et le TYPE DE REPAS avant de générer une
+  recette (demande du 25 sept.). En suspens : héberger le
   barème des taxes en ligne (et la permission INTERNET, qui viendra avec
   l'IA). À vérifier sur le téléphone : un minuteur du mode cuisine quand
   l'app passe derrière (notification inexacte), le rappel de
@@ -1047,7 +1112,26 @@ lancer aussi DEPUIS L'ICÔNE.
 
 ---
 
-**Dernière mise à jour** : 25 septembre 2026 (suite 4) — **Alimentation,
+**Dernière mise à jour** : 25 septembre 2026 (suite 6) — le mode
+cuisine, retour de l'utilisateur (« le minuteur, sa disparition et son
+apparition, n'est pas synchronisé avec le reste, le saut persiste ») :
+l'étape entière (texte + minuteurs) en fondu enchaîné, hauteur qui glisse
+en même temps ; filmé image par image (étape à minuteur → sans → à
+minuteur : la liste glisse de 482 à 422 px en 300 ms, sans à-coup). 153
+tests ; release installée (`install -r`, 13 h 08), non lancée.
+— 25 septembre 2026 (suite 5) — retours de
+l'utilisateur sur le palier 3 : les RÉGIONS en 16 grandes régions (les
+cinq Afriques, l'Europe, les Amériques, les Asies…) et leurs cuisines,
+choisies en deux rangées, retirées d'un toucher (« Aucune », ou la capsule
+choisie touchée de nouveau), filtre du livre par grande région ; le MODE
+CUISINE : « Précédente » / « Suivante » dans une barre fixe en bas (plus de
+saut quand une étape a un minuteur et la suivante non). Revue : double
+enregistrement clavier ouvert (8 écrans de l'Alimentation), minuteur
+souligné qui ignorait un toucher sur deux pendant qu'un autre tournait ;
+transitions filmées image par image depuis les sections principales :
+rien de cassé. 153 tests ; release installée (`install -r`, 12 h 46),
+non lancée.
+— 25 septembre 2026 (suite 4) — **Alimentation,
 palier 3 : les recettes** (§ 3 quater) : livre (recherche, moments, tri,
 régions), recette écrite à la main (ingrédients du FCÉN, de mes produits
 ou libres ; macros par la base ; étapes aux minuteurs repérés), 8

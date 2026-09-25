@@ -7,6 +7,8 @@
 // autres fruits… »). Changer l'emplacement recalcule la date. « Ne pas
 // ranger » l'écarte ; ce qui n'est pas alimentaire (entretien, hygiène)
 // n'y va pas. « Tout ranger » : au garde-manger, puis retour à la liste.
+// Un aliment HORS DU GUIDE : « Comment le garder ? » le demande à l'IA
+// (palier 4) — où, jusqu'à quand et comment suivent sa réponse.
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -30,6 +32,7 @@ import '../../../widgets/page_secondaire.dart';
 import '../../../widgets/pression_echelle.dart';
 import '../../../widgets/toast.dart';
 import '../../../l10n/libelles_courses.dart';
+import '../ia/conservation_ia.dart';
 import 'pieces_courses.dart';
 
 class RangerEcran extends ConsumerStatefulWidget {
@@ -53,6 +56,7 @@ class _RangerEcranState extends ConsumerState<RangerEcran> {
     final notifier = ref.read(coursesProvider.notifier);
     final a = widget.achat;
     final bareme = baremeAu(a.date);
+    final apprises = ref.read(coursesProvider).conservations;
     _propositions = [
       for (final l in a.lignes)
         ?rangementPropose(
@@ -61,6 +65,7 @@ class _RangerEcranState extends ConsumerState<RangerEcran> {
           date: jourDe(a.date),
           bareme: bareme,
           magasin: a.magasin,
+          apprises: apprises,
         ),
     ];
     _nonAlimentaires = [
@@ -89,6 +94,7 @@ class _RangerEcranState extends ConsumerState<RangerEcran> {
     final tr = context.tr;
     final f = context.formats;
     final auj = ref.watch(aujourdhuiProvider);
+    final apprises = ref.watch(coursesProvider).conservations;
     final a = widget.achat;
     final nombre = _propositions.length - _ecartes.length;
     return PageSecondaire(
@@ -111,6 +117,7 @@ class _RangerEcranState extends ConsumerState<RangerEcran> {
             article: p,
             ecarte: _ecartes.contains(p.id),
             aujourdhui: auj,
+            apprises: apprises,
             onChanged: (x) => _remplacer(i, x),
             onEcarter: () => setState(() {
               _ecartes.contains(p.id)
@@ -151,6 +158,7 @@ class _Proposition extends StatelessWidget {
     required this.article,
     required this.ecarte,
     required this.aujourdhui,
+    required this.apprises,
     required this.onChanged,
     required this.onEcarter,
   });
@@ -158,6 +166,9 @@ class _Proposition extends StatelessWidget {
   final ArticleGardeManger article;
   final bool ecarte;
   final DateTime aujourdhui;
+
+  /// Les repères de conservation appris de l'IA.
+  final Map<String, Conservation> apprises;
   final ValueChanged<ArticleGardeManger> onChanged;
   final VoidCallback onEcarter;
 
@@ -166,7 +177,7 @@ class _Proposition extends StatelessWidget {
     final tr = context.tr;
     final f = context.formats;
     final a = article;
-    final g = conservationDe(a.nom, a.rayon);
+    final g = conservationDe(a.nom, a.rayon, apprises: apprises);
     final duree = g.dureeA(a.emplacement);
     return AnimatedOpacity(
       duration: const Duration(milliseconds: 200),
@@ -206,6 +217,23 @@ class _Proposition extends StatelessWidget {
               g.conseil,
               style: RhythmTypo.texte(13, couleur: RhythmCouleurs.peche),
             ),
+            if (repereDeLIa(a.nom, apprises)) ...[
+              const SizedBox(height: 4),
+              Text(tr.iaRepereDeLIa, style: RhythmTypo.petit),
+            ] else if (horsDuGuide(a.nom, apprises)) ...[
+              const SizedBox(height: 10),
+              DemandeConservation(
+                nom: a.nom,
+                rayon: a.rayon,
+                onAppris: (c) => onChanged(
+                  a.copierAvec(
+                    emplacement: c.ideal,
+                    peremption: () =>
+                        peremptionProposee(c, c.ideal, jourDe(aujourdhui)),
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: 12),
             ChoixEmplacement(
               valeur: a.emplacement,

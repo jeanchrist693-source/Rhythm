@@ -36,6 +36,7 @@ import '../../../widgets/formulaire.dart';
 import '../../../widgets/page_secondaire.dart';
 import '../../../widgets/pictos.dart';
 import '../../sports/pieces_sports.dart';
+import '../ia/plan_ia_ecran.dart';
 import '../pieces_alimentation.dart';
 import 'ajout_liste_ecran.dart';
 import 'choisir_plat_ecran.dart';
@@ -135,6 +136,16 @@ class _PlanEcranState extends ConsumerState<PlanEcran> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             TitreSection(tr.cetteSemaine),
+            LigneReglage(
+              gauche: const PictoCercle(
+                Picto.etincelles,
+                couleur: RhythmCouleurs.peche,
+              ),
+              libelle: tr.iaPlanifierAvecIa,
+              detail: tr.iaPlanifierDetail,
+              onTap: () => pousserEcran(context, PlanIaEcran(retour: titre)),
+            ),
+            const Filet(),
             LigneReglage(
               gauche: const PictoCercle(
                 Picto.panier,

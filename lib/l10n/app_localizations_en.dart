@@ -4277,4 +4277,563 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get revoir => 'Show';
+
+  @override
+  String get iaErrQuota =>
+      'The AI service hit its free limit for now. Try again in a minute.';
+
+  @override
+  String get iaErrSurcharge =>
+      'The AI service isn\'t responding right now. Try again shortly.';
+
+  @override
+  String get iaErrNonAutorise =>
+      'The AI service refused the request (invalid key).';
+
+  @override
+  String get iaErrModele => 'The AI model is unavailable right now.';
+
+  @override
+  String get iaErrIllisible => 'The AI\'s answer couldn\'t be read. Try again.';
+
+  @override
+  String get iaErrReseau =>
+      'No Internet connection: the assistant needs the network.';
+
+  @override
+  String get iaErrSansCle =>
+      'The assistant isn\'t set up in this build (missing AI key).';
+
+  @override
+  String get reessayer => 'Try again';
+
+  @override
+  String get mentionIa =>
+      'Online assistant (Groq). Nothing personal is sent: not your name, your weight or your habits. Calories and macros are computed on your phone from the Canadian Nutrient File.';
+
+  @override
+  String get horsDeLaBase => 'not in the database';
+
+  @override
+  String get iaAssistant => 'Assistant';
+
+  @override
+  String get iaAssistantDetail => 'Recipe ideas, week, gap, review';
+
+  @override
+  String get iaAssistantSurtitre => 'Nutrition · AI';
+
+  @override
+  String get iaAssistantIntro =>
+      'I suggest, you choose — the numbers stay Rhythm\'s.';
+
+  @override
+  String get iaIdees => 'Recipe ideas';
+
+  @override
+  String get iaIdeesCourt => 'Ideas';
+
+  @override
+  String get iaIdeesDetail => 'By cuisine, meal and what you have';
+
+  @override
+  String get iaIdeesSurtitre => 'Suggested by AI';
+
+  @override
+  String get iaAvecCeQuiPresse => 'Use what\'s expiring';
+
+  @override
+  String get iaRienNePresse => 'Nothing\'s expiring in the pantry';
+
+  @override
+  String get iaIdeesPourLesUtiliser => 'Ideas to use them up';
+
+  @override
+  String get iaIdeesPourLesUtiliserDetail =>
+      'Recipes with what\'s expiring, before it goes to waste';
+
+  @override
+  String get iaEcart => 'Close the gap';
+
+  @override
+  String iaIlTeReste(String kcal) {
+    return '$kcal left today';
+  }
+
+  @override
+  String get iaObjectifAtteint => 'Today\'s goal reached';
+
+  @override
+  String get iaPlanifier => 'Plan my week';
+
+  @override
+  String get iaPlanifierAvecIa => 'Plan with AI';
+
+  @override
+  String get iaPlanifierDetail => 'The empty slots, with your own recipes';
+
+  @override
+  String get iaPlanifierSurtitre => 'From my recipe book';
+
+  @override
+  String get iaLivreTropPetit =>
+      'Your book has fewer than three recipes: add some first (ideas, starter recipes or your own), then AI can plan your week.';
+
+  @override
+  String get iaLivreTropPetitCourt => 'Add a few recipes first';
+
+  @override
+  String get iaEstimer => 'Estimate a meal';
+
+  @override
+  String iaEstimerNomme(String nom) {
+    return 'Estimate “$nom” with AI';
+  }
+
+  @override
+  String get iaEstimerDetailCourt =>
+      'At a restaurant, at friends\': describe it, AI breaks it down';
+
+  @override
+  String get iaEstimerSurtitre => 'Without a recipe';
+
+  @override
+  String get iaImporter => 'Import a recipe';
+
+  @override
+  String get iaImporterDetailCourt =>
+      'Paste a recipe\'s text: AI structures it';
+
+  @override
+  String get iaImporterSurtitre => 'From a site, an email, a book';
+
+  @override
+  String get iaBilan => 'Weekly review';
+
+  @override
+  String iaBilanDetail(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n days logged out of 7',
+      one: '1 day logged out of 7',
+      zero: 'No day logged out of 7',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get iaAilleurs =>
+      'Also: “Replace an ingredient” in a recipe, and “How to store it?” for a food the storage guide doesn\'t know.';
+
+  @override
+  String get iaAUtiliser => 'To use up';
+
+  @override
+  String get iaCuisine => 'Cuisine';
+
+  @override
+  String get iaPeuImporte => 'Any';
+
+  @override
+  String get iaMoment => 'Meal';
+
+  @override
+  String get iaGenre => 'Kind of dish';
+
+  @override
+  String get iaGenrePlat => 'Main dish';
+
+  @override
+  String get iaGenreSoupe => 'Soup';
+
+  @override
+  String get iaGenreSalade => 'Meal salad';
+
+  @override
+  String get iaGenreSandwich => 'Sandwich, wrap';
+
+  @override
+  String get iaGenreBol => 'Bowl';
+
+  @override
+  String get iaGenreDessert => 'Dessert';
+
+  @override
+  String get iaGenreBoisson => 'Smoothie, drink';
+
+  @override
+  String get iaPortions => 'Servings';
+
+  @override
+  String get iaOptionRapide => 'Quick (30 min)';
+
+  @override
+  String get iaOptionProteinees => 'High protein';
+
+  @override
+  String get iaOptionVegetarien => 'Vegetarian';
+
+  @override
+  String get iaOptionGardeManger => 'From my pantry';
+
+  @override
+  String get iaPrecisions => 'Details (optional)';
+
+  @override
+  String get iaIndicePrecisions => 'no peanuts, oven-baked, tight budget…';
+
+  @override
+  String get iaProposer => 'Suggest 3 ideas';
+
+  @override
+  String get iaAutresIdees => 'Other ideas';
+
+  @override
+  String get iaAttenteIdees => 'AI is looking for ideas… about twenty seconds.';
+
+  @override
+  String get iaPropositions => 'Suggestions';
+
+  @override
+  String get iaAuLivre => 'In the book';
+
+  @override
+  String get iaParPortionCalcule =>
+      'Calories per serving computed by Rhythm from the Canadian Nutrient File.';
+
+  @override
+  String get iaAjouterAuLivre => 'Add to my book';
+
+  @override
+  String get iaVoirDansLeLivre => 'See in my book';
+
+  @override
+  String iaAjouteeAuLivre(String nom) {
+    return '“$nom” added to your book';
+  }
+
+  @override
+  String iaHorsBaseDetail(String noms) {
+    return 'Not in the database: $noms (no nutritional value — refine it in the recipe).';
+  }
+
+  @override
+  String get iaRecetteAVerifier =>
+      'Recipe suggested by AI: check it (cooking, allergens). Nutritional values come from the Canadian Nutrient File, computed by Rhythm.';
+
+  @override
+  String get iaTexteDeLaRecette => 'The recipe text';
+
+  @override
+  String get iaColler => 'Paste';
+
+  @override
+  String get iaIndiceImport => 'Ingredients, steps… as is';
+
+  @override
+  String get iaStructurer => 'Structure it';
+
+  @override
+  String get iaAttenteImport => 'AI is structuring the recipe…';
+
+  @override
+  String get iaPasUneRecette => 'This text doesn\'t look like a recipe.';
+
+  @override
+  String get iaTexteTropCourt => 'Paste a recipe\'s text first.';
+
+  @override
+  String get iaPressePapiersVide => 'The clipboard is empty.';
+
+  @override
+  String get iaImporterAide =>
+      'Nothing is made up: ingredients and steps stay the recipe\'s own, in metric units.';
+
+  @override
+  String get iaLesChiffres => 'The numbers';
+
+  @override
+  String get iaJourneesNotees => 'Days logged';
+
+  @override
+  String iaSurSept(int n) {
+    return '$n of 7';
+  }
+
+  @override
+  String get iaCaloriesParJour => 'Calories per day';
+
+  @override
+  String get iaProteinesParJour => 'Protein per day';
+
+  @override
+  String get iaFibresParJour => 'Fiber per day';
+
+  @override
+  String get iaSodiumParJour => 'Sodium per day';
+
+  @override
+  String iaSurObjectif(String valeur, String objectif) {
+    return '$valeur / $objectif';
+  }
+
+  @override
+  String iaRepere(String valeur, String repere) {
+    return '$valeur · target $repere';
+  }
+
+  @override
+  String iaLimite(String valeur, String limite) {
+    return '$valeur · limit $limite';
+  }
+
+  @override
+  String iaMg(String n) {
+    return '$n mg';
+  }
+
+  @override
+  String iaVerresParJour(String n, int vises) {
+    return '$n / $vises glasses';
+  }
+
+  @override
+  String get iaSeances => 'Workouts';
+
+  @override
+  String get iaJetes => 'Thrown out';
+
+  @override
+  String get iaSouvent => 'Often';
+
+  @override
+  String get iaAvis => 'The assistant\'s take';
+
+  @override
+  String get iaAttenteBilan => 'AI is reading your week…';
+
+  @override
+  String get iaRefaireBilan => 'Redo the review';
+
+  @override
+  String get iaBilanPasMedical =>
+      'A guide to move forward, not medical advice: for follow-up, see a registered dietitian.';
+
+  @override
+  String get iaMomentsARemplir => 'Meals to fill';
+
+  @override
+  String iaCasesLibres(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n empty slots over 7 days',
+      one: '1 empty slot over 7 days',
+      zero: 'No empty slot over 7 days',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get iaProposerSemaine => 'Suggest my week';
+
+  @override
+  String get iaReproposer => 'Suggest something else';
+
+  @override
+  String get iaAttenteSemaine => 'AI is putting your week together…';
+
+  @override
+  String get iaRienAPlanifier => 'Nothing from your book fits these slots.';
+
+  @override
+  String iaAjouterASemaine(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'Add $n meals to my week',
+      one: 'Add 1 meal to my week',
+      zero: 'Nothing to add',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String iaRepasAjoutes(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n meals added to your week',
+      one: '1 meal added to your week',
+      zero: 'No meal added',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get iaPlanDetail =>
+      'What\'s already planned stays. Tap a meal to leave it out.';
+
+  @override
+  String get iaResteAujourdhui => 'left for today';
+
+  @override
+  String get iaPresqueAtteint =>
+      'You have almost everything you need today: a small snack will do.';
+
+  @override
+  String get iaPourQuelRepas => 'For which meal';
+
+  @override
+  String get iaDesIdees => 'Get ideas';
+
+  @override
+  String get iaAttenteEcart => 'AI is looking at what\'s left…';
+
+  @override
+  String iaTotalEtReste(
+    String total,
+    String proteines,
+    String ecart,
+    String genre,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(genre, {
+      'plus': '$ecart over',
+      'other': '$ecart left',
+    });
+    return 'Total: $total · $proteines protein · $_temp0';
+  }
+
+  @override
+  String get iaNote => 'Logged';
+
+  @override
+  String iaNoteAuJournal(String titre) {
+    return '“$titre” logged';
+  }
+
+  @override
+  String iaEcartDetail(String kcal) {
+    return 'Today\'s goal: $kcal. Each option\'s calories are computed by Rhythm.';
+  }
+
+  @override
+  String get iaTonRepas => 'Your meal';
+
+  @override
+  String get iaIndiceEstimer =>
+      '2 slices of all-dressed pizza and a Caesar salad';
+
+  @override
+  String get iaEstimerBouton => 'Estimate';
+
+  @override
+  String get iaReestimer => 'Estimate again';
+
+  @override
+  String get iaAttenteEstimer => 'AI is breaking down your meal…';
+
+  @override
+  String get iaRienAEstimer => 'Nothing to estimate: describe what you ate.';
+
+  @override
+  String get iaCeQueJeCompte => 'What I count';
+
+  @override
+  String iaNoterNombre(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'Log $n foods',
+      one: 'Log 1 food',
+      zero: 'Nothing to log',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String iaAlimentsNotes(int n, String moment) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n foods logged',
+      one: '1 food logged',
+      zero: 'Nothing logged',
+    );
+    return '$_temp0 · $moment';
+  }
+
+  @override
+  String get iaDecrisTonRepas => 'Describe your meal first.';
+
+  @override
+  String get iaEstimerDetail =>
+      'An estimate: quantities are a usual serving. Tap a line to leave it out; a food not in the database isn\'t counted.';
+
+  @override
+  String get iaRemplacer => 'Replace an ingredient';
+
+  @override
+  String get iaRemplacerCourt =>
+      'Don\'t have it, lighter, vegetarian… AI suggests';
+
+  @override
+  String get iaQuelIngredient => 'Which ingredient';
+
+  @override
+  String get iaPourquoiRemplacer => 'Why';
+
+  @override
+  String get iaRaisonManque => 'Don\'t have it';
+
+  @override
+  String get iaRaisonLeger => 'Lighter';
+
+  @override
+  String get iaRaisonProteine => 'More protein';
+
+  @override
+  String get iaRaisonVegetarien => 'Vegetarian';
+
+  @override
+  String get iaRaisonAllergie => 'Allergy';
+
+  @override
+  String iaProposerRemplacants(String nom) {
+    return 'Replace “$nom”';
+  }
+
+  @override
+  String get iaAttenteRemplacants => 'AI is looking for substitutes…';
+
+  @override
+  String iaParPortionDiff(String kcal, String prot) {
+    return 'Per serving: $kcal · $prot protein';
+  }
+
+  @override
+  String get iaRemplacerBouton => 'Replace';
+
+  @override
+  String iaRemplace(String avant, String apres) {
+    return '“$avant” replaced with “$apres”';
+  }
+
+  @override
+  String get iaRemplacerDetail =>
+      'The substitute\'s values come from the Canadian Nutrient File. With an allergy, always check the labels.';
+
+  @override
+  String get iaHorsDuGuide =>
+      'This food isn\'t in the storage guide: these are the aisle\'s general guidelines.';
+
+  @override
+  String get iaCommentLeGarder => 'How to store it?';
+
+  @override
+  String get iaAttenteConservation => 'AI is looking up how to store it…';
+
+  @override
+  String get iaRepereDeLIa => 'AI guidance: check the packaging too.';
 }

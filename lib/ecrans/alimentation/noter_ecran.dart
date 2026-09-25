@@ -42,6 +42,7 @@ import '../../widgets/pression_echelle.dart';
 import '../../widgets/suivi_clavier.dart';
 import '../../widgets/toast.dart';
 import 'entree_rapide_ecran.dart';
+import 'ia/estimer_ecran.dart';
 import 'pieces_alimentation.dart';
 import 'portion_ecran.dart';
 import 'produit_formulaire_ecran.dart';
@@ -356,6 +357,17 @@ class _NoterEcranState extends ConsumerState<NoterEcran>
               ),
             ),
           ),
+          LigneReglage(
+            libelle: tr.iaEstimer,
+            detail: tr.iaEstimerDetailCourt,
+            onTap: () => _ouvrir(
+              EstimerEcran(
+                jour: widget.jour,
+                moment: _moment,
+                retour: tr.noterUnRepas,
+              ),
+            ),
+          ),
         ],
       ),
     ];
@@ -453,6 +465,18 @@ class _NoterEcranState extends ConsumerState<NoterEcran>
               moment: _moment,
               retour: tr.noterUnRepas,
               nom: requete,
+            ),
+          ),
+        ),
+        LigneReglage(
+          libelle: tr.iaEstimerNomme(requete),
+          detail: tr.iaEstimerDetailCourt,
+          onTap: () => _ouvrir(
+            EstimerEcran(
+              jour: widget.jour,
+              moment: _moment,
+              retour: tr.noterUnRepas,
+              description: requete,
             ),
           ),
         ),

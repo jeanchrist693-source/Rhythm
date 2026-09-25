@@ -57,6 +57,11 @@ class AlimentBase {
   /// Les mots de la première partie du nom (« Pomme » dans « Pomme, crue »).
   final List<String> _tete;
 
+  /// Ce qu'est l'aliment : les mots de la première partie de son nom, après
+  /// un préfixe générique (« riz blanc » dans « Grains céréaliers, riz
+  /// blanc, cuit »).
+  List<String> get tete => _tete;
+
   /// Où commence vraiment le nom : après un préfixe générique du FCÉN
   /// (« Grains céréaliers, riz blanc » : au mot 2).
   final int _debut;

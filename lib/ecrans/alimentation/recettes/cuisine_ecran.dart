@@ -3,10 +3,12 @@
 // LE MODE CUISINE : l'écran reste ALLUMÉ ; les portions s'ajustent (les
 // quantités suivent) ; la MISE EN PLACE se coche ingrédient par ingrédient
 // (toute cochée, elle se replie en une ligne : l'étape remonte) ; puis les
-// ÉTAPES une à une, en grand (lisibles de loin), « Précédente » /
-// « Suivante » ; les durées écrites dans une étape sont soulignées : un
-// toucher lance le MINUTEUR (plusieurs à la fois — le riz pendant que le
-// poulet dore), posés en bas avec ce qu'il reste ; à la fin, une vibration
+// ÉTAPES une à une, en grand (lisibles de loin) ; « Précédente » /
+// « Suivante » sont FIXES en bas de l'écran (une étape plus longue ou sans
+// minuteur ne les déplace plus sous le doigt) ; les durées écrites dans une
+// étape sont soulignées : un toucher lance le MINUTEUR (plusieurs à la
+// fois — le riz pendant que le poulet dore), posés en bas, au-dessus des
+// boutons, avec ce qu'il reste ; à la fin, une vibration
 // forte et un mot (et une notification si l'app est passée derrière). La
 // liste de toutes les étapes permet de sauter à l'une d'elles. « C'est
 // prêt » cède la place au bilan (`pret_ecran.dart`).
@@ -71,6 +73,9 @@ class _CuisineEcranState extends ConsumerState<CuisineEcran> {
   int _etape = 0;
   Timer? _horloge;
 
+  /// Le bloc de l'étape en cours (la page le ramène à l'écran).
+  final _cleEtape = GlobalKey();
+
   @override
   void initState() {
     super.initState();
@@ -133,6 +138,35 @@ class _CuisineEcranState extends ConsumerState<CuisineEcran> {
       ? context.formats.minutes(d.inMinutes)
       : context.tr.secondes(d.inSeconds);
 
+  void _allerA(int etape) {
+    HapticFeedback.selectionClick();
+    setState(() => _etape = etape);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _montrerEtape());
+  }
+
+  /// L'étape change alors qu'elle est hors de l'écran (sous la mise en
+  /// place, au-dessus de la liste des étapes) : la page défile jusqu'à elle.
+  void _montrerEtape() {
+    final bloc = _cleEtape.currentContext;
+    final boite = bloc?.findRenderObject();
+    if (!mounted || bloc == null || boite is! RenderBox || !boite.attached) {
+      return;
+    }
+    final haut = boite.localToGlobal(Offset.zero).dy;
+    final marges = MediaQuery.viewPaddingOf(context);
+    final limite =
+        MediaQuery.sizeOf(context).height -
+        marges.bottom -
+        hauteurBarreCuisine(ref.read(minuteursProvider).length);
+    if (haut >= marges.top && haut + boite.size.height <= limite) return;
+    Scrollable.ensureVisible(
+      bloc,
+      alignment: 0.12,
+      duration: const Duration(milliseconds: 320),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
   void _pret() {
     HapticFeedback.mediumImpact();
     remplacerEcran(
@@ -157,10 +191,11 @@ class _CuisineEcranState extends ConsumerState<CuisineEcran> {
     final maintenant = ref.read(horlogeProvider)();
     final etapes = r.etapes;
     final derniere = _etape >= etapes.length - 1;
+    final etape = _etape;
 
     final page = PageSecondaire(
       retour: widget.retour,
-      basSupplementaire: hauteurBarreMinuteurs(minuteurs.length),
+      basSupplementaire: hauteurBarreCuisine(minuteurs.length),
       enfants: [
         TitreSecondaire(
           titre: r.nom,
@@ -220,92 +255,50 @@ class _CuisineEcranState extends ConsumerState<CuisineEcran> {
             ],
           ),
         if (etapes.isEmpty)
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(tr.sansEtapes, style: RhythmTypo.detail),
-              const SizedBox(height: 16),
-              BoutonPlein(
-                libelle: tr.cestPret,
-                largeurPleine: true,
-                hauteur: 52,
-                taillePolice: 15,
-                onTap: _pret,
-              ),
-            ],
-          )
+          Text(tr.sansEtapes, style: RhythmTypo.detail)
         else
           Column(
+            key: _cleEtape,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               TitreSection(
                 tr.etapeSur(_etape + 1, etapes.length),
                 couleur: RhythmCouleurs.peche,
               ),
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 220),
-                layoutBuilder: (actuel, precedents) => Stack(
-                  alignment: Alignment.topLeft,
-                  children: [...precedents, ?actuel],
-                ),
-                child: TexteEtape(
-                  key: ValueKey(_etape),
-                  texte: etapes[_etape],
-                  style: RhythmTypo.titre(
-                    23,
-                    poids: 500,
-                    espacement: -0.01,
-                    hauteur: 1.3,
+              // L'étape ENTIÈRE — son texte ET ses minuteurs — change d'un
+              // seul fondu, et la hauteur du bloc glisse vers la nouvelle
+              // PENDANT ce fondu : le minuteur ne disparaît plus avant le
+              // texte, et ce qui suit (la liste des étapes) glisse au lieu
+              // de sauter à la fin.
+              AnimatedSize(
+                duration: _dureeEtape,
+                curve: Curves.easeInOutCubic,
+                alignment: Alignment.topCenter,
+                child: AnimatedSwitcher(
+                  duration: _dureeEtape,
+                  // En fondu ENCHAÎNÉ : l'ancienne étape s'efface dans la
+                  // première moitié, la nouvelle paraît dans la seconde —
+                  // jamais deux textes l'un sur l'autre.
+                  switchInCurve: const Interval(0.5, 1, curve: Curves.easeOut),
+                  switchOutCurve: const Interval(0.5, 1, curve: Curves.easeIn),
+                  // Seule la nouvelle étape donne sa taille ; l'ancienne
+                  // s'efface par-dessus, sans retenir la hauteur.
+                  layoutBuilder: (actuel, precedents) => Stack(
+                    clipBehavior: Clip.none,
+                    alignment: Alignment.topLeft,
+                    children: [
+                      for (final p in precedents)
+                        Positioned(top: 0, left: 0, right: 0, child: p),
+                      ?actuel,
+                    ],
                   ),
-                  onMinuteur: (m) => _lancer(m, _etape),
-                ),
-              ),
-              if (minuteursDans(etapes[_etape]) case final reperes
-                  when reperes.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: [
-                    for (final m in reperes)
-                      BoutonCapsule(
-                        picto: Picto.chrono,
-                        libelle: tr.lancerMinuteur(_duree(m.duree)),
-                        onTap: () => _lancer(m, _etape),
-                      ),
-                  ],
-                ),
-              ],
-              const SizedBox(height: 22),
-              Row(
-                children: [
-                  if (_etape > 0) ...[
-                    Expanded(
-                      child: BoutonContour(
-                        libelle: tr.precedente,
-                        onTap: () {
-                          HapticFeedback.selectionClick();
-                          setState(() => _etape--);
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                  ],
-                  Expanded(
-                    flex: 2,
-                    child: BoutonPlein(
-                      libelle: derniere ? tr.cestPret : tr.suivante,
-                      hauteur: 48,
-                      fleche: !derniere,
-                      onTap: derniere
-                          ? _pret
-                          : () {
-                              HapticFeedback.selectionClick();
-                              setState(() => _etape++);
-                            },
-                    ),
+                  child: _Etape(
+                    key: ValueKey(_etape),
+                    texte: etapes[_etape],
+                    duree: _duree,
+                    onMinuteur: (m) => _lancer(m, etape),
                   ),
-                ],
+                ),
               ),
             ],
           ),
@@ -321,10 +314,7 @@ class _CuisineEcranState extends ConsumerState<CuisineEcran> {
                   selected: i == _etape,
                   child: PressionEchelle(
                     echelle: 0.98,
-                    onTap: () {
-                      HapticFeedback.selectionClick();
-                      setState(() => _etape = i);
-                    },
+                    onTap: () => _allerA(i),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 11),
                       child: Row(
@@ -378,27 +368,121 @@ class _CuisineEcranState extends ConsumerState<CuisineEcran> {
       ],
     );
 
+    // Le bouton principal : « Suivante », puis « C'est prêt » à la dernière
+    // étape (ou d'emblée, sans étapes).
+    final principal = BoutonPlein(
+      libelle: derniere ? tr.cestPret : tr.suivante,
+      hauteur: 48,
+      fleche: !derniere,
+      onTap: derniere ? _pret : () => _allerA(_etape + 1),
+    );
+
+    // « Précédente » et « Suivante » restent en bas de l'écran, à la même
+    // place d'une étape à l'autre : une étape plus longue, ou sans minuteur,
+    // ne les fait plus sauter sous le doigt. « Précédente » est toujours là
+    // (éteinte à la première étape) : « Suivante » ne change pas de largeur.
     return Stack(
       children: [
         page,
-        if (minuteurs.isNotEmpty)
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: BarreMinuteurs(
-              minuteurs: minuteurs,
-              maintenant: maintenant,
-              onPlus: (id) {
-                HapticFeedback.selectionClick();
-                ref.read(minuteursProvider.notifier).ajouterMinute(id);
-              },
-              onArreter: (id) {
-                HapticFeedback.selectionClick();
-                ref.read(minuteursProvider.notifier).arreter(id);
-              },
-            ),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: BarreCuisine(
+            minuteurs: minuteurs,
+            maintenant: maintenant,
+            onPlus: (id) {
+              HapticFeedback.selectionClick();
+              ref.read(minuteursProvider.notifier).ajouterMinute(id);
+            },
+            onArreter: (id) {
+              HapticFeedback.selectionClick();
+              ref.read(minuteursProvider.notifier).arreter(id);
+            },
+            pied: etapes.isEmpty
+                ? principal
+                : Row(
+                    children: [
+                      Expanded(
+                        child: Semantics(
+                          enabled: _etape > 0,
+                          child: IgnorePointer(
+                            ignoring: _etape == 0,
+                            child: AnimatedOpacity(
+                              opacity: _etape > 0 ? 1 : 0.3,
+                              duration: const Duration(milliseconds: 160),
+                              child: BoutonContour(
+                                libelle: tr.precedente,
+                                hauteur: 48,
+                                onTap: () => _allerA(_etape - 1),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(flex: 2, child: principal),
+                    ],
+                  ),
           ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Un changement d'étape : le fondu et la hauteur, ensemble.
+const Duration _dureeEtape = Duration(milliseconds: 300);
+
+/// Une étape du mode cuisine : son texte en grand (les durées soulignées,
+/// touchables), puis un bouton par minuteur — un seul bloc, qui entre et
+/// sort d'un seul fondu.
+class _Etape extends StatelessWidget {
+  const _Etape({
+    super.key,
+    required this.texte,
+    required this.duree,
+    required this.onMinuteur,
+  });
+
+  final String texte;
+
+  /// « 5 min », « 30 s ».
+  final String Function(Duration) duree;
+  final ValueChanged<RepereMinuteur> onMinuteur;
+
+  @override
+  Widget build(BuildContext context) {
+    final tr = context.tr;
+    final reperes = minuteursDans(texte);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        TexteEtape(
+          texte: texte,
+          style: RhythmTypo.titre(
+            23,
+            poids: 500,
+            espacement: -0.01,
+            hauteur: 1.3,
+          ),
+          onMinuteur: onMinuteur,
+        ),
+        if (reperes.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              for (final m in reperes)
+                BoutonCapsule(
+                  picto: Picto.chrono,
+                  libelle: tr.lancerMinuteur(duree(m.duree)),
+                  onTap: () => onMinuteur(m),
+                ),
+            ],
+          ),
+        ],
       ],
     );
   }

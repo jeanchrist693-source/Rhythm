@@ -5,6 +5,10 @@
          l'heure. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <!-- L'assistant de l'Alimentation (palier 4) : l'IA de Groq, en ligne,
+         seulement quand on la sollicite. Le reste de l'app ne sort jamais
+         du téléphone. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="Rhythm"
         android:name="${applicationName}"

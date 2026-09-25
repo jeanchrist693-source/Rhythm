@@ -12,8 +12,9 @@
 //
 // Un aliment se reconnaît par des EXPRESSIONS (mots simplifiés, au
 // singulier) : la plus longue qui répond gagne (« beurre d'arachide »
-// avant « beurre », « pomme de terre » avant « pomme »). Sans rien de
-// reconnu : un repère général du rayon.
+// avant « beurre », « pomme de terre » avant « pomme »). Hors du guide : un
+// repère APPRIS de l'IA pour cet aliment (palier 4, demandé une fois et
+// gardé : `EtatCourses.conservations`), sinon un repère général du rayon.
 
 import 'courses.dart';
 import 'expressions.dart';
@@ -58,6 +59,47 @@ class Conservation {
     Emplacement.congelateur => congelo,
     Emplacement.armoire || Emplacement.comptoir => ambiant,
   };
+
+  // Un repère APPRIS se garde (table `conservationIa`, id = sa clé).
+
+  Map<String, dynamic> versJson() => {
+    'id': expressions.isEmpty ? '' : expressions.first,
+    'rayon': rayon.name,
+    'ideal': ideal.name,
+    'conseil': conseil,
+    'frigo': ?_duree(frigo),
+    'congelo': ?_duree(congelo),
+    'ambiant': ?_duree(ambiant),
+    'ouvert': ?_duree(ouvert),
+  };
+
+  static List<int>? _duree(Duree? d) => d == null ? null : [d.$1, d.$2];
+
+  static Conservation? depuisJson(Object? j) {
+    if (j is! Map) return null;
+    final id = j['id'];
+    if (id is! String || id.isEmpty) return null;
+    Duree? duree(Object? v) {
+      if (v is! List || v.length != 2) return null;
+      final a = v[0], b = v[1];
+      if (a is! num || b is! num || a < 0 || b < a) return null;
+      return (a.toInt(), b.toInt());
+    }
+
+    T valeur<T extends Enum>(List<T> valeurs, Object? v, T defaut) =>
+        valeurs.where((x) => x.name == v).firstOrNull ?? defaut;
+    final conseil = j['conseil'];
+    return Conservation(
+      [id],
+      valeur(Rayon.values, j['rayon'], Rayon.autre),
+      valeur(Emplacement.values, j['ideal'], Emplacement.frigo),
+      conseil is String ? conseil : '',
+      frigo: duree(j['frigo']),
+      congelo: duree(j['congelo']),
+      ambiant: duree(j['ambiant']),
+      ouvert: duree(j['ouvert']),
+    );
+  }
 }
 
 // ═══ Le guide ═══════════════════════════════════════════════════════════════
@@ -1359,9 +1401,26 @@ Conservation? guideDe(String nom) => meilleureExpression(motsSimplifies(nom), [
   for (final g in kGuideConservation) (g, g.expressions),
 ]);
 
-/// Le repère de [nom] : le guide, sinon celui du [rayon].
-Conservation conservationDe(String nom, Rayon rayon) =>
-    guideDe(nom) ?? conservationDuRayon(rayon);
+/// La clé d'un repère APPRIS : les mots simplifiés du nom (« Kombucha au
+/// gingembre » → « kombucha au gingembre »).
+String cleConservation(String nom) => motsSimplifies(nom).join(' ');
+
+/// Le repère de [nom] : le guide, sinon un repère appris ([apprises], par
+/// [cleConservation]), sinon celui du [rayon].
+Conservation conservationDe(
+  String nom,
+  Rayon rayon, {
+  Map<String, Conservation> apprises = const {},
+}) =>
+    guideDe(nom) ??
+    apprises[cleConservation(nom)] ??
+    conservationDuRayon(rayon);
+
+/// Ni au guide, ni appris : l'IA peut être consultée pour [nom].
+bool horsDuGuide(String nom, Map<String, Conservation> apprises) =>
+    nom.trim().isNotEmpty &&
+    guideDe(nom) == null &&
+    !apprises.containsKey(cleConservation(nom));
 
 /// La date proposée pour un aliment rangé [depuis] à [emplacement] (la
 /// durée la plus courte : prudence) ; `null` sans repère.

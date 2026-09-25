@@ -6,7 +6,8 @@
 // moins le garde-manger), « Planifier », « Noter au journal » ; les
 // ingrédients (en menthe, ce qu'on a déjà), les étapes (minuteurs
 // soulignés), la note ; ses restes au garde-manger, combien de fois elle a
-// été cuisinée. Le crayon la modifie.
+// été cuisinée. Le crayon la modifie. « Remplacer un ingrédient » demande
+// des remplaçants à l'IA (palier 4).
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -32,6 +33,7 @@ import '../../../widgets/formulaire.dart';
 import '../../../widgets/page_secondaire.dart';
 import '../../../widgets/pictos.dart';
 import '../courses/pieces_courses.dart';
+import '../ia/substitution_ecran.dart';
 import '../pieces_alimentation.dart';
 import 'ajout_liste_ecran.dart';
 import 'cuisine_ecran.dart';
@@ -237,6 +239,18 @@ class _RecetteEcranState extends ConsumerState<RecetteEcran> {
               Text(
                 tr.sansValeurNutritive(enPhrase(libres, premiere: false)),
                 style: RhythmTypo.petit,
+              ),
+            ],
+            if (r.ingredients.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              const Filet(),
+              LigneReglage(
+                libelle: tr.iaRemplacer,
+                detail: tr.iaRemplacerCourt,
+                onTap: () => pousserEcran(
+                  context,
+                  SubstitutionEcran(recetteId: r.id, retour: titre),
+                ),
               ),
             ],
           ],

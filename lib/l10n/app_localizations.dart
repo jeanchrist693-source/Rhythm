@@ -6469,6 +6469,893 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Revoir'**
   String get revoir;
+
+  /// No description provided for @iaErrQuota.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le service d\'IA a atteint sa limite gratuite pour l\'instant. Réessaie dans une minute.'**
+  String get iaErrQuota;
+
+  /// No description provided for @iaErrSurcharge.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le service d\'IA ne répond pas pour l\'instant. Réessaie dans un moment.'**
+  String get iaErrSurcharge;
+
+  /// No description provided for @iaErrNonAutorise.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le service d\'IA a refusé la demande (clé non valide).'**
+  String get iaErrNonAutorise;
+
+  /// No description provided for @iaErrModele.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le modèle d\'IA est indisponible pour l\'instant.'**
+  String get iaErrModele;
+
+  /// No description provided for @iaErrIllisible.
+  ///
+  /// In fr, this message translates to:
+  /// **'La réponse de l\'IA était illisible. Réessaie.'**
+  String get iaErrIllisible;
+
+  /// No description provided for @iaErrReseau.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pas de connexion Internet : l\'assistant a besoin du réseau.'**
+  String get iaErrReseau;
+
+  /// No description provided for @iaErrSansCle.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'assistant n\'est pas configuré dans cette version (clé d\'IA absente).'**
+  String get iaErrSansCle;
+
+  /// No description provided for @reessayer.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réessayer'**
+  String get reessayer;
+
+  /// No description provided for @mentionIa.
+  ///
+  /// In fr, this message translates to:
+  /// **'Assistant en ligne (Groq). Rien de personnel ne part : ni ton nom, ni ton poids, ni tes habitudes. Les calories et les macros sont calculées sur ton téléphone, avec la base du FCÉN.'**
+  String get mentionIa;
+
+  /// No description provided for @horsDeLaBase.
+  ///
+  /// In fr, this message translates to:
+  /// **'hors de la base'**
+  String get horsDeLaBase;
+
+  /// No description provided for @iaAssistant.
+  ///
+  /// In fr, this message translates to:
+  /// **'Assistant'**
+  String get iaAssistant;
+
+  /// No description provided for @iaAssistantDetail.
+  ///
+  /// In fr, this message translates to:
+  /// **'Idées de recettes, semaine, écart, bilan'**
+  String get iaAssistantDetail;
+
+  /// No description provided for @iaAssistantSurtitre.
+  ///
+  /// In fr, this message translates to:
+  /// **'Alimentation · IA'**
+  String get iaAssistantSurtitre;
+
+  /// No description provided for @iaAssistantIntro.
+  ///
+  /// In fr, this message translates to:
+  /// **'Je propose, tu choisis : les chiffres restent ceux de Rhythm.'**
+  String get iaAssistantIntro;
+
+  /// No description provided for @iaIdees.
+  ///
+  /// In fr, this message translates to:
+  /// **'Idées de recettes'**
+  String get iaIdees;
+
+  /// No description provided for @iaIdeesCourt.
+  ///
+  /// In fr, this message translates to:
+  /// **'Idées'**
+  String get iaIdeesCourt;
+
+  /// No description provided for @iaIdeesDetail.
+  ///
+  /// In fr, this message translates to:
+  /// **'Selon la cuisine, le moment et ce que tu as'**
+  String get iaIdeesDetail;
+
+  /// No description provided for @iaIdeesSurtitre.
+  ///
+  /// In fr, this message translates to:
+  /// **'Proposées par l\'IA'**
+  String get iaIdeesSurtitre;
+
+  /// No description provided for @iaAvecCeQuiPresse.
+  ///
+  /// In fr, this message translates to:
+  /// **'Avec ce qui presse'**
+  String get iaAvecCeQuiPresse;
+
+  /// No description provided for @iaRienNePresse.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien ne presse au garde-manger'**
+  String get iaRienNePresse;
+
+  /// No description provided for @iaIdeesPourLesUtiliser.
+  ///
+  /// In fr, this message translates to:
+  /// **'Des idées pour les utiliser'**
+  String get iaIdeesPourLesUtiliser;
+
+  /// No description provided for @iaIdeesPourLesUtiliserDetail.
+  ///
+  /// In fr, this message translates to:
+  /// **'Des recettes avec ce qui presse, avant que ça se perde'**
+  String get iaIdeesPourLesUtiliserDetail;
+
+  /// No description provided for @iaEcart.
+  ///
+  /// In fr, this message translates to:
+  /// **'Combler l\'écart'**
+  String get iaEcart;
+
+  /// No description provided for @iaIlTeReste.
+  ///
+  /// In fr, this message translates to:
+  /// **'Il te reste {kcal} aujourd\'hui'**
+  String iaIlTeReste(String kcal);
+
+  /// No description provided for @iaObjectifAtteint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Objectif du jour atteint'**
+  String get iaObjectifAtteint;
+
+  /// No description provided for @iaPlanifier.
+  ///
+  /// In fr, this message translates to:
+  /// **'Planifier ma semaine'**
+  String get iaPlanifier;
+
+  /// No description provided for @iaPlanifierAvecIa.
+  ///
+  /// In fr, this message translates to:
+  /// **'Planifier avec l\'IA'**
+  String get iaPlanifierAvecIa;
+
+  /// No description provided for @iaPlanifierDetail.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les cases libres, avec les recettes de ton livre'**
+  String get iaPlanifierDetail;
+
+  /// No description provided for @iaPlanifierSurtitre.
+  ///
+  /// In fr, this message translates to:
+  /// **'Avec mon livre de recettes'**
+  String get iaPlanifierSurtitre;
+
+  /// No description provided for @iaLivreTropPetit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ton livre a moins de trois recettes : ajoute-en d\'abord (des idées, les recettes de départ ou les tiennes), puis l\'IA pourra planifier ta semaine.'**
+  String get iaLivreTropPetit;
+
+  /// No description provided for @iaLivreTropPetitCourt.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajoute d\'abord quelques recettes'**
+  String get iaLivreTropPetitCourt;
+
+  /// No description provided for @iaEstimer.
+  ///
+  /// In fr, this message translates to:
+  /// **'Estimer un repas'**
+  String get iaEstimer;
+
+  /// No description provided for @iaEstimerNomme.
+  ///
+  /// In fr, this message translates to:
+  /// **'Estimer « {nom} » avec l\'IA'**
+  String iaEstimerNomme(String nom);
+
+  /// No description provided for @iaEstimerDetailCourt.
+  ///
+  /// In fr, this message translates to:
+  /// **'Au resto, chez des amis : décris-le, l\'IA le décompose'**
+  String get iaEstimerDetailCourt;
+
+  /// No description provided for @iaEstimerSurtitre.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sans recette'**
+  String get iaEstimerSurtitre;
+
+  /// No description provided for @iaImporter.
+  ///
+  /// In fr, this message translates to:
+  /// **'Importer une recette'**
+  String get iaImporter;
+
+  /// No description provided for @iaImporterDetailCourt.
+  ///
+  /// In fr, this message translates to:
+  /// **'Colle le texte d\'une recette : l\'IA la met en forme'**
+  String get iaImporterDetailCourt;
+
+  /// No description provided for @iaImporterSurtitre.
+  ///
+  /// In fr, this message translates to:
+  /// **'D\'un site, d\'un courriel, d\'un livre'**
+  String get iaImporterSurtitre;
+
+  /// No description provided for @iaBilan.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bilan de la semaine'**
+  String get iaBilan;
+
+  /// No description provided for @iaBilanDetail.
+  ///
+  /// In fr, this message translates to:
+  /// **'{n, plural, =0{Aucune journée notée sur 7} =1{1 journée notée sur 7} other{{n} journées notées sur 7}}'**
+  String iaBilanDetail(int n);
+
+  /// No description provided for @iaAilleurs.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aussi : « Remplacer un ingrédient » dans une recette, et « Comment le garder ? » pour un aliment que le guide de conservation ne connaît pas.'**
+  String get iaAilleurs;
+
+  /// No description provided for @iaAUtiliser.
+  ///
+  /// In fr, this message translates to:
+  /// **'À utiliser'**
+  String get iaAUtiliser;
+
+  /// No description provided for @iaCuisine.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cuisine'**
+  String get iaCuisine;
+
+  /// No description provided for @iaPeuImporte.
+  ///
+  /// In fr, this message translates to:
+  /// **'Peu importe'**
+  String get iaPeuImporte;
+
+  /// No description provided for @iaMoment.
+  ///
+  /// In fr, this message translates to:
+  /// **'Moment'**
+  String get iaMoment;
+
+  /// No description provided for @iaGenre.
+  ///
+  /// In fr, this message translates to:
+  /// **'Genre de plat'**
+  String get iaGenre;
+
+  /// No description provided for @iaGenrePlat.
+  ///
+  /// In fr, this message translates to:
+  /// **'Plat principal'**
+  String get iaGenrePlat;
+
+  /// No description provided for @iaGenreSoupe.
+  ///
+  /// In fr, this message translates to:
+  /// **'Soupe'**
+  String get iaGenreSoupe;
+
+  /// No description provided for @iaGenreSalade.
+  ///
+  /// In fr, this message translates to:
+  /// **'Salade-repas'**
+  String get iaGenreSalade;
+
+  /// No description provided for @iaGenreSandwich.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sandwich, wrap'**
+  String get iaGenreSandwich;
+
+  /// No description provided for @iaGenreBol.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bol'**
+  String get iaGenreBol;
+
+  /// No description provided for @iaGenreDessert.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dessert'**
+  String get iaGenreDessert;
+
+  /// No description provided for @iaGenreBoisson.
+  ///
+  /// In fr, this message translates to:
+  /// **'Smoothie, boisson'**
+  String get iaGenreBoisson;
+
+  /// No description provided for @iaPortions.
+  ///
+  /// In fr, this message translates to:
+  /// **'Portions'**
+  String get iaPortions;
+
+  /// No description provided for @iaOptionRapide.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rapide (30 min)'**
+  String get iaOptionRapide;
+
+  /// No description provided for @iaOptionProteinees.
+  ///
+  /// In fr, this message translates to:
+  /// **'Riche en protéines'**
+  String get iaOptionProteinees;
+
+  /// No description provided for @iaOptionVegetarien.
+  ///
+  /// In fr, this message translates to:
+  /// **'Végétarien'**
+  String get iaOptionVegetarien;
+
+  /// No description provided for @iaOptionGardeManger.
+  ///
+  /// In fr, this message translates to:
+  /// **'Avec mon garde-manger'**
+  String get iaOptionGardeManger;
+
+  /// No description provided for @iaPrecisions.
+  ///
+  /// In fr, this message translates to:
+  /// **'Précisions (facultatif)'**
+  String get iaPrecisions;
+
+  /// No description provided for @iaIndicePrecisions.
+  ///
+  /// In fr, this message translates to:
+  /// **'sans arachides, au four, petit budget…'**
+  String get iaIndicePrecisions;
+
+  /// No description provided for @iaProposer.
+  ///
+  /// In fr, this message translates to:
+  /// **'Proposer 3 idées'**
+  String get iaProposer;
+
+  /// No description provided for @iaAutresIdees.
+  ///
+  /// In fr, this message translates to:
+  /// **'Autres idées'**
+  String get iaAutresIdees;
+
+  /// No description provided for @iaAttenteIdees.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'IA cherche des idées… une vingtaine de secondes.'**
+  String get iaAttenteIdees;
+
+  /// No description provided for @iaPropositions.
+  ///
+  /// In fr, this message translates to:
+  /// **'Propositions'**
+  String get iaPropositions;
+
+  /// No description provided for @iaAuLivre.
+  ///
+  /// In fr, this message translates to:
+  /// **'Au livre'**
+  String get iaAuLivre;
+
+  /// No description provided for @iaParPortionCalcule.
+  ///
+  /// In fr, this message translates to:
+  /// **'Calories par portion calculées par Rhythm avec la base du FCÉN.'**
+  String get iaParPortionCalcule;
+
+  /// No description provided for @iaAjouterAuLivre.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter à mon livre'**
+  String get iaAjouterAuLivre;
+
+  /// No description provided for @iaVoirDansLeLivre.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir dans mon livre'**
+  String get iaVoirDansLeLivre;
+
+  /// No description provided for @iaAjouteeAuLivre.
+  ///
+  /// In fr, this message translates to:
+  /// **'« {nom} » ajoutée à ton livre'**
+  String iaAjouteeAuLivre(String nom);
+
+  /// No description provided for @iaHorsBaseDetail.
+  ///
+  /// In fr, this message translates to:
+  /// **'Hors de la base : {noms} (sans valeur nutritive — à préciser dans la recette).'**
+  String iaHorsBaseDetail(String noms);
+
+  /// No description provided for @iaRecetteAVerifier.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recette proposée par l\'IA : vérifie-la (cuisson, allergènes). Les valeurs nutritives viennent de la base du FCÉN, calculées par Rhythm.'**
+  String get iaRecetteAVerifier;
+
+  /// No description provided for @iaTexteDeLaRecette.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le texte de la recette'**
+  String get iaTexteDeLaRecette;
+
+  /// No description provided for @iaColler.
+  ///
+  /// In fr, this message translates to:
+  /// **'Coller'**
+  String get iaColler;
+
+  /// No description provided for @iaIndiceImport.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ingrédients, étapes… tel quel'**
+  String get iaIndiceImport;
+
+  /// No description provided for @iaStructurer.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mettre en forme'**
+  String get iaStructurer;
+
+  /// No description provided for @iaAttenteImport.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'IA met la recette en forme…'**
+  String get iaAttenteImport;
+
+  /// No description provided for @iaPasUneRecette.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce texte ne ressemble pas à une recette.'**
+  String get iaPasUneRecette;
+
+  /// No description provided for @iaTexteTropCourt.
+  ///
+  /// In fr, this message translates to:
+  /// **'Colle d\'abord le texte d\'une recette.'**
+  String get iaTexteTropCourt;
+
+  /// No description provided for @iaPressePapiersVide.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le presse-papiers est vide.'**
+  String get iaPressePapiersVide;
+
+  /// No description provided for @iaImporterAide.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien n\'est inventé : les ingrédients et les étapes restent ceux de la recette, en unités métriques.'**
+  String get iaImporterAide;
+
+  /// No description provided for @iaLesChiffres.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les chiffres'**
+  String get iaLesChiffres;
+
+  /// No description provided for @iaJourneesNotees.
+  ///
+  /// In fr, this message translates to:
+  /// **'Journées notées'**
+  String get iaJourneesNotees;
+
+  /// No description provided for @iaSurSept.
+  ///
+  /// In fr, this message translates to:
+  /// **'{n} sur 7'**
+  String iaSurSept(int n);
+
+  /// No description provided for @iaCaloriesParJour.
+  ///
+  /// In fr, this message translates to:
+  /// **'Calories par jour'**
+  String get iaCaloriesParJour;
+
+  /// No description provided for @iaProteinesParJour.
+  ///
+  /// In fr, this message translates to:
+  /// **'Protéines par jour'**
+  String get iaProteinesParJour;
+
+  /// No description provided for @iaFibresParJour.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fibres par jour'**
+  String get iaFibresParJour;
+
+  /// No description provided for @iaSodiumParJour.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sodium par jour'**
+  String get iaSodiumParJour;
+
+  /// No description provided for @iaSurObjectif.
+  ///
+  /// In fr, this message translates to:
+  /// **'{valeur} / {objectif}'**
+  String iaSurObjectif(String valeur, String objectif);
+
+  /// No description provided for @iaRepere.
+  ///
+  /// In fr, this message translates to:
+  /// **'{valeur} · repère {repere}'**
+  String iaRepere(String valeur, String repere);
+
+  /// No description provided for @iaLimite.
+  ///
+  /// In fr, this message translates to:
+  /// **'{valeur} · limite {limite}'**
+  String iaLimite(String valeur, String limite);
+
+  /// No description provided for @iaMg.
+  ///
+  /// In fr, this message translates to:
+  /// **'{n} mg'**
+  String iaMg(String n);
+
+  /// No description provided for @iaVerresParJour.
+  ///
+  /// In fr, this message translates to:
+  /// **'{n} / {vises} verres'**
+  String iaVerresParJour(String n, int vises);
+
+  /// No description provided for @iaSeances.
+  ///
+  /// In fr, this message translates to:
+  /// **'Séances'**
+  String get iaSeances;
+
+  /// No description provided for @iaJetes.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jetés'**
+  String get iaJetes;
+
+  /// No description provided for @iaSouvent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Souvent'**
+  String get iaSouvent;
+
+  /// No description provided for @iaAvis.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'avis de l\'assistant'**
+  String get iaAvis;
+
+  /// No description provided for @iaAttenteBilan.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'IA lit ta semaine…'**
+  String get iaAttenteBilan;
+
+  /// No description provided for @iaRefaireBilan.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refaire le bilan'**
+  String get iaRefaireBilan;
+
+  /// No description provided for @iaBilanPasMedical.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un repère pour avancer, pas un avis médical : pour un suivi, une diététiste-nutritionniste.'**
+  String get iaBilanPasMedical;
+
+  /// No description provided for @iaMomentsARemplir.
+  ///
+  /// In fr, this message translates to:
+  /// **'Moments à remplir'**
+  String get iaMomentsARemplir;
+
+  /// No description provided for @iaCasesLibres.
+  ///
+  /// In fr, this message translates to:
+  /// **'{n, plural, =0{Aucune case libre sur 7 jours} =1{1 case libre sur 7 jours} other{{n} cases libres sur 7 jours}}'**
+  String iaCasesLibres(int n);
+
+  /// No description provided for @iaProposerSemaine.
+  ///
+  /// In fr, this message translates to:
+  /// **'Proposer ma semaine'**
+  String get iaProposerSemaine;
+
+  /// No description provided for @iaReproposer.
+  ///
+  /// In fr, this message translates to:
+  /// **'Proposer autre chose'**
+  String get iaReproposer;
+
+  /// No description provided for @iaAttenteSemaine.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'IA compose ta semaine…'**
+  String get iaAttenteSemaine;
+
+  /// No description provided for @iaRienAPlanifier.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien à proposer avec ton livre pour ces cases.'**
+  String get iaRienAPlanifier;
+
+  /// No description provided for @iaAjouterASemaine.
+  ///
+  /// In fr, this message translates to:
+  /// **'{n, plural, =0{Rien à ajouter} =1{Ajouter 1 repas à ma semaine} other{Ajouter {n} repas à ma semaine}}'**
+  String iaAjouterASemaine(int n);
+
+  /// No description provided for @iaRepasAjoutes.
+  ///
+  /// In fr, this message translates to:
+  /// **'{n, plural, =0{Aucun repas ajouté} =1{1 repas ajouté à ta semaine} other{{n} repas ajoutés à ta semaine}}'**
+  String iaRepasAjoutes(int n);
+
+  /// No description provided for @iaPlanDetail.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce qui est déjà prévu ne bouge pas. Touche un repas pour le retirer de la proposition.'**
+  String get iaPlanDetail;
+
+  /// No description provided for @iaResteAujourdhui.
+  ///
+  /// In fr, this message translates to:
+  /// **'restent pour aujourd\'hui'**
+  String get iaResteAujourdhui;
+
+  /// No description provided for @iaPresqueAtteint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tu as presque tout ce qu\'il te faut aujourd\'hui : une petite collation suffira.'**
+  String get iaPresqueAtteint;
+
+  /// No description provided for @iaPourQuelRepas.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pour quel repas'**
+  String get iaPourQuelRepas;
+
+  /// No description provided for @iaDesIdees.
+  ///
+  /// In fr, this message translates to:
+  /// **'Des idées'**
+  String get iaDesIdees;
+
+  /// No description provided for @iaAttenteEcart.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'IA regarde ce qui te reste…'**
+  String get iaAttenteEcart;
+
+  /// No description provided for @iaTotalEtReste.
+  ///
+  /// In fr, this message translates to:
+  /// **'Total : {total} · {proteines} de protéines · {genre, select, plus{{ecart} de plus} other{il restera {ecart}}}'**
+  String iaTotalEtReste(
+    String total,
+    String proteines,
+    String ecart,
+    String genre,
+  );
+
+  /// No description provided for @iaNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Noté'**
+  String get iaNote;
+
+  /// No description provided for @iaNoteAuJournal.
+  ///
+  /// In fr, this message translates to:
+  /// **'« {titre} » noté au journal'**
+  String iaNoteAuJournal(String titre);
+
+  /// No description provided for @iaEcartDetail.
+  ///
+  /// In fr, this message translates to:
+  /// **'Objectif du jour : {kcal}. Les calories de chaque option sont calculées par Rhythm.'**
+  String iaEcartDetail(String kcal);
+
+  /// No description provided for @iaTonRepas.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ton repas'**
+  String get iaTonRepas;
+
+  /// No description provided for @iaIndiceEstimer.
+  ///
+  /// In fr, this message translates to:
+  /// **'2 pointes de pizza toute garnie et une salade César'**
+  String get iaIndiceEstimer;
+
+  /// No description provided for @iaEstimerBouton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Estimer'**
+  String get iaEstimerBouton;
+
+  /// No description provided for @iaReestimer.
+  ///
+  /// In fr, this message translates to:
+  /// **'Estimer de nouveau'**
+  String get iaReestimer;
+
+  /// No description provided for @iaAttenteEstimer.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'IA décompose ton repas…'**
+  String get iaAttenteEstimer;
+
+  /// No description provided for @iaRienAEstimer.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien à estimer : décris ce que tu as mangé.'**
+  String get iaRienAEstimer;
+
+  /// No description provided for @iaCeQueJeCompte.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce que je compte'**
+  String get iaCeQueJeCompte;
+
+  /// No description provided for @iaNoterNombre.
+  ///
+  /// In fr, this message translates to:
+  /// **'{n, plural, =0{Rien à noter} =1{Noter 1 aliment} other{Noter {n} aliments}}'**
+  String iaNoterNombre(int n);
+
+  /// No description provided for @iaAlimentsNotes.
+  ///
+  /// In fr, this message translates to:
+  /// **'{n, plural, =0{Rien de noté} =1{1 aliment noté} other{{n} aliments notés}} · {moment}'**
+  String iaAlimentsNotes(int n, String moment);
+
+  /// No description provided for @iaDecrisTonRepas.
+  ///
+  /// In fr, this message translates to:
+  /// **'Décris d\'abord ton repas.'**
+  String get iaDecrisTonRepas;
+
+  /// No description provided for @iaEstimerDetail.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une estimation : les quantités sont celles d\'une portion habituelle. Touche une ligne pour la retirer ; un aliment hors de la base n\'est pas compté.'**
+  String get iaEstimerDetail;
+
+  /// No description provided for @iaRemplacer.
+  ///
+  /// In fr, this message translates to:
+  /// **'Remplacer un ingrédient'**
+  String get iaRemplacer;
+
+  /// No description provided for @iaRemplacerCourt.
+  ///
+  /// In fr, this message translates to:
+  /// **'Je n\'en ai pas, plus léger, végétarien… l\'IA propose'**
+  String get iaRemplacerCourt;
+
+  /// No description provided for @iaQuelIngredient.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quel ingrédient'**
+  String get iaQuelIngredient;
+
+  /// No description provided for @iaPourquoiRemplacer.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pourquoi'**
+  String get iaPourquoiRemplacer;
+
+  /// No description provided for @iaRaisonManque.
+  ///
+  /// In fr, this message translates to:
+  /// **'Je n\'en ai pas'**
+  String get iaRaisonManque;
+
+  /// No description provided for @iaRaisonLeger.
+  ///
+  /// In fr, this message translates to:
+  /// **'Plus léger'**
+  String get iaRaisonLeger;
+
+  /// No description provided for @iaRaisonProteine.
+  ///
+  /// In fr, this message translates to:
+  /// **'Plus de protéines'**
+  String get iaRaisonProteine;
+
+  /// No description provided for @iaRaisonVegetarien.
+  ///
+  /// In fr, this message translates to:
+  /// **'Végétarien'**
+  String get iaRaisonVegetarien;
+
+  /// No description provided for @iaRaisonAllergie.
+  ///
+  /// In fr, this message translates to:
+  /// **'Allergie'**
+  String get iaRaisonAllergie;
+
+  /// No description provided for @iaProposerRemplacants.
+  ///
+  /// In fr, this message translates to:
+  /// **'Remplacer « {nom} »'**
+  String iaProposerRemplacants(String nom);
+
+  /// No description provided for @iaAttenteRemplacants.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'IA cherche des remplaçants…'**
+  String get iaAttenteRemplacants;
+
+  /// No description provided for @iaParPortionDiff.
+  ///
+  /// In fr, this message translates to:
+  /// **'Par portion : {kcal} · {prot} de protéines'**
+  String iaParPortionDiff(String kcal, String prot);
+
+  /// No description provided for @iaRemplacerBouton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Remplacer'**
+  String get iaRemplacerBouton;
+
+  /// No description provided for @iaRemplace.
+  ///
+  /// In fr, this message translates to:
+  /// **'« {avant} » remplacé par « {apres} »'**
+  String iaRemplace(String avant, String apres);
+
+  /// No description provided for @iaRemplacerDetail.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les valeurs du remplaçant viennent de la base du FCÉN. En cas d\'allergie, vérifie toujours les étiquettes.'**
+  String get iaRemplacerDetail;
+
+  /// No description provided for @iaHorsDuGuide.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cet aliment n\'est pas dans le guide de conservation : ce sont les repères généraux du rayon.'**
+  String get iaHorsDuGuide;
+
+  /// No description provided for @iaCommentLeGarder.
+  ///
+  /// In fr, this message translates to:
+  /// **'Comment le garder ?'**
+  String get iaCommentLeGarder;
+
+  /// No description provided for @iaAttenteConservation.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'IA cherche comment le garder…'**
+  String get iaAttenteConservation;
+
+  /// No description provided for @iaRepereDeLIa.
+  ///
+  /// In fr, this message translates to:
+  /// **'Repère de l\'IA : vérifie aussi l\'emballage.'**
+  String get iaRepereDeLIa;
 }
 
 class _AppLocalizationsDelegate

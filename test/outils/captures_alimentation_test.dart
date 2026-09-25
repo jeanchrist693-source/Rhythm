@@ -404,6 +404,17 @@ void _capturesRecettes() {
     await _capturer(tester, 'c16_formulaire_2');
     await _defiler(tester, 900);
     await _capturer(tester, 'c17_formulaire_3');
+    // La région : une grande région, puis ses cuisines.
+    for (final puce in ["Afrique de l'Ouest", 'Ivoirienne']) {
+      await tester.ensureVisible(find.text(puce));
+      await _laisser(tester);
+      await tester.tap(find.text(puce));
+      await _laisser(tester);
+    }
+    await _defiler(tester, -200);
+    await _capturer(tester, 'c17b_formulaire_region');
+    await tester.tap(find.text('Aucune'));
+    await _laisser(tester);
     await _defiler(tester, -3000);
     await ouvrir(find.text('Ajouter un ingrédient'));
     await tester.enterText(find.byType(TextField).first, 'pois');

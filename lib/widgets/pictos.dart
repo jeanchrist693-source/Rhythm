@@ -53,6 +53,8 @@ enum Picto {
   panier,
   frigo,
   poubelle,
+  // L'assistant de l'Alimentation (palier 4 : tracé Lucide « sparkles »).
+  etincelles,
 }
 
 const Map<Picto, List<String>> _traces = {
@@ -216,6 +218,16 @@ const Map<Picto, List<String>> _traces = {
     'M3 6h18',
     'M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6',
     'M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2',
+  ],
+  // <circle cx="4" cy="20" r="2"> écrit en deux demi-arcs.
+  Picto.etincelles: [
+    'M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594'
+        'l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594'
+        'l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594'
+        'l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z',
+    'M20 2v4',
+    'M22 4h-4',
+    'M6 20a2 2 0 1 1-4 0a2 2 0 1 1 4 0',
   ],
   Picto.vague: [
     'M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 '
