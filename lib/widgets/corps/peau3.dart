@@ -343,15 +343,25 @@ class Peau3 {
     final moves = <(_Grille, List<_Deplacement>)>[];
 
     /// Une partie d'une grille, entre les anneaux de paramètre [a] et [b],
-    /// et son volume.
-    (_Grille, int, int, _Volume) partie(_Grille g, double a, double b) {
+    /// et son volume ([parPlans] : ses anneaux lus dans leur plan).
+    (_Grille, int, int, _Volume) partie(
+      _Grille g,
+      double a,
+      double b, {
+      bool parPlans = false,
+    }) {
       final (i0, i1) = _plage(g.ss!, a, b);
-      return (g, i0, i1, _Tube(g, i0, i1).distance);
+      return (g, i0, i1, _Tube(g, i0, i1, parPlans: parPlans).distance);
     }
 
     /// Joint deux parties autour de [centre] : ce qui est enfoui dans
-    /// l'autre (à moins de [rayon] du centre) n'est pas peint, le reste est
-    /// posé sur leur union lisse (congé [k], de [r0] à [r1] du centre).
+    /// l'autre (à moins de [rayon] du centre, plus loin que [marge] sous sa
+    /// surface) n'est pas peint, le reste est posé sur leur union lisse
+    /// (congé [k], de [r0] à [r1] du centre). [margeA] : la partie [a] se
+    /// cache aussi, à moins de [rayonA] du centre, dès qu'elle est à moins
+    /// de −[margeA] SOUS la surface de l'autre (une marge négative : même un
+    /// peu au-dessus) — là où les deux se collent sur une longue bande, sans
+    /// quoi leurs cases s'entrelacent en rayures.
     void joindre(
       (_Grille, int, int, _Volume) a,
       (_Grille, int, int, _Volume) b,
@@ -361,6 +371,8 @@ class Peau3 {
       double k, {
       double rayon = 0.08,
       double marge = 0.003,
+      double? margeA,
+      double rayonA = 0,
     }) {
       for (final (p, q) in [(a, b), (b, a)]) {
         final (g, i0, i1, propre) = p;
@@ -373,6 +385,17 @@ class Peau3 {
             ? _plage(g.ss!, -0.1, -0.1).$1
             : i0;
         _enfouir(g, autre, marge, i0: e0, i1: i1, centre: centre, rayon: rayon);
+        if (margeA != null && identical(g, a.$1)) {
+          _enfouir(
+            g,
+            autre,
+            margeA,
+            i0: e0,
+            i1: i1,
+            centre: centre,
+            rayon: rayonA,
+          );
+        }
         moves.add((
           g,
           _souder(g, propre, autre, centre, r0, r1, k, i0: i0, i1: i1),
@@ -380,9 +403,20 @@ class Peau3 {
       }
     }
 
-    final epaules = partie(tronc, 0.35, 1.14);
+    // Les ÉPAULES. Les volumes se lisent anneau par anneau, dans leur plan :
+    // bras levé, les anneaux de la racine s'étirent en arc — lus en travers
+    // de l'axe, le bras paraissait plus mince qu'il n'est, le flanc s'y
+    // croyait enfoui et se cachait : un trou à l'aisselle.
+    final epaules = partie(tronc, 0.35, 1.14, parPlans: true);
     for (final (g, b) in [(brasP, s.brasP), (brasL, s.brasL)]) {
-      joindre(partie(g, -0.19, 0.75), epaules, b.racine, 0.045, 0.09, 0.017);
+      joindre(
+        partie(g, -0.19, 0.75, parPlans: true),
+        epaules,
+        b.racine,
+        0.045,
+        0.09,
+        0.017,
+      );
     }
     // La TAILLE : le bas du tronc se referme dans les jambes, le haut des
     // jambes rentre sous la ceinture — les deux surfaces se continuent
@@ -414,16 +448,25 @@ class Peau3 {
       0.006,
     );
     // Le cou (qui appartient à la tête) dans le haut du tronc : à la base
-    // du cou, les trapèzes.
+    // du cou, les trapèzes. Les deux sont lus dans leur plan (le pli du cou
+    // les cisaille) ; la soudure, centrée sur la base du cou telle que le
+    // pli la déplace, a un large congé (la pente du trapèze file dans le
+    // cou sans arête) ; et le col du tronc, collé au cou sur une bande, s'y
+    // cache (`margeA`) : leurs cases ne s'entrelacent plus en rayures.
     final (h0, h1) = _plage(gTete.ss!, _FormeTete.bas, -0.045);
+    final versDos = s.cou - s.dosControle;
+    final dos = versDos.norme < 1e-6 ? s.dirTronc : versDos.unite;
+    final baseCou = s.cou + ((s.tete - s.cou).unite - dos) * _pliCou(0).$1;
     joindre(
-      partie(tronc, 0.85, 1.12),
-      (gTete, h0, h1, _Tube(gTete, h0, h1).distance),
-      s.cou - s.dirTronc * 0.006,
-      0.04,
-      0.075,
-      0.011,
-      rayon: 0.07,
+      partie(tronc, 0.85, 1.12, parPlans: true),
+      (gTete, h0, h1, _Tube(gTete, h0, h1, parPlans: true).distance),
+      baseCou - s.dirTronc * 0.006,
+      0.045,
+      0.085,
+      0.022,
+      rayon: 0.085,
+      margeA: -0.002,
+      rayonA: 0.045,
     );
     // Les mains : le gant s'enfonce dans l'avant-bras (et l'avant-bras
     // dans le gant), la base du pouce dans la paume — rien n'est soudé (des

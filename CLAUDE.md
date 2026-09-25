@@ -23,8 +23,9 @@ persistance en place).
 demandée : « réaliser ce mock et l'installer pour tester »), plus une scène
 d'ouverture et une entrée animée de l'accueil ; puis on « fait vivre » l'app
 SECTION PAR SECTION (demande de l'utilisateur). **Les HABITUDES sont
-fonctionnelles et PERSISTÉES** (§ 3 bis), **les SPORTS aussi** (§ 3 ter,
-25 sept. 2026), **l'ALIMENTATION est en cours, palier par palier**
+fonctionnelles et PERSISTÉES** (§ 3 bis), **les SPORTS aussi — section
+CONCLUE** (§ 3 ter, 25 sept. 2026 : reste à les éprouver sur le
+téléphone, § 6), **l'ALIMENTATION est en cours, palier par palier**
 (§ 3 quater : paliers 1 à 4 livrés — le socle, les achats, les
 recettes, l'IA ; le palier 4 est à tester). Biblique affiche encore les données de la
 maquette (`lib/modele/graine.dart`), posées sur les vraies dates.
@@ -289,7 +290,11 @@ système qui permet même d'assister afin de combattre des addictions ».
 
 ---
 
-## 3 ter. Les Sports, vivants (25 septembre 2026)
+## 3 ter. Les Sports, vivants (25 septembre 2026 — CONCLUS)
+
+Section CONCLUE le 25 sept. 2026 à la demande de l'utilisateur (« on
+conclut sport ») : ce qui reste est à éprouver sur le téléphone (§ 6) ;
+on n'y revient que sur ses retours.
 
 Demande : une grande banque d'exercices HORS LIGNE, sans IA, un
 constructeur qui organise la séance avec des règles d'entraînement
@@ -310,15 +315,53 @@ baguettes de bonhommes, ça ne le fait pas. »
     de pieds qui glissent ni de mains qui traversent le sol.
   - `peintre3.dart` : caméra orthographique de trois quarts (`Camera3` :
     profil 25°, face 68°, dos −35°, et **dessus** — une PLONGÉE de 24° pour
-    les corps couchés, le sol devient une nappe) ; segments = cylindres à
-    profils de rayons (silhouette réelle), tronc balayé en anneaux, tête
-    (crâne, mâchoire, nez, cheveux, oreilles, yeux), mains, chaussures ;
-    tri par profondeur (le membre loin passe DERRIÈRE le corps, toujours
-    visible de trois quarts), ombrage cylindrique, contour fin, muscles en
-    fuseaux sur la surface. Matériel en 3D (haltères, barres, kettlebells
+    les corps couchés, le sol devient une nappe) ; le CORPS est une PEAU
+    MAILLÉE (`peau3.dart`), peinte triangle par triangle du plus loin au
+    plus proche (le membre loin passe DERRIÈRE le corps) ; le matériel se
+    glisse à sa profondeur parmi ces triangles. Matériel en 3D (haltères, barres, kettlebells
     — une par main si besoin —, banc, dossier, barre fixe, caisse, mur,
     vélo, corde qui tourne, élastiques : sous les pieds, accrochés de
     chaque côté ou sur le côté (`elastiqueZ`), entre les mains, mini-bande).
+  - **La peau** (`peau3.dart` + `peau/`, refaite le 25 sept. 2026 ;
+    l'utilisateur : « on dirait un jouet en caoutchouc, monté de toutes
+    pièces », puis « comme un vrai humain, muscle, articulation, visage,
+    cheveux ») : les FORMES (`tronc` balayé le long du dos, section un peu
+    carrée, anatomie du torse, short ; `membres` d'un seul tenant de
+    l'épaule / la hanche au poignet / la cheville, qui se PLIENT en arc et
+    se TASSENT dans le pli, muscles qui se contractent, la hanche « en
+    short » — chaque jambe part de la taille ; `tete` lissée par étages,
+    mandibule en U, nez, lèvres, yeux qui clignent, sourcils, oreilles,
+    cheveux courts ; `mains` en gant — paume, quatre doigts, pouce — qui
+    TIENNENT la poignée, se posent à plat ou restent libres ; `extremites` :
+    la chaussure qui se plie à la plante), les GRILLES de sommets
+    (`grille`), la SOUDURE des parties sur leur union lisse (épaules,
+    hanches, entrejambe, cou : `_souderTout` — ce qui est enfoui dans
+    l'autre n'est pas peint), le RENDU (`rendu` : lumière de studio liée à
+    la caméra, peau, occlusion par capsules), les muscles travaillés en
+    fuseaux corail collés à la peau.
+  - **Le PLI DU COU** (`_pliCou`, `outils.dart`, 25 sept. 2026) : le cou
+    passe de la ligne du dos à l'axe de la tête en UN virage en C, centré
+    sur la base du cou, étalé sur ± 0,026 (son rayon dépasse celui du
+    cou) ; les anneaux du cou ont fini de tourner sous le menton (0,018),
+    au-dessus seul le centre finit la courbe ; le haut du tronc suit le
+    même virage en se CISAILLANT (ses anneaux, bien plus larges, ne
+    tournent pas). Avant : un S serré — tête pendante (chat-vache, pont),
+    le cou se froissait.
+  - **Les volumes lus PAR PLANS** (`_Tube(parPlans: true)`, `grille.dart`) :
+    au cou et aux épaules, chaque anneau se lit dans son propre plan (un
+    point est situé entre deux plans voisins) et une partie s'arrête NET à
+    son dernier anneau. Lu en travers de l'axe, un anneau incliné paraît
+    plus étroit : une partie se croyait enfouie dans une autre trop mince
+    et se cachait — trous à la nuque et à l'aisselle (bras levé).
+  - Juger la peau : `test/outils/portrait_corps_test.dart` (un mouvement en
+    grand, `ZOOM=tete|visage|haut|mains|epaule|coude|genou|bassin|pieds`,
+    `INSTANT` en pour mille, `LACETS`, `DEBOGAGE=true` — une couleur par
+    partie : ce qui manque ou s'entrelace se voit), `inspection_corps_test`
+    (`INSPECTER=1` : les 208 mouvements image par image — pointes, plis
+    retournés, étirements, les pires cas et l'articulation la plus proche ;
+    comparer AVANT / APRÈS une retouche), `perf_corps_test`
+    (`PERF=true` : ≈ 8 à 9 ms une grande figure, ≈ 2 ms une miniature, en
+    JIT).
   - `figure_exercice.dart` : IMAGES CLÉS (`Cle` : durée, COURBE — on
     descend en contrôlant, on remonte vivement —, tenue) ; `_relier` fait
     GLISSER un membre d'une clé tenue par une cible à une clé libre (sans
@@ -856,7 +899,10 @@ lib/
                           pieces_sports
   widgets/corps/          geometrie3 (V3, deux segments, enveloppe),
                           squelette3 (Pose3, Cible, Squelette3), peintre3
-                          (Camera3, PeintreCorps3), corps_humain (kSol,
+                          (Camera3, PeintreCorps3), peau3 (Tampon3, Peau3,
+                          soudures) + peau/ (outils — pli du cou —,
+                          grille — _Tube —, rendu, tronc, membres, tete,
+                          extremites, mains), corps_humain (kSol,
                           Ancre, Accessoires), animations_corps
                           (Mouvements.tous) + mouvements/ (les 208, par
                           famille), figure_exercice (Cle, AnimCorps,
@@ -907,6 +953,11 @@ test/sports_ecrans_test.dart  au doigt : silhouette → Compléter → aperçu �
 test/outils/corps_test.dart  planches des mouvements (16 par PNG) et
                           silhouettes : --dart-define=CAPTURES=<dossier>
                           [MOUVEMENTS=id,id] [INSTANTS=8] [TAILLE=180]
+test/outils/portrait_corps_test.dart  un mouvement en grand, gros plans
+                          (ZOOM), angles (LACETS), DEBOGAGE par partie
+test/outils/inspection_corps_test.dart  les déformations des 208
+                          mouvements (INSPECTER=1)
+test/outils/perf_corps_test.dart  le temps de peindre (PERF=true)
 test/fumee_test.dart      dates, semaine de sport, parcours des cinq
                           onglets à 384 et 360 dp, habitude cochée →
                           accueil, retour d'Android, onglets vivants,
@@ -1141,6 +1192,17 @@ lancer aussi DEPUIS L'ICÔNE.
 - `aConsommerBientot(…, jours: 999)` trie avec `peremption!` : un aliment
   sans date y ferait planter — ne jamais l'appeler avec une limite qui
   laisse passer les sans-date.
+- ⛔ Corps 3D, un virage de tube PLUS SERRÉ que son rayon croise ses
+  anneaux (le cou tête pendante) : étaler le virage (rayon de courbure >
+  rayon du tube), ou cisailler sans tourner les anneaux (le haut du
+  tronc). Un cou qui part dans la direction du dos d'un point situé SUR
+  l'axe de la tête fait forcément un S : centrer le virage sur ce point.
+- ⛔ Corps 3D, un volume `_Tube` lu en travers de l'axe se trompe dès que
+  les anneaux sont inclinés (cisaillés, étirés en arc) : `parPlans`. Et
+  une marge d'enfouissement NÉGATIVE (cacher ce qui colle « au-dessus »
+  de l'autre) ouvre des trous là où le volume de l'autre est approché
+  (ses bouts) : la limiter à un petit rayon (`rayonA`). Juger avec
+  `DEBOGAGE=true` : un trou montre le fond, un entrelacs des rayures.
 - Deux sessions en même temps (l'autre sur le corps 3D) : un
   `flutter test` complet peut échouer « au chargement » pendant qu'un
   fichier de l'autre change — relancer avant de conclure.
@@ -1192,9 +1254,15 @@ lancer aussi DEPUIS L'ICÔNE.
   Chaque module ajoutera SES tables au dépôt.
 - Corps 3D, à juger sur le téléphone : la fluidité des figures animées
   (fiche, séance) et le rendu des 208 mouvements ; l'utilisateur dira
-  lesquels restent peu naturels.
-- Sports, à vérifier sur le téléphone : une vraie séance guidée (vibrations
-  du repos, écran allumé, arrière-plan), un rappel de séance, le fractionné.
+  lesquels restent peu naturels. Connu, en très gros plan seulement : une
+  fine limite à la base du cou (le col du tronc, un peu plus large que le
+  cou, prend la lumière autrement — retoucher la forme des trapèzes), une
+  petite écaille en haut de la nuque tête pendante (chat-vache), une
+  encoche sous le bras levé ; le pire étirement restant est l'avant-bras
+  de l'étirement d'épaule (bras croisé devant la poitrine).
+- Sports (section CONCLUE), à vérifier sur le téléphone : une vraie séance
+  guidée (vibrations du repos, écran allumé, arrière-plan), un rappel de
+  séance, le fractionné.
   Pistes (non demandées) : reprendre une séance interrompue si Android tue
   l'app, GPS pour la course, plus de mouvements dédiés (fire hydrant,
   clean, get-up…), export du journal.
@@ -1206,7 +1274,18 @@ lancer aussi DEPUIS L'ICÔNE.
 
 ---
 
-**Dernière mise à jour** : 25 septembre 2026 (suite 7) — **Alimentation,
+**Dernière mise à jour** : 25 septembre 2026 (suite 8) — **Sports
+conclus** (§ 3 ter) : le corps 3D fini — le cou ne se froisse plus tête
+pendante (un seul virage, centré sur la base du cou ; le haut du tronc
+cisaillé), les volumes du cou et des épaules lus par plans (plus de trou
+à la nuque ni à l'aisselle bras levé), la couture de la nuque (pompe)
+effacée ; inspection des 208 mouvements avant / après (pointes 100 → 68,
+plis 677 → 640, étirements 194 → 204 — surtout des cases jadis cachées à
+tort, maintenant peintes ; chat-vache et les ponts sortis des pires cas),
+vitesse inchangée ; le
+moteur de peau de la session du corps 3D documenté (§ 3 ter). 186 tests ;
+analyse vide.
+— 25 septembre 2026 (suite 7) — **Alimentation,
 palier 4 : l'IA** (§ 3 quater), conclu : assistant (idées de recettes
 avec région, moment et genre choisis avant, anti-gaspillage, écart du
 soir, semaine planifiée avec le livre, repas estimé, recette importée,

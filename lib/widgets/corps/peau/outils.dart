@@ -24,6 +24,35 @@ double _cloche(double x, double a, double b) {
   return s * s;
 }
 
+/// Le PLI DU COU : de la ligne du dos (du milieu du dos à la base du cou)
+/// à l'axe de la tête, le cou tourne en UN SEUL virage, centré sur la base
+/// du cou et étalé sur ± [_kPliCou]. Le cou de la tête (`tete.dart`) et le
+/// haut du tronc (`tronc.dart`) suivent le même : les deux surfaces se
+/// suivent. (Le virage d'avant partait de la base du cou dans la direction
+/// du dos, puis devait revenir sur l'axe de la tête, qui passe par elle :
+/// un S serré, moins large que le cou — tête pendante, au chat-vache ou au
+/// pont, les anneaux se croisaient et le cou se froissait.)
+const double _kPliCou = 0.026;
+
+/// Où les ANNEAUX du cou ont fini de tourner (le long de la tête, depuis sa
+/// base) : sous le menton. Au-dessus, ils restent parallèles et seul leur
+/// centre finit le virage (un cisaillement de moins d'un millimètre) — le
+/// menton, bien plus large que le cou et maillé serré, tourné même de 10°,
+/// se repliait sur lui-même.
+const double _kAnneauxCou = 0.018;
+
+/// À la distance [d] de la base du cou (le long de la tête), de combien le
+/// centre du cou a quitté la ligne du dos vers l'axe de la tête (ψ, en
+/// unités de `tete − dos`), et ψ' — de 0 (le dos) à 1 (la tête), sans
+/// jamais dépasser : le virage ne revient pas sur lui-même.
+(double, double) _pliCou(double d) {
+  const l = _kPliCou;
+  if (d <= -l) return (0, 0);
+  if (d >= l) return (d, 1);
+  final t = (d + l) / (2 * l);
+  return (l * t * t, t);
+}
+
 /// Une bosse ronde de rayon 1 (1 au centre, 0 au-delà), sans racine.
 double _rond(double d2) {
   if (d2 >= 1) return 0;

@@ -51,8 +51,8 @@ class _FormeTete {
       l = s.hautTete.cross(s.avantTete).unite,
       cou = s.cou,
       _base = (s.tete - s.cou).norme {
-    // Le cou part de sa base dans la direction du dos (du milieu du dos au
-    // cou), puis rejoint l'axe de la tête.
+    // Le cou passe de la direction du dos (du milieu du dos au cou) à
+    // l'axe de la tête : le PLI DU COU (`_pliCou`).
     final t = s.cou - s.dosControle;
     _dos = t.norme < 1e-6 ? s.dirTronc : t.unite;
   }
@@ -62,9 +62,6 @@ class _FormeTete {
   /// La base du cou, sous le centre de la tête ; la direction du dos.
   final double _base;
   late final V3 _dos;
-
-  /// Jusqu'où le cou suit le dos avant de rejoindre l'axe de la tête.
-  static const double _plie = 0.034;
 
   /// Les étages : (hauteur, avant, arrière, demi-largeur) — du bas du cou
   /// (dans le haut du tronc) au sommet du crâne. Sous le menton, la gorge ;
@@ -216,8 +213,8 @@ class _FormeTete {
   }
 
   /// Le centre et le repère (avant, côté) de l'étage [uu] : l'axe de la
-  /// tête, sauf en bas du cou, qui part de sa base dans la direction du dos
-  /// et rejoint l'axe en se courbant.
+  /// tête, sauf en bas du cou, qui vient de la direction du dos en un seul
+  /// virage (le PLI DU COU, `_pliCou`), chaque anneau tourné comme lui.
   double _uRepere = double.nan;
   late (V3, V3, V3) _repereCache;
 
@@ -230,19 +227,24 @@ class _FormeTete {
   (V3, V3, V3) _repereCalcule(double uu) {
     final d = uu + _base;
     final axe = h + u * uu;
-    if (d >= _plie) return (axe, f, l);
-    final x = d < 0 ? 0.0 : d / _plie;
+    if (d >= _kPliCou) return (axe, f, l);
+    // Le centre : la ligne du dos (cou + dos·d), écartée de ψ vers l'axe
+    // de la tête (cou + u·d). L'anneau tourne du dos à u, sans dépasser,
+    // un peu plus tôt que la courbe (`_kAnneauxCou`) : au menton, il est
+    // déjà celui de la tête.
+    final (psi, _) = _pliCou(d);
     final ecart = _dos - u;
-    final g = (d < 0 ? d : d * (1 - x) * (1 - x));
-    final pente = d < 0 ? 1.0 : (1 - x) * (1 - 3 * x);
-    final tan = (u + ecart * pente).unite;
-    // La rotation qui porte l'axe de la tête sur la tangente.
+    final centre = axe + ecart * (d - psi);
+    if (d >= _kAnneauxCou) return (centre, f, l);
+    final w = ((d + _kPliCou) / (_kPliCou + _kAnneauxCou)).clamp(0.0, 1.0);
+    final tan = (u + ecart * (1 - w)).unite;
+    // La rotation qui porte l'axe de la tête sur la normale de l'anneau.
     final ax = u.cross(tan);
     final sn = ax.norme;
-    if (sn < 1e-6) return (axe + ecart * g, f, l);
-    final a = math.asin(sn.clamp(-1.0, 1.0));
+    if (sn < 1e-6) return (centre, f, l);
+    final a = math.atan2(sn, u.dot(tan));
     final k = ax / sn;
-    return (axe + ecart * g, f.tourne(k, a), l.tourne(k, a));
+    return (centre, f.tourne(k, a), l.tourne(k, a));
   }
 
   /// Le point de la surface à la hauteur [uu] et à l'angle [phi]

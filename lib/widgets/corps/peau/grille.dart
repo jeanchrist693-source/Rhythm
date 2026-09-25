@@ -292,8 +292,16 @@ class _Grille {
 /// Le VOLUME d'une partie en tube (tronc, bras, jambe), lu sur sa grille,
 /// entre les anneaux [i0] et [i1] : une distance signée approchée (négative
 /// dedans) et la direction qui sort.
+///
+/// [parPlans] : les anneaux ne sont pas perpendiculaires à l'axe (le haut
+/// du tronc, CISAILLÉ par le pli du cou ; la racine du bras, étirée en arc
+/// bras levé) — chaque anneau est lu dans son propre plan, un point est
+/// situé entre les plans de deux anneaux voisins, et la partie s'arrête net
+/// à ses bouts (lu autrement, un anneau incliné paraît plus étroit : une
+/// partie se croyait enfouie dans une autre trop mince et se cachait — un
+/// trou sur la nuque, à l'aisselle).
 class _Tube {
-  _Tube(this.g, this.i0, this.i1) {
+  _Tube(this.g, this.i0, this.i1, {this.parPlans = false}) {
     final m = i1 - i0 + 1, c = g.cols;
     cx = Float64List(m);
     cy = Float64List(m);
@@ -335,6 +343,21 @@ class _Tube {
       final ra = math.max(0, r - 1), rb = math.min(m - 1, r + 1);
       var t = V3(cx[rb] - cx[ra], cy[rb] - cy[ra], cz[rb] - cz[ra]);
       t = t.norme < 1e-9 ? V3.bas : t.unite;
+      if (parPlans) {
+        // Le plan de l'anneau (Newell), tourné dans le sens de l'axe.
+        var nx = 0.0, ny = 0.0, nz = 0.0;
+        for (var j = 0; j < c; j++) {
+          final k = i * c + j, k1 = i * c + (j + 1) % c;
+          nx += (g.y[k] - g.y[k1]) * (g.z[k] + g.z[k1]);
+          ny += (g.z[k] - g.z[k1]) * (g.x[k] + g.x[k1]);
+          nz += (g.x[k] - g.x[k1]) * (g.y[k] + g.y[k1]);
+        }
+        final n = V3(nx, ny, nz);
+        if (n.norme > 1e-12) t = n.dot(t) < 0 ? -n.unite : n.unite;
+        _nr[3 * r] = t.x;
+        _nr[3 * r + 1] = t.y;
+        _nr[3 * r + 2] = t.z;
+      }
       final c0 = V3(cx[r], cy[r], cz[r]);
       var a = (g.sommet(i * c) - c0).sansComposante(t);
       a = a.norme < 1e-9 ? t.cross(V3.proche).unite : a.unite;
@@ -367,7 +390,11 @@ class _Tube {
 
   final _Grille g;
   final int i0, i1;
+  final bool parPlans;
   late final Float64List cx, cy, cz, _ax, _ox, _ang, _ray;
+
+  /// La normale du plan de chaque anneau ([parPlans]).
+  late final Float64List _nr = Float64List(parPlans ? cx.length * 3 : 0);
 
   /// Le plus long segment d'axe ; le dernier segment trouvé.
   double _pasMax = 0;
@@ -415,6 +442,7 @@ class _Tube {
         pz > _z1 + _marge) {
       return (_marge, V3.haut);
     }
+    if (parPlans) return _distanceParPlans(px, py, pz);
     final m = cx.length;
     // Le segment d'axe le plus proche : cherché autour du précédent (les
     // sommets arrivent dans l'ordre des anneaux), vers les deux bouts,
@@ -459,6 +487,68 @@ class _Tube {
     final ccz = cz[r] + (cz[r + 1] - cz[r]) * u;
     final qx = px - ccx, qy = py - ccy, qz = pz - ccz;
     final rho = math.sqrt(qx * qx + qy * qy + qz * qz);
+    return _surface(r, u, qx, qy, qz, rho);
+  }
+
+  /// [distance] quand les anneaux sont lus dans leur plan : la TRANCHE
+  /// entre deux plans voisins qui contient le point (devant le plan de r,
+  /// derrière celui de r + 1), le centre et la normale interpolés, et la
+  /// distance mesurée DANS le plan (hors des bouts : un bout plat).
+  (double, V3) _distanceParPlans(double px, double py, double pz) {
+    final m = cx.length;
+    double cote(int r) =>
+        (px - cx[r]) * _nr[3 * r] +
+        (py - cy[r]) * _nr[3 * r + 1] +
+        (pz - cz[r]) * _nr[3 * r + 2];
+    var r = _dernier.clamp(0, m - 2);
+    for (var n = 0; n < m && r < m - 2 && cote(r + 1) > 0; n++) {
+      r++;
+    }
+    for (var n = 0; n < m && r > 0 && cote(r) < 0; n++) {
+      r--;
+    }
+    _dernier = r;
+    final s0 = cote(r), s1 = cote(r + 1);
+    final dedans = s0 >= 0 && s1 <= 0;
+    final u = dedans
+        ? (s0 - s1 < 1e-12 ? 0.0 : s0 / (s0 - s1))
+        : (s0 < 0 ? 0.0 : 1.0);
+    var qx = px - (cx[r] + (cx[r + 1] - cx[r]) * u);
+    var qy = py - (cy[r] + (cy[r + 1] - cy[r]) * u);
+    var qz = pz - (cz[r] + (cz[r + 1] - cz[r]) * u);
+    // La distance se mesure dans le plan (aussi hors des bouts : celui du
+    // dernier anneau).
+    final a = 3 * r, b = 3 * (r + 1);
+    final nt = V3(
+      _nr[a] + (_nr[b] - _nr[a]) * u,
+      _nr[a + 1] + (_nr[b + 1] - _nr[a + 1]) * u,
+      _nr[a + 2] + (_nr[b + 2] - _nr[a + 2]) * u,
+    ).unite;
+    final axial = qx * nt.x + qy * nt.y + qz * nt.z;
+    qx -= nt.x * axial;
+    qy -= nt.y * axial;
+    qz -= nt.z * axial;
+    final rho = math.sqrt(qx * qx + qy * qy + qz * qz);
+    final (d, n) = _surface(r, u, qx, qy, qz, rho);
+    // Hors des bouts : la partie s'arrête NET à son dernier anneau (pas de
+    // bout arrondi — au-delà commence une autre région, le crâne ; arrondi,
+    // le cou s'en attribuait un morceau et le tronc s'y cachait : un trou).
+    if (dedans) return (d, n);
+    final dehors = s0 < 0 ? -s0 : s1;
+    return (math.max(d, dehors), n);
+  }
+
+  /// La distance signée d'un point à [rho] du centre de la tranche [r]
+  /// (à la fraction [u]), dans la direction ([qx], [qy], [qz]), et la
+  /// direction qui sort.
+  (double, V3) _surface(
+    int r,
+    double u,
+    double qx,
+    double qy,
+    double qz,
+    double rho,
+  ) {
     if (rho < 1e-9) return (-0.01, V3.haut);
     (double, int, double) rayon(int rr) {
       final pa = qx * _ax[3 * rr] + qy * _ax[3 * rr + 1] + qz * _ax[3 * rr + 2];

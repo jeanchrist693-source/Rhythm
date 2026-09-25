@@ -55,19 +55,26 @@ class _FormeTronc {
 
   static const double taille = 0.1;
 
-  V3 _dos(double t) {
+  /// La ligne du dos : bassin → cou, puis tout droit (t > 1).
+  V3 _ligne(double t) {
     if (t <= 1 && t >= 0) {
       final u = 1 - t;
       return s.bassin * (u * u) + s.dosControle * (2 * u * t) + s.cou * (t * t);
     }
     if (t < 0) return s.bassin + s.dirTronc * (t * lTronc);
-    // Le cou : il part dans le prolongement du dos et s'incline vers la
-    // tête.
-    final u = (t - 1) * lTronc;
-    const k = 0.012;
-    return s.cou +
-        _versTete * u +
-        (_t1 - _versTete) * (k * (1 - math.exp(-u / k)));
+    return s.cou + _t1 * ((t - 1) * lTronc);
+  }
+
+  /// Le centre de l'anneau [t] : la ligne du dos, écartée vers la tête
+  /// autour de la base du cou par le PLI DU COU — le même que celui du cou
+  /// de la tête (`_pliCou`) : les deux surfaces se suivent. Les anneaux,
+  /// eux, restent tournés comme la ligne (`_anneauEn`) : le haut du tronc se
+  /// CISAILLE sans tourner — ses anneaux, bien plus larges que le virage,
+  /// se croiseraient.
+  V3 _dos(double t) {
+    final (psi, _) = _pliCou((t - 1) * lTronc);
+    final c = _ligne(t);
+    return psi == 0 ? c : c + (_versTete - _t1) * psi;
   }
 
   double _tAnneau = double.nan;
@@ -82,7 +89,7 @@ class _FormeTronc {
         if (t > b.s0 && t < b.s1) b,
     ];
     final c = _dos(t);
-    final tan = (_dos(t + 0.02) - _dos(t - 0.02)).unite;
+    final tan = (_ligne(t + 0.02) - _ligne(t - 0.02)).unite;
     final u = (t + 0.1).clamp(0.0, 1.0);
     var lat = V3.lerp(s.lateralBassin, s.lateralEpaules, u).sansComposante(tan);
     lat = lat.norme < 1e-3 ? s.lateralBassin : lat.unite;
