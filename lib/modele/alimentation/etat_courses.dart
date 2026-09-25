@@ -179,7 +179,10 @@ class CoursesNotifier extends Notifier<EtatCourses> {
             quantites: a.quantites,
           ),
       ],
-      caisse: caisseDuPanier(panier, baremeAu(maintenant)),
+      caisse: caisseDuPanier(
+        panier,
+        baremeAu(maintenant, state.reglages.baremes),
+      ),
     );
     _muter(
       state.copierAvec(
@@ -358,6 +361,17 @@ class CoursesNotifier extends Notifier<EtatCourses> {
 
   void modifierReglages(ReglagesCourses r) =>
       _muter(state.copierAvec(reglages: r));
+
+  /// Le fichier des barèmes lu en ligne ([quand]) : ce qu'il ajoute
+  /// remplace ce qui avait été reçu avant.
+  void recevoirBaremes(List<Bareme> baremes, DateTime quand) => _muter(
+    state.copierAvec(
+      reglages: state.reglages.copierAvec(
+        baremesEnLigne: baremes,
+        baremesVerifies: quand,
+      ),
+    ),
+  );
 
   // ── Les lieux ajoutés ─────────────────────────────────────────────────────
 

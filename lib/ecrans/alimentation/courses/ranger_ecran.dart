@@ -55,7 +55,7 @@ class _RangerEcranState extends ConsumerState<RangerEcran> {
     super.initState();
     final notifier = ref.read(coursesProvider.notifier);
     final a = widget.achat;
-    final bareme = baremeAu(a.date);
+    final bareme = baremeAu(a.date, ref.read(coursesProvider).reglages.baremes);
     final apprises = ref.read(coursesProvider).conservations;
     _propositions = [
       for (final l in a.lignes)

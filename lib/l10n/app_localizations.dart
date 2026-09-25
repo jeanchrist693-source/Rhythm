@@ -7776,6 +7776,156 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Il en manque un ? L\'IA propose des remplaçants'**
   String get iaRemplacerCuisine;
+
+  /// No description provided for @scannerCodeBarres.
+  ///
+  /// In fr, this message translates to:
+  /// **'Scanner un code-barres'**
+  String get scannerCodeBarres;
+
+  /// No description provided for @scannerCodeBarresDetail.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un produit emballé : Open Food Facts le remplit'**
+  String get scannerCodeBarresDetail;
+
+  /// No description provided for @scannerProduit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Scanner un produit'**
+  String get scannerProduit;
+
+  /// No description provided for @scannerProduitDetail.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le code-barres remplit sa fiche (Open Food Facts)'**
+  String get scannerProduitDetail;
+
+  /// No description provided for @scannerSurtitre.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un produit emballé'**
+  String get scannerSurtitre;
+
+  /// No description provided for @scannerCadre.
+  ///
+  /// In fr, this message translates to:
+  /// **'Place le code-barres dans le cadre.'**
+  String get scannerCadre;
+
+  /// No description provided for @scannerTaperCode.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ou tape les chiffres sous le code-barres'**
+  String get scannerTaperCode;
+
+  /// No description provided for @scannerChercher.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chercher'**
+  String get scannerChercher;
+
+  /// No description provided for @scannerLampe.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lampe'**
+  String get scannerLampe;
+
+  /// No description provided for @scannerRecherche.
+  ///
+  /// In fr, this message translates to:
+  /// **'Je cherche ce produit dans Open Food Facts…'**
+  String get scannerRecherche;
+
+  /// No description provided for @scannerCodeInvalide.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce code n\'est pas complet : vérifie les chiffres (8, 12 ou 13).'**
+  String get scannerCodeInvalide;
+
+  /// No description provided for @scannerInconnu.
+  ///
+  /// In fr, this message translates to:
+  /// **'Open Food Facts ne connaît pas ce produit.'**
+  String get scannerInconnu;
+
+  /// No description provided for @scannerInconnuDetail.
+  ///
+  /// In fr, this message translates to:
+  /// **'Crée-le à la main avec l\'étiquette : son code-barres est gardé, il sera reconnu la prochaine fois.'**
+  String get scannerInconnuDetail;
+
+  /// No description provided for @scannerCreerMain.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le créer à la main'**
+  String get scannerCreerMain;
+
+  /// No description provided for @scannerAutreCode.
+  ///
+  /// In fr, this message translates to:
+  /// **'Scanner un autre code'**
+  String get scannerAutreCode;
+
+  /// No description provided for @scannerHorsLigne.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pas de connexion Internet : la recherche a besoin du réseau.'**
+  String get scannerHorsLigne;
+
+  /// No description provided for @scannerErreurService.
+  ///
+  /// In fr, this message translates to:
+  /// **'Open Food Facts ne répond pas pour le moment.'**
+  String get scannerErreurService;
+
+  /// No description provided for @scannerCameraRefusee.
+  ///
+  /// In fr, this message translates to:
+  /// **'La caméra n\'est pas autorisée : autorise-la dans les réglages d\'Android (Applications, Rhythm, Autorisations), ou tape le code.'**
+  String get scannerCameraRefusee;
+
+  /// No description provided for @scannerCameraIndisponible.
+  ///
+  /// In fr, this message translates to:
+  /// **'La caméra n\'est pas disponible : tape le code.'**
+  String get scannerCameraIndisponible;
+
+  /// No description provided for @scannerMention.
+  ///
+  /// In fr, this message translates to:
+  /// **'Seul le code est envoyé à Open Food Facts, la base libre des produits emballés. Rien d\'autre ne quitte le téléphone.'**
+  String get scannerMention;
+
+  /// No description provided for @produitDepuisOff.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rempli par Open Food Facts : vérifie avec l\'étiquette avant d\'enregistrer.'**
+  String get produitDepuisOff;
+
+  /// No description provided for @produitDepuisOffSansValeurs.
+  ///
+  /// In fr, this message translates to:
+  /// **'Open Food Facts n\'a pas sa valeur nutritive : recopie-la de l\'étiquette.'**
+  String get produitDepuisOffSansValeurs;
+
+  /// No description provided for @codeBarresNumero.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code-barres : {code}'**
+  String codeBarresNumero(String code);
+
+  /// No description provided for @tauxVerifiesLe.
+  ///
+  /// In fr, this message translates to:
+  /// **'Taux vérifiés en ligne le {date}.'**
+  String tauxVerifiesLe(String date);
+
+  /// No description provided for @tauxPasEncoreVerifies.
+  ///
+  /// In fr, this message translates to:
+  /// **'Taux embarqués dans l\'app. Rhythm les vérifie en ligne une fois par mois, dès qu\'il y a du réseau.'**
+  String get tauxPasEncoreVerifies;
 }
 
 class _AppLocalizationsDelegate

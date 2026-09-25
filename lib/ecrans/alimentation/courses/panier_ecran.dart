@@ -171,7 +171,10 @@ class _PanierEcranState extends ConsumerState<PanierEcran>
     if (a == null) {
       return PageSecondaire(retour: widget.retour, enfants: const []);
     }
-    final bareme = baremeAu(ref.watch(aujourdhuiProvider));
+    final bareme = baremeAu(
+      ref.watch(aujourdhuiProvider),
+      ref.watch(coursesProvider).reglages.baremes,
+    );
     final l = _ligne;
     final unite = _livres ? 'lb' : 'kg';
     final d = _dernier;

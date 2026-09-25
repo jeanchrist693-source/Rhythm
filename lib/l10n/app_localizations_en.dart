@@ -5103,4 +5103,95 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get iaRemplacerCuisine => 'Missing one? AI suggests substitutes';
+
+  @override
+  String get scannerCodeBarres => 'Scan a barcode';
+
+  @override
+  String get scannerCodeBarresDetail =>
+      'A packaged product: Open Food Facts fills it in';
+
+  @override
+  String get scannerProduit => 'Scan a product';
+
+  @override
+  String get scannerProduitDetail =>
+      'The barcode fills in its details (Open Food Facts)';
+
+  @override
+  String get scannerSurtitre => 'A packaged product';
+
+  @override
+  String get scannerCadre => 'Hold the barcode inside the frame.';
+
+  @override
+  String get scannerTaperCode => 'Or type the digits under the barcode';
+
+  @override
+  String get scannerChercher => 'Search';
+
+  @override
+  String get scannerLampe => 'Light';
+
+  @override
+  String get scannerRecherche => 'Looking this product up in Open Food Facts…';
+
+  @override
+  String get scannerCodeInvalide =>
+      'This code isn\'t complete: check the digits (8, 12 or 13).';
+
+  @override
+  String get scannerInconnu => 'Open Food Facts doesn\'t know this product.';
+
+  @override
+  String get scannerInconnuDetail =>
+      'Create it by hand from the label: its barcode is kept, so it will be recognized next time.';
+
+  @override
+  String get scannerCreerMain => 'Create it by hand';
+
+  @override
+  String get scannerAutreCode => 'Scan another code';
+
+  @override
+  String get scannerHorsLigne =>
+      'No Internet connection: the lookup needs the network.';
+
+  @override
+  String get scannerErreurService =>
+      'Open Food Facts isn\'t answering right now.';
+
+  @override
+  String get scannerCameraRefusee =>
+      'The camera isn\'t allowed: allow it in Android settings (Apps, Rhythm, Permissions), or type the code.';
+
+  @override
+  String get scannerCameraIndisponible =>
+      'The camera isn\'t available: type the code.';
+
+  @override
+  String get scannerMention =>
+      'Only the code is sent to Open Food Facts, the open database of packaged products. Nothing else leaves the phone.';
+
+  @override
+  String get produitDepuisOff =>
+      'Filled in by Open Food Facts: check against the label before saving.';
+
+  @override
+  String get produitDepuisOffSansValeurs =>
+      'Open Food Facts doesn\'t have its nutrition facts: copy them from the label.';
+
+  @override
+  String codeBarresNumero(String code) {
+    return 'Barcode: $code';
+  }
+
+  @override
+  String tauxVerifiesLe(String date) {
+    return 'Rates checked online on $date.';
+  }
+
+  @override
+  String get tauxPasEncoreVerifies =>
+      'Rates built into the app. Rhythm checks them online once a month, whenever there\'s a network.';
 }

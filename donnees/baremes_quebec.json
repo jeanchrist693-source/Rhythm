@@ -1,0 +1,7 @@
+{
+  "note": "Taux des taxes du Québec lus par Rhythm une fois par mois (lib/modele/alimentation/taxes.dart, kUrlBaremes). Un changement annoncé s'ajoute ici avec sa date d'entrée en vigueur : l'app l'applique seule le jour venu. Seuls les taux changent ainsi (TPS et TVQ, entre 0 et 0,2) ; ce qui est détaxé reste dans l'app.",
+  "maj": "2026-09-25",
+  "baremes": [
+    {"depuis": "2013-01-01", "tps": 0.05, "tvq": 0.09975}
+  ]
+}

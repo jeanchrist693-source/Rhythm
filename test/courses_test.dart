@@ -7,6 +7,9 @@
 // (ouvrir, déplacer, finir, jeter, réassort), le JSON tolérant, le dépôt,
 // les rappels de péremption.
 
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -133,6 +136,45 @@ void main() {
         expect(b.single.tvq, 0.1);
       },
     );
+
+    test('le fichier public du dépôt se lit, et redit le barème embarqué', () {
+      expect(kUrlBaremes, endsWith('/main/donnees/baremes_quebec.json'));
+      final b = baremesDepuis(
+        jsonDecode(File('donnees/baremes_quebec.json').readAsStringSync()),
+      );
+      expect(b, isNotEmpty);
+      final auj = baremeAu(_auj, b);
+      final embarque = baremeAu(_auj);
+      expect((auj.tps, auj.tvq), (embarque.tps, embarque.tvq));
+    });
+
+    test('relu en ligne une fois par mois', () {
+      final auj = DateTime(2026, 9, 24);
+      expect(baremesAVerifier(null, auj), isTrue);
+      expect(baremesAVerifier(DateTime(2026, 8, 26), auj), isFalse);
+      expect(baremesAVerifier(DateTime(2026, 8, 25), auj), isTrue);
+      // L'horloge du téléphone a reculé : on relit.
+      expect(baremesAVerifier(DateTime(2026, 10, 1), auj), isTrue);
+    });
+
+    test('un barème reçu s\'applique à sa date, et se garde', () {
+      final r = const ReglagesCourses().copierAvec(
+        baremesEnLigne: [
+          Bareme(depuis: DateTime(2027, 1, 1), tps: 0.05, tvq: 0.1),
+        ],
+        baremesVerifies: DateTime(2026, 9, 24),
+      );
+      expect(baremeAu(DateTime(2026, 12, 31), r.baremes).tvq, 0.09975);
+      expect(baremeAu(DateTime(2027, 1, 1), r.baremes).tvq, 0.1);
+      final relu = ReglagesCourses.depuisJson(r.versJson());
+      expect(relu.baremesEnLigne.single.tvq, 0.1);
+      expect(relu.baremesVerifies, DateTime(2026, 9, 24));
+      // Des réglages d'avant : rien de reçu, jamais vérifié.
+      final ancien = ReglagesCourses.depuisJson({'budget': 600});
+      expect(ancien.baremesEnLigne, isEmpty);
+      expect(ancien.baremesVerifies, isNull);
+      expect(ancien.baremes, kBaremesQuebec);
+    });
   });
 
   group('la saisie et les rayons', () {
@@ -405,6 +447,18 @@ void main() {
       addTearDown(c.dispose);
       return c;
     }
+
+    test('les barèmes reçus en ligne : gardés au dépôt, appliqués', () {
+      final depot = Depot.memoire();
+      addTearDown(depot.fermer);
+      final c = conteneur(depot);
+      c.read(coursesProvider.notifier).recevoirBaremes([
+        Bareme(depuis: DateTime(2026, 9, 1), tps: 0.05, tvq: 0.1),
+      ], _auj);
+      final relu = conteneur(depot).read(coursesProvider).reglages;
+      expect(relu.baremesVerifies, jourDe(_auj));
+      expect(baremeAu(_auj, relu.baremes).tvq, 0.1);
+    });
 
     test('les emplacements ajoutés : ranger, déplacer, changer, retirer', () {
       final depot = Depot.memoire();

@@ -27,7 +27,8 @@ fonctionnelles et PERSISTÉES** (§ 3 bis), **les SPORTS aussi — section
 CONCLUE** (§ 3 ter, 25 sept. 2026 : reste à les éprouver sur le
 téléphone, § 6), **l'ALIMENTATION est en cours, palier par palier**
 (§ 3 quater : paliers 1 à 4 livrés — le socle, les achats, les
-recettes, l'IA — puis le lot 5, les finitions du plan, à tester). Biblique affiche encore les données de la
+recettes, l'IA — puis les lots 5 et 6, les finitions du plan, à tester :
+le plan de l'Alimentation est COMPLET). Biblique affiche encore les données de la
 maquette (`lib/modele/graine.dart`), posées sur les vraies dates.
 
 ---
@@ -497,6 +498,9 @@ maquette lui plaît : on le garde, on l'enrichit sans s'en éloigner.
 5. **Les finitions du plan** (LIVRÉ le 25 sept. 2026, à tester) : ce que
    le plan validé promettait et que les paliers 1 à 4 n'avaient pas fait
    (l'utilisateur : « passe au lot 5 » — il n'était pas écrit).
+6. **Le scan et le barème en ligne** (LIVRÉ le 25 sept. 2026, à tester) :
+   ce qui restait du plan (l'utilisateur : « continue sur ce qui manque ;
+   et on pourra passer à Biblique »).
 
 ### Lot 5 — les finitions du plan (livré le 25 sept. 2026)
 
@@ -546,9 +550,50 @@ maquette lui plaît : on le garde, on l'enrichit sans s'en éloigner.
 - Démonstration : le gruau du journal vient maintenant de la base (1414,
   250 g) — l'assiette de la maquette dit « Il manque des légumes et des
   fruits » (le bol, entrée rapide, reste non réparti).
-- Pas fait (à proposer) : le SCAN DE CODE-BARRES (« plus tard » dans le
-  plan : caméra + Open Food Facts en ligne) ; héberger le barème des
-  taxes.
+- Le scan de code-barres et le barème en ligne : le lot 6.
+
+### Lot 6 — le scan et le barème en ligne (livré le 25 sept. 2026)
+
+- **Le SCAN d'un produit** (`ecrans/alimentation/scanner_ecran.dart`,
+  extension `mobile_scanner` 7.4.2 — la première à suivre l'Android
+  Gradle Plugin 9 ; caméra + ML Kit, lecture SUR le téléphone ; la
+  permission CAMERA vient de l'extension, `NSCameraUsageDescription` pour
+  iOS) : EAN-13, EAN-8, UPC-A, UPC-E. Le code est CONTRÔLÉ et ramené à un
+  seul format (`normaliserCode`, `modele/alimentation/open_food_facts.dart` :
+  clé GS1 ; un UPC-A devient l'EAN-13 du même produit, un UPC-E est déplié
+  quand la caméra le dit — il passe parfois aussi la clé d'un EAN-8).
+  Puis : un produit DÉJÀ dans « Mes produits » (même code,
+  `Produit.codeBarres`, `produitDuCode`) s'ouvre aussitôt, HORS LIGNE ;
+  sinon le code — seulement lui — part à OPEN FOOD FACTS
+  (`systeme/open_food_facts.dart`, API v2, sans clé, `User-Agent` de
+  Rhythm, `ServiceOff.instance` remplaçable) ; la réponse est lue sans
+  rien inventer (`brouillonDepuisOff` : nom français d'abord, première
+  marque, la PORTION de l'emballage — valeurs « _serving », sinon les 100 g
+  à la règle de trois —, sinon 100 g ; kJ → kcal, sel → sodium, sodium en
+  mg) et ouvre le FORMULAIRE pré-rempli (« Rempli par Open Food Facts :
+  vérifie avec l'étiquette ») ; inconnu : « Le créer à la main », son code
+  gardé. Depuis « Noter un repas », le produit enregistré enchaîne sur SA
+  PORTION (`ProduitFormulaireEcran.apres`) ; depuis « Mes produits », il
+  y reste. Sans caméra (refusée, absente) : les chiffres se tapent sous le
+  cadre. La caméra s'arrête pendant la recherche et quand l'app passe
+  derrière ; « Lampe ». Le cadre : quatre coins, ni boîte ni lueur.
+  Entrées : « Scanner un produit » (capsule, Mes produits), « Scanner un
+  code-barres » (Noter un repas).
+- **Le BARÈME en ligne** : `donnees/baremes_quebec.json` dans le dépôt
+  (PUBLIC), lu à `kUrlBaremes` (raw.githubusercontent, branche `main`) au
+  plus une fois par MOIS (`baremesAVerifier`, 30 jours ; horloge reculée →
+  relu), au lancement et au retour dans l'app (`synchro.dart`,
+  `systeme/baremes_en_ligne.dart`) ; les barèmes reçus et la date sont
+  gardés (`ReglagesCourses.baremesEnLigne` / `baremesVerifies`) et
+  s'AJOUTENT aux embarqués (`reglages.baremes`, passé à chaque
+  `baremeAu`). Seuls les TAUX changent ainsi (taux invraisemblables
+  refusés) ; ce qui est détaxé reste dans l'app. Sans réseau ou fichier
+  abîmé : rien ne change. L'écran des taxes dit « Taux vérifiés en ligne
+  le … ». Un changement de taux = une ligne datée ajoutée au fichier, sur
+  `main`.
+- Pas éprouvé hors des tests (le réseau du conteneur cloud refusait
+  Open Food Facts et le SDK Android) : la caméra, un vrai appel à Open
+  Food Facts, la construction de l'APK avec l'extension.
 
 ### Palier 1 — le socle (livré le 25 sept. 2026)
 
@@ -1126,6 +1171,12 @@ test/habitudes_test.dart  règles des séries, démonstration = maquette,
   ecrans/alimentation/ia/  assistant, idées, recette proposée, importer,
                           écart, planifier, estimer, remplacer,
                           conservation, bilan, pieces_ia
+  modele/alimentation/    (lot 6) open_food_facts (codes-barres, réponse
+                          d'Open Food Facts → brouillon de produit)
+  systeme/                (lot 6) open_food_facts (l'appel, ServiceOff),
+                          baremes_en_ligne (le barème relu chaque mois)
+  ecrans/alimentation/scanner_ecran.dart  le scan (caméra, saisie, recherche)
+donnees/baremes_quebec.json  le barème PUBLIC des taxes (kUrlBaremes)
 test/ia_test.dart         textes nettoyés, correspondance (vraie base),
                           lectures tolérantes, invites (rien de
                           personnel), bilan, conservation apprise, service
@@ -1139,6 +1190,12 @@ test/outils/ia_reelle_test.dart  chaque demande de l'assistant au VRAI
                           Groq (délais, recettes, correspondance ligne par
                           ligne ; consomme le quota) :
   flutter test --dart-define=IA_REELLE=true --dart-define-from-file=cles.json test/outils/ia_reelle_test.dart
+test/scan_test.dart       codes-barres (clé, UPC-A / UPC-E → EAN-13), la
+                          réponse d'Open Food Facts (portion, 100 g, kJ,
+                          sel, inconnu, sans valeurs), le code gardé
+test/scan_ecrans_test.dart  au doigt, faux Open Food Facts : mes produits
+                          → pré-rempli → retrouvé sans réseau ; noter →
+                          inconnu → créé à la main → portion ; erreurs
 test/outils/balayage_correspondance_test.dart  274 ingrédients et plats →
                           l'aliment du FCÉN choisi (✗ hors base, ⚠ écart) :
   flutter test --dart-define=BALAYAGE=true test/outils/balayage_correspondance_test.dart
@@ -1390,6 +1447,13 @@ lancer aussi DEPUIS L'ICÔNE.
   (et « rôties à sec », autre chose) ; les parenthèses y mêlent synonymes
   (« Okra (gombo) », à garder) et composition (« (faite à partir de …) »,
   à ignorer).
+- ⛔ Le barème en ligne se lit sur le dépôt GitHub PUBLIC
+  (`raw.githubusercontent.com/…/main/donnees/baremes_quebec.json`) : si le
+  dépôt devient privé, le fichier ne se lit plus (l'app garde le barème
+  embarqué) — l'héberger ailleurs et changer `kUrlBaremes`. Tout le dépôt
+  est public (CLAUDE.md compris) ; la clé Groq, elle, n'y est pas.
+- Un toast dure 1,9 s : `pumpAndSettle` le laisse finir — le chercher
+  juste après le toucher (`pump()`), pas après `_toucher`.
 - flutter_test remplace le réseau (HTTP 400) une fois le binding lancé :
   un test qui parle à un vrai serveur (Groq, ou le faux Groq local des
   tests du service) passe par `HttpOverrides.runWithHttpOverrides` avec
@@ -1405,8 +1469,10 @@ lancer aussi DEPUIS L'ICÔNE.
   (`cles.json` à la racine, hors du dépôt, celle de Studio / Net Worth ;
   vérifiée : Groq répond, les deux modèles sont là). L'utilisateur juge
   la qualité des idées et des estimations au quotidien ; ce qui reste
-  hors de la base est ce que le FCÉN n'a pas. En suspens : héberger le
-  barème des taxes en ligne (la permission INTERNET est là). À vérifier sur le téléphone : un minuteur
+  hors de la base est ce que le FCÉN n'a pas. À vérifier sur le
+  téléphone (lot 6) : le SCAN (autoriser la caméra, un vrai produit, un
+  produit inconnu, sans réseau), la date « Taux vérifiés en ligne » dans
+  les taxes (une fois `main` à jour). À vérifier aussi : un minuteur
   du mode cuisine quand l'app passe derrière (notification inexacte), le
   rappel de décongélation.
 - Faire vivre Biblique (lecteur, plan, prière, méditation) ; brancher les
@@ -1434,7 +1500,17 @@ lancer aussi DEPUIS L'ICÔNE.
 
 ---
 
-**Dernière mise à jour** : 25 septembre 2026 (suite 10) — **Alimentation,
+**Dernière mise à jour** : 25 septembre 2026 (suite 11) — **Alimentation,
+lot 6 : le scan et le barème en ligne** (§ 3 quater) — le plan de
+l'Alimentation est complet : scanner un code-barres (caméra, clé contrôlée,
+Open Food Facts → formulaire pré-rempli ; retrouvé sans réseau ; créé à la
+main s'il est inconnu ; depuis « Noter un repas », enchaîne sur la
+portion), le barème des taxes relu en ligne une fois par mois (fichier
+public du dépôt). Le lot 5 vérifié (analyse vide, 205 tests) et poussé.
+225 tests ; analyse vide ; captures du scan regardées (s01 à s06). APK
+pas construit ici (SDK Android inaccessible depuis le conteneur).
+Prochaine section : Biblique.
+— 25 septembre 2026 (suite 10) — **Alimentation,
 lot 5 : les finitions du plan** (§ 3 quater) : mon assiette (Guide
 alimentaire canadien), le total prévu du jour dans Ma semaine, recettes
 favorites et étiquettes, emplacements ajoutés au garde-manger, remplacer

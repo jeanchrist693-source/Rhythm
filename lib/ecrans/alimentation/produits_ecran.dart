@@ -3,6 +3,8 @@
 // MES PRODUITS : les aliments achetés dont on a recopié le tableau de la
 // valeur nutritive (une barre, un yogourt, des céréales). Ils se trouvent
 // en premier quand on note un repas. Toucher un produit le modifie.
+// « Scanner un produit » : son code-barres le remplit (Open Food Facts,
+// `scanner_ecran.dart`).
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,6 +19,7 @@ import '../../widgets/page_secondaire.dart';
 import '../../widgets/pictos.dart';
 import 'pieces_alimentation.dart';
 import 'produit_formulaire_ecran.dart';
+import 'scanner_ecran.dart';
 
 class ProduitsEcran extends ConsumerWidget {
   const ProduitsEcran({super.key, required this.retour});
@@ -34,14 +37,26 @@ class ProduitsEcran extends ConsumerWidget {
       enfants: [
         TitreSecondaire(titre: tr.mesProduits),
         Text(tr.mesProduitsExplication, style: RhythmTypo.detail),
-        BoutonCapsule(
-          picto: Picto.plus,
-          libelle: tr.nouveauProduit,
-          plein: true,
-          onTap: () => pousserEcran(
-            context,
-            ProduitFormulaireEcran(retour: tr.mesProduits),
-          ),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            BoutonCapsule(
+              picto: Picto.plus,
+              libelle: tr.nouveauProduit,
+              plein: true,
+              onTap: () => pousserEcran(
+                context,
+                ProduitFormulaireEcran(retour: tr.mesProduits),
+              ),
+            ),
+            BoutonCapsule(
+              picto: Picto.codeBarres,
+              libelle: tr.scannerProduit,
+              onTap: () =>
+                  pousserEcran(context, ScannerEcran(retour: tr.mesProduits)),
+            ),
+          ],
         ),
         if (produits.isNotEmpty)
           Column(

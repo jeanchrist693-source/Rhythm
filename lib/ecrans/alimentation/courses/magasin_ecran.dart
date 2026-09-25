@@ -127,7 +127,10 @@ class _MagasinEcranState extends ConsumerState<MagasinEcran>
       for (final a in etat.liste)
         if (a.auPanier) a,
     ];
-    final caisse = caisseDuPanier(panier, baremeAu(maintenant));
+    final caisse = caisseDuPanier(
+      panier,
+      baremeAu(maintenant, etat.reglages.baremes),
+    );
     final budget = reglages.budgetMois;
     final titre = tr.auMagasin;
 

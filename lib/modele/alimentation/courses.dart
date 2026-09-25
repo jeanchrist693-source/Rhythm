@@ -22,6 +22,7 @@
 //   rappels de péremption, lieux ajoutés.
 // Lecture TOLÉRANTE partout.
 
+import '../../utils/dates.dart';
 import 'conservation.dart';
 import 'taxes.dart';
 
@@ -619,10 +620,22 @@ class ReglagesCourses {
     this.rappelsPeremption = true,
     this.heureRappel = 9 * 60,
     this.lieux = const [],
+    this.baremesEnLigne = const [],
+    this.baremesVerifies,
   });
 
   /// Les emplacements ajoutés, dans l'ordre où on les a ajoutés.
   final List<Lieu> lieux;
+
+  /// Les barèmes reçus du fichier en ligne (`kUrlBaremes`), et quand il a
+  /// été lu pour la dernière fois.
+  final List<Bareme> baremesEnLigne;
+  final DateTime? baremesVerifies;
+
+  /// Les barèmes à appliquer : les embarqués, et ceux reçus en ligne.
+  List<Bareme> get baremes => baremesEnLigne.isEmpty
+      ? kBaremesQuebec
+      : [...kBaremesQuebec, ...baremesEnLigne];
 
   Lieu? lieu(String? id) {
     if (id == null) return null;
@@ -654,6 +667,8 @@ class ReglagesCourses {
     bool? rappelsPeremption,
     int? heureRappel,
     List<Lieu>? lieux,
+    List<Bareme>? baremesEnLigne,
+    DateTime? baremesVerifies,
   }) => ReglagesCourses(
     budgetMois: budgetMois == null ? this.budgetMois : budgetMois(),
     magasins: magasins ?? this.magasins,
@@ -662,6 +677,8 @@ class ReglagesCourses {
     rappelsPeremption: rappelsPeremption ?? this.rappelsPeremption,
     heureRappel: heureRappel ?? this.heureRappel,
     lieux: lieux ?? this.lieux,
+    baremesEnLigne: baremesEnLigne ?? this.baremesEnLigne,
+    baremesVerifies: baremesVerifies ?? this.baremesVerifies,
   );
 
   Map<String, dynamic> versJson() => {
@@ -672,6 +689,9 @@ class ReglagesCourses {
     'rappels': rappelsPeremption,
     'heure': heureRappel,
     if (lieux.isNotEmpty) 'lieux': [for (final l in lieux) l.versJson()],
+    if (baremesEnLigne.isNotEmpty)
+      'baremes': [for (final b in baremesEnLigne) b.versJson()],
+    if (baremesVerifies case final v?) 'baremesVerifies': cleJour(v),
   };
 
   static ReglagesCourses depuisJson(Object? j) {
@@ -704,6 +724,10 @@ class ReglagesCourses {
         if (j['lieux'] is List)
           for (final l in j['lieux'] as List) ?Lieu.depuisJson(l),
       ],
+      baremesEnLigne: baremesDepuis(j),
+      baremesVerifies: j['baremesVerifies'] is int
+          ? jourDeCle(j['baremesVerifies'] as int)
+          : null,
     );
   }
 }

@@ -18,6 +18,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:rhythm/app/rhythm_app.dart';
+import 'package:rhythm/ecrans/alimentation/scanner_ecran.dart';
+import 'package:rhythm/modele/alimentation/alimentation.dart';
+import 'package:rhythm/modele/alimentation/nutriments.dart';
+import 'package:rhythm/modele/alimentation/open_food_facts.dart';
+import 'package:rhythm/systeme/open_food_facts.dart';
 import 'package:rhythm/modele/alimentation/base_aliments.dart';
 import 'package:rhythm/modele/etat_sante.dart';
 import 'package:rhythm/widgets/pictos.dart';
@@ -58,6 +63,7 @@ void main() {
   _capturesAchats();
   _capturesRecettes();
   _capturesLot5();
+  _capturesScan();
   testWidgets("captures de l'alimentation", (tester) async {
     if (_dossier.isEmpty) {
       markTestSkipped('Exécuter avec --dart-define=CAPTURES=<dossier>');
@@ -562,5 +568,119 @@ void _capturesLot5() {
     await fermer();
     await ouvrir(find.text('Congélateur du sous-sol').first);
     await _capturer(tester, 'l14_garde_manger_filtre');
+  });
+}
+
+/// Un faux Open Food Facts pour les captures : la barre tendre, ou rien.
+class _FauxOff extends ServiceOff {
+  bool connu = true;
+
+  @override
+  Future<BrouillonOff?> chercher(String code) async => !connu
+      ? null
+      : BrouillonOff(
+          produit: Produit(
+            id: '',
+            nom: 'Barre tendre aux pépites de chocolat',
+            marque: 'Quaker',
+            portion: '1 barre (24 g)',
+            grammesPortion: 24,
+            codeBarres: code,
+            parPortion: const Nutriments(
+              kcal: 101,
+              lipides: 3,
+              satures: 0.7,
+              glucides: 16.8,
+              fibres: 1,
+              sucres: 7,
+              proteines: 1.6,
+              sodium: 60,
+            ),
+          ),
+          valeursConnues: true,
+        );
+}
+
+void _capturesScan() {
+  testWidgets('captures du scan', (tester) async {
+    if (_dossier.isEmpty) {
+      markTestSkipped('Exécuter avec --dart-define=CAPTURES=<dossier>');
+      return;
+    }
+    await initializeDateFormatting();
+    await chargerPolices();
+    tester.view.physicalSize = const Size(384, 832) * 2;
+    tester.view.devicePixelRatio = 2;
+    addTearDown(tester.view.reset);
+    tester.platformDispatcher.localesTestValue = const [Locale('fr', 'CA')];
+    addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+    ScannerEcran.camera = false;
+    addTearDown(() => ScannerEcran.camera = true);
+    final off = _FauxOff();
+    final avant = ServiceOff.instance;
+    ServiceOff.instance = off;
+    addTearDown(() => ServiceOff.instance = avant);
+    final base = BaseAliments.analyser(
+      File('assets/donnees/fcen.txt').readAsStringSync(),
+    );
+    final matin = DateTime(2026, 9, 24, 8);
+    SceneOuverture.reinitialiser();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          aujourdhuiProvider.overrideWithValue(matin),
+          horlogeProvider.overrideWithValue(() => matin),
+          baseAlimentsProvider.overrideWith((ref) async => base),
+        ],
+        child: const RhythmApp(),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 1600));
+
+    Future<void> ouvrir(Finder f) async {
+      await tester.ensureVisible(f);
+      await tester.pump();
+      await tester.tap(f);
+      await _laisser(tester);
+    }
+
+    Future<void> fermer() => ouvrir(
+      find
+          .byWidgetPredicate((w) => w is PictoRhythm && w.picto == Picto.retour)
+          .first,
+    );
+
+    await tester.tap(
+      find
+          .byWidgetPredicate(
+            (w) => w is PictoRhythm && w.picto == Picto.couverts,
+          )
+          .last,
+    );
+    await _laisser(tester);
+
+    await ouvrir(find.text('Mes produits'));
+    await _capturer(tester, 's01_mes_produits');
+    await ouvrir(find.text('Scanner un produit'));
+    await _capturer(tester, 's02_scanner');
+    await tester.enterText(find.byType(TextField).first, '0 12345 67890 5');
+    await ouvrir(find.text('Chercher'));
+    await _capturer(tester, 's03_prerempli');
+    await _defiler(tester, 600);
+    await _capturer(tester, 's04_prerempli_bas');
+    await fermer();
+
+    off.connu = false;
+    await ouvrir(find.text('Scanner un produit'));
+    await tester.enterText(find.byType(TextField).first, '96385074');
+    await ouvrir(find.text('Chercher'));
+    await _capturer(tester, 's05_inconnu');
+    await fermer();
+    await fermer();
+
+    await ouvrir(find.bySemanticsLabel('Ajouter un repas'));
+    await tester.ensureVisible(find.text('Scanner un code-barres'));
+    await _laisser(tester);
+    await _capturer(tester, 's06_noter');
   });
 }

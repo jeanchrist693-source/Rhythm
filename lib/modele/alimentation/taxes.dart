@@ -26,6 +26,7 @@
 // Sources : Revenu Québec (produits alimentaires de base), RECYC-QUÉBEC
 // (consigne), annonce du 15 juillet 2026.
 
+import '../../utils/dates.dart';
 import 'expressions.dart';
 
 /// Le statut d'un article à la caisse.
@@ -344,13 +345,27 @@ class Caisse {
 
 double _cents(double x) => (x * 100).round() / 100;
 
-// ═══ La mise à jour en ligne (en attente) ═══════════════════════════════════
+// ═══ La mise à jour en ligne ══════════════════════════════════════════════════
 
-/// Un petit fichier public (JSON) qui peut ajouter des barèmes :
+/// Un petit fichier PUBLIC (JSON), dans le dépôt de Rhythm
+/// (`donnees/baremes_quebec.json`), qui peut AJOUTER des barèmes datés :
 /// `{"baremes": [{"depuis": "2027-01-01", "tps": 0.05, "tvq": 0.09975}]}`.
-/// VIDE tant qu'il n'est pas hébergé : aucune requête réseau (Rhythm n'a pas
-/// encore la permission INTERNET).
-const String kUrlBaremes = '';
+/// Lu au plus une fois par mois (`systeme/baremes_en_ligne.dart`) ; sans
+/// réseau, ou un fichier abîmé, le barème embarqué suffit. Seuls les TAUX
+/// changent ainsi : les règles (ce qui est détaxé) restent dans l'app.
+const String kUrlBaremes =
+    'https://raw.githubusercontent.com/jeanchrist693-source/Rhythm/main/'
+    'donnees/baremes_quebec.json';
+
+/// Les jours entre deux vérifications en ligne.
+const int kJoursEntreVerifications = 30;
+
+/// Faut-il relire le fichier en ligne ? Jamais lu, lu il y a un mois ou
+/// plus, ou une date à venir (l'horloge du téléphone a reculé).
+bool baremesAVerifier(DateTime? derniere, DateTime maintenant) =>
+    derniere == null ||
+    derniere.isAfter(maintenant) ||
+    joursEntre(derniere, maintenant) >= kJoursEntreVerifications;
 
 /// Les barèmes lus dans un document reçu (les invraisemblables sautés).
 List<Bareme> baremesDepuis(Object? document) => [

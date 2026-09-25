@@ -2,13 +2,16 @@
 //
 // LES TAXES DU QUÉBEC, expliquées : les taux en vigueur (et depuis quand),
 // les trois statuts avec des exemples, ce qui a changé le 15 juillet 2026,
-// la consigne, et le principe de Rhythm : l'app propose, tu décides.
+// la consigne, et le principe de Rhythm : l'app propose, tu décides. Les
+// taux sont relus en ligne une fois par mois (`kUrlBaremes`) : la date de
+// la dernière lecture est dite sous eux.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../l10n/libelles_courses.dart';
 import '../../../l10n/traductions.dart';
+import '../../../modele/alimentation/etat_courses.dart';
 import '../../../modele/alimentation/taxes.dart';
 import '../../../modele/etat_sante.dart';
 import '../../../theme/rhythm_couleurs.dart';
@@ -25,7 +28,8 @@ class TaxesEcran extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final tr = context.tr;
     final f = context.formats;
-    final b = baremeAu(ref.watch(aujourdhuiProvider));
+    final reglages = ref.watch(coursesProvider).reglages;
+    final b = baremeAu(ref.watch(aujourdhuiProvider), reglages.baremes);
 
     Widget statut(StatutTaxe s, String taux, String exemples) => Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -66,6 +70,11 @@ class TaxesEcran extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             Text(tr.tauxExplication, style: RhythmTypo.detail),
+            const SizedBox(height: 8),
+            Text(switch (reglages.baremesVerifies) {
+              final v? => tr.tauxVerifiesLe(f.dateCourte(v)),
+              null => tr.tauxPasEncoreVerifies,
+            }, style: RhythmTypo.petit),
           ],
         ),
         Column(

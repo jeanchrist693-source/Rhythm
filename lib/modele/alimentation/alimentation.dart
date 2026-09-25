@@ -358,11 +358,16 @@ class Produit {
     required this.parPortion,
     this.marque,
     this.grammesPortion,
+    this.codeBarres,
   });
 
   final String id;
   final String nom;
   final String? marque;
+
+  /// Son code-barres (EAN-13 ou EAN-8, `normaliserCode`) : scanné de
+  /// nouveau, le produit est retrouvé sans réseau.
+  final String? codeBarres;
 
   /// « 1 barre (40 g) », « 175 g ».
   final String portion;
@@ -375,6 +380,7 @@ class Produit {
     'marque': ?marque,
     'portion': portion,
     'g': ?grammesPortion,
+    'code': ?codeBarres,
     'n': parPortion.versJson(),
   };
 
@@ -382,13 +388,14 @@ class Produit {
     if (j is! Map) return null;
     final id = j['id'], nom = j['nom'], portion = j['portion'];
     if (id is! String || nom is! String) return null;
-    final marque = j['marque'], g = j['g'];
+    final marque = j['marque'], g = j['g'], code = j['code'];
     return Produit(
       id: id,
       nom: nom,
       marque: marque is String && marque.isNotEmpty ? marque : null,
       portion: portion is String && portion.isNotEmpty ? portion : '1',
       grammesPortion: g is num && g > 0 ? g.toDouble() : null,
+      codeBarres: code is String && code.isNotEmpty ? code : null,
       parPortion: Nutriments.depuisJson(j['n']),
     );
   }
@@ -426,6 +433,14 @@ class EtatAlimentation {
   Produit? produit(String id) {
     for (final p in produits) {
       if (p.id == id) return p;
+    }
+    return null;
+  }
+
+  /// Le produit de ce code-barres (normalisé), s'il est déjà enregistré.
+  Produit? produitDuCode(String code) {
+    for (final p in produits) {
+      if (p.codeBarres == code) return p;
     }
     return null;
   }

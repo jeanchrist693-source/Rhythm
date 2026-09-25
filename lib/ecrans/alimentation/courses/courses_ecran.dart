@@ -99,7 +99,7 @@ class _CoursesEcranState extends ConsumerState<CoursesEcran>
     final f = context.formats;
     final etat = ref.watch(coursesProvider);
     final maintenant = ref.watch(aujourdhuiProvider);
-    final bareme = baremeAu(maintenant);
+    final bareme = baremeAu(maintenant, etat.reglages.baremes);
     final estimation = estimationListe(etat.liste, etat.achats, bareme);
     final budget = etat.reglages.budgetMois;
     final depense = depenseDuMois(etat.achats, maintenant);

@@ -4,7 +4,8 @@
 // d'après l'heure), ce qu'il contient déjà, puis la recherche.
 // - Sans recherche : les RESTES du garde-manger (un « + » en note une
 //   portion), les RÉCENTS (un « + » les ajoute d'un toucher, à la même
-//   quantité), mes recettes de ce moment, « Mes produits », l'entrée rapide.
+//   quantité), mes recettes de ce moment, « Mes produits », le SCAN d'un
+//   code-barres (`scanner_ecran.dart`), l'entrée rapide.
 // - En cherchant : mes recettes et mes produits d'abord, puis la base du
 //   FCÉN (5 894 aliments, hors ligne — ce qu'on mange souvent passe
 //   devant), et en bas « Entrée rapide » avec le texte tapé.
@@ -46,6 +47,7 @@ import 'ia/estimer_ecran.dart';
 import 'pieces_alimentation.dart';
 import 'portion_ecran.dart';
 import 'produit_formulaire_ecran.dart';
+import 'scanner_ecran.dart';
 import 'recettes/portion_recette_ecran.dart';
 
 class NoterEcran extends ConsumerStatefulWidget {
@@ -342,6 +344,16 @@ class _NoterEcranState extends ConsumerState<NoterEcran>
               ),
             ),
           if (etat.produits.isNotEmpty) const SizedBox(height: 4),
+          LigneReglage(
+            libelle: tr.scannerCodeBarres,
+            detail: tr.scannerCodeBarresDetail,
+            onTap: () => _ouvrir(
+              ScannerEcran(
+                retour: tr.noterUnRepas,
+                noter: (widget.jour, _moment),
+              ),
+            ),
+          ),
           LigneReglage(
             libelle: tr.nouveauProduit,
             detail: tr.nouveauProduitAide,

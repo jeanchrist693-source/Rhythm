@@ -5129,4 +5129,95 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get iaRemplacerCuisine =>
       'Il en manque un ? L\'IA propose des remplaçants';
+
+  @override
+  String get scannerCodeBarres => 'Scanner un code-barres';
+
+  @override
+  String get scannerCodeBarresDetail =>
+      'Un produit emballé : Open Food Facts le remplit';
+
+  @override
+  String get scannerProduit => 'Scanner un produit';
+
+  @override
+  String get scannerProduitDetail =>
+      'Le code-barres remplit sa fiche (Open Food Facts)';
+
+  @override
+  String get scannerSurtitre => 'Un produit emballé';
+
+  @override
+  String get scannerCadre => 'Place le code-barres dans le cadre.';
+
+  @override
+  String get scannerTaperCode => 'Ou tape les chiffres sous le code-barres';
+
+  @override
+  String get scannerChercher => 'Chercher';
+
+  @override
+  String get scannerLampe => 'Lampe';
+
+  @override
+  String get scannerRecherche => 'Je cherche ce produit dans Open Food Facts…';
+
+  @override
+  String get scannerCodeInvalide =>
+      'Ce code n\'est pas complet : vérifie les chiffres (8, 12 ou 13).';
+
+  @override
+  String get scannerInconnu => 'Open Food Facts ne connaît pas ce produit.';
+
+  @override
+  String get scannerInconnuDetail =>
+      'Crée-le à la main avec l\'étiquette : son code-barres est gardé, il sera reconnu la prochaine fois.';
+
+  @override
+  String get scannerCreerMain => 'Le créer à la main';
+
+  @override
+  String get scannerAutreCode => 'Scanner un autre code';
+
+  @override
+  String get scannerHorsLigne =>
+      'Pas de connexion Internet : la recherche a besoin du réseau.';
+
+  @override
+  String get scannerErreurService =>
+      'Open Food Facts ne répond pas pour le moment.';
+
+  @override
+  String get scannerCameraRefusee =>
+      'La caméra n\'est pas autorisée : autorise-la dans les réglages d\'Android (Applications, Rhythm, Autorisations), ou tape le code.';
+
+  @override
+  String get scannerCameraIndisponible =>
+      'La caméra n\'est pas disponible : tape le code.';
+
+  @override
+  String get scannerMention =>
+      'Seul le code est envoyé à Open Food Facts, la base libre des produits emballés. Rien d\'autre ne quitte le téléphone.';
+
+  @override
+  String get produitDepuisOff =>
+      'Rempli par Open Food Facts : vérifie avec l\'étiquette avant d\'enregistrer.';
+
+  @override
+  String get produitDepuisOffSansValeurs =>
+      'Open Food Facts n\'a pas sa valeur nutritive : recopie-la de l\'étiquette.';
+
+  @override
+  String codeBarresNumero(String code) {
+    return 'Code-barres : $code';
+  }
+
+  @override
+  String tauxVerifiesLe(String date) {
+    return 'Taux vérifiés en ligne le $date.';
+  }
+
+  @override
+  String get tauxPasEncoreVerifies =>
+      'Taux embarqués dans l\'app. Rhythm les vérifie en ligne une fois par mois, dès qu\'il y a du réseau.';
 }

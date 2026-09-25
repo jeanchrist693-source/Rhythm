@@ -14,6 +14,9 @@
 // ([assurerAutorisation]) ; ensuite, Rappels dit si Android les bloque et y
 // mène.
 //
+// Les TAUX de taxes sont relus en ligne au plus une fois par mois
+// (`baremes_en_ligne.dart`), au lancement et au retour dans l'app.
+//
 // « Maintenant » (`aujourdhuiProvider`) est rafraîchi au retour dans l'app
 // et quand la tranche de la journée change (matin, après-midi, soir, nuit)
 // ou le jour : le mot du jour, « Bonjour / Bonsoir » et les séries suivent.
@@ -25,12 +28,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../l10n/traductions.dart';
 import '../modele/alimentation/etat_courses.dart';
+import '../modele/alimentation/taxes.dart';
 import '../modele/alimentation/etat_recettes.dart';
 import '../modele/calculs_habitudes.dart';
 import '../modele/etat_habitudes.dart';
 import '../modele/etat_sante.dart';
 import '../modele/sports/etat_sport.dart';
 import '../utils/dates.dart';
+import 'baremes_en_ligne.dart';
 import 'notifications.dart';
 import 'rappels_garde_manger.dart';
 import 'rappels_habitudes.dart';
@@ -102,7 +107,9 @@ class _SynchroSystemeState extends ConsumerState<SynchroSysteme>
     WidgetsBinding.instance.addObserver(this);
     NotificationsSysteme.instance.preparer();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) ref.read(autorisationNotifsProvider.notifier).verifier();
+      if (!mounted) return;
+      ref.read(autorisationNotifsProvider.notifier).verifier();
+      _verifierBaremes();
     });
     _horloge = Timer.periodic(
       const Duration(minutes: 1),
@@ -131,6 +138,25 @@ class _SynchroSystemeState extends ConsumerState<SynchroSysteme>
     ref.invalidate(aujourdhuiProvider);
     ref.read(autorisationNotifsProvider.notifier).verifier();
     _programmer(const Duration(milliseconds: 300));
+    _verifierBaremes();
+  }
+
+  bool _baremesEnCours = false;
+
+  /// Les taux de taxes, relus en ligne s'il y a un mois ou plus.
+  Future<void> _verifierBaremes() async {
+    if (_baremesEnCours) return;
+    final maintenant = ref.read(horlogeProvider)();
+    final derniere = ref.read(coursesProvider).reglages.baremesVerifies;
+    if (!baremesAVerifier(derniere, maintenant)) return;
+    _baremesEnCours = true;
+    try {
+      final recus = await ServiceBaremes.instance.telecharger();
+      if (!mounted || recus == null) return;
+      ref.read(coursesProvider.notifier).recevoirBaremes(recus, maintenant);
+    } finally {
+      _baremesEnCours = false;
+    }
   }
 
   /// Un nouveau jour, ou une nouvelle tranche de la journée : « maintenant »

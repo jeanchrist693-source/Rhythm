@@ -25,6 +25,9 @@ dependencies:
   # Les sports : l'écran reste allumé pendant une séance guidée ou une
   # sortie chronométrée.
   wakelock_plus: ^1.8.0
+  # L'alimentation : le SCAN d'un code-barres (caméra, lecture sur le
+  # téléphone), pour trouver un produit dans Open Food Facts (en ligne).
+  mobile_scanner: ^7.4.2
 
 dev_dependencies:
   flutter_test:
