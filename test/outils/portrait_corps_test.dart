@@ -52,6 +52,8 @@ class _Portrait extends CustomPainter {
         s.brasP.bout + (s.brasP.extremite - s.brasP.bout) * 2.8,
       ],
       'epaule' => [s.brasP.racine, s.cou],
+      'coude' => [s.brasP.milieu, s.brasL.milieu],
+      'genou' => [s.jambeP.milieu, s.jambeL.milieu],
       'bassin' => [s.jambeP.racine, s.jambeL.racine, s.bassin],
       'pieds' => [s.talonP, s.jambeP.extremite, s.jambeP.bout],
       _ => s.points,
@@ -71,6 +73,8 @@ class _Portrait extends CustomPainter {
       'visage' => 0.06,
       'mains' => const int.fromEnvironment('MARGE', defaultValue: 30) / 1000,
       'epaule' => 0.05,
+      'coude' => 0.07,
+      'genou' => 0.08,
       'bassin' => 0.08,
       'pieds' => 0.06,
       _ => 0.09,
@@ -122,7 +126,9 @@ void main() {
           child: RepaintBoundary(
             key: cle,
             child: ColoredBox(
-              color: Colors.black,
+              color: Color(
+                const int.fromEnvironment('FOND', defaultValue: 0xFF000000),
+              ),
               child: Row(
                 children: [
                   for (final c in cameras)

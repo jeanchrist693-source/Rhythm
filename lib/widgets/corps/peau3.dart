@@ -200,6 +200,21 @@ class Peau3 {
   /// L'épaisseur du contour (bancs d'essai).
   static double contour = 0;
 
+  /// Chaque surface émise (bancs d'essai : l'inspection des déformations) —
+  /// sa partie, ses anneaux, ses colonnes, si elles bouclent, ses sommets et
+  /// ses cases cachées.
+  static void Function(
+    int partie,
+    int rangs,
+    int cols,
+    bool boucle,
+    Float64List x,
+    Float64List y,
+    Float64List z,
+    Uint8List? cachees,
+  )?
+  inspecter;
+
   late final double _cl = math.cos(rad(camera.lacet));
   late final double _sl = math.sin(rad(camera.lacet));
   late final double _ct = math.cos(rad(camera.tangage));
@@ -235,11 +250,11 @@ class Peau3 {
     if (chronometrer) _chrono.start();
     _occultants.addAll(_capsules(s));
     // 1. Les formes et leurs grilles.
-    final (_, tronc) = _tronc(s);
+    final (fTronc, tronc) = _tronc(s);
     final (_, brasP) = _bras(s, s.brasP, 1);
     final (_, brasL) = _bras(s, s.brasL, -1);
-    final (_, jambeP) = _jambe(s, s.jambeP, 1, s.talonP);
-    final (_, jambeL) = _jambe(s, s.jambeL, -1, s.talonL);
+    final (_, jambeP) = _jambe(s, s.jambeP, 1, s.talonP, fTronc);
+    final (_, jambeL) = _jambe(s, s.jambeL, -1, s.talonL, fTronc);
     _top('formes');
     final (tete, gTete) = _tete(s);
     _top('tête (forme)');
@@ -350,7 +365,14 @@ class Peau3 {
       for (final (p, q) in [(a, b), (b, a)]) {
         final (g, i0, i1, propre) = p;
         final autre = q.$4;
-        _enfouir(g, autre, marge, i0: i0, i1: i1, centre: centre, rayon: rayon);
+        // La pointe d'une racine (le haut de l'épaule) n'est jamais
+        // enfouie : lue sur les anneaux, elle se croyait dans le tronc quand
+        // elle en sortait (bras levé devant) — et le tronc, lui, se cachait
+        // dans le bras : un trou.
+        final e0 = i0 == 0 && g.ss != null && g.ss!.first < -0.1
+            ? _plage(g.ss!, -0.1, -0.1).$1
+            : i0;
+        _enfouir(g, autre, marge, i0: e0, i1: i1, centre: centre, rayon: rayon);
         moves.add((
           g,
           _souder(g, propre, autre, centre, r0, r1, k, i0: i0, i1: i1),
@@ -359,23 +381,36 @@ class Peau3 {
     }
 
     final epaules = partie(tronc, 0.35, 1.14);
-    final bassin = partie(tronc, -0.28, 0.45);
     for (final (g, b) in [(brasP, s.brasP), (brasL, s.brasL)]) {
       joindre(partie(g, -0.19, 0.75), epaules, b.racine, 0.045, 0.09, 0.017);
     }
-    final cuisses = [
-      for (final g in [jambeP, jambeL]) partie(g, -0.075, 0.6),
+    // La TAILLE : le bas du tronc se referme dans les jambes, le haut des
+    // jambes rentre sous la ceinture — les deux surfaces se continuent
+    // (rien à souder) ; ce qui est dedans n'est pas peint.
+    final taille = partie(tronc, 0.0, 0.2);
+    final bassins = [
+      for (final g in [jambeP, jambeL]) partie(g, _Membres._taille, 0.6),
     ];
-    for (final (c, j) in [(cuisses[0], s.jambeP), (cuisses[1], s.jambeL)]) {
-      joindre(c, bassin, j.racine, 0.05, 0.1, 0.012, rayon: 0.1);
+    final (t0, t1) = _plage(tronc.ss!, 0.0, 0.066);
+    for (final (g, _, _, volume) in bassins) {
+      _enfouir(tronc, volume, 0.001, i0: t0, i1: t1);
+      final (h0, h1) = _plage(g.ss!, _Membres._taille, -0.075);
+      _enfouir(g, taille.$4, 0.0005, i0: h0, i1: h1);
     }
-    // L'entrejambe : les deux cuisses l'une contre l'autre.
+    // La COUTURE DU MILIEU : les deux demi-bassins bord à bord (ce que
+    // chacun a dans l'autre n'est pas peint) ; plus bas, l'ENTREJAMBE : les
+    // deux cuisses l'une contre l'autre, soudées.
+    final milieu = V3.lerp(s.jambeP.racine, s.jambeL.racine, 0.5);
+    for (final (a, b) in [(bassins[0], bassins[1]), (bassins[1], bassins[0])]) {
+      final (h0, h1) = _plage(a.$1.ss!, _Membres._taille, 0.3);
+      _enfouir(a.$1, b.$4, 0.001, i0: h0, i1: h1, centre: milieu, rayon: 0.12);
+    }
     joindre(
-      cuisses[0],
-      cuisses[1],
-      V3.lerp(s.jambeP.racine, s.jambeL.racine, 0.5),
+      partie(jambeP, 0.1, 0.6),
+      partie(jambeL, 0.1, 0.6),
+      milieu - s.dirTronc * 0.05,
       0.03,
-      0.08,
+      0.07,
       0.006,
     );
     // Le cou (qui appartient à la tête) dans le haut du tronc : à la base

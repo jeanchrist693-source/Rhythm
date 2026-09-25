@@ -357,14 +357,12 @@ extension _Tete on Peau3 {
         g.poser(k, t.point(us[i], phi));
         _teinteVisage(g, k, us[i], phi);
         // Le cuir chevelu, sous les cheveux, prend leur couleur.
-        if (fin) {
-          final ligne = lignes[j];
-          g.meler(
-            k,
-            0xFF3A2B22,
-            0.9 * _lisse(ligne + 0.003, ligne + 0.008, us[i]),
-          );
-        }
+        final ligne = lignes[j];
+        g.meler(
+          k,
+          0xFF3A2B22,
+          0.9 * _lisse(ligne + 0.003, ligne + 0.008, us[i]),
+        );
       }
     }
     return (t, g);
@@ -408,7 +406,7 @@ extension _Tete on Peau3 {
 
   void _peindreTete(_FormeTete t, _Grille g) {
     _emettre(g, const [_peau], partie: _pTete);
-    if (fin) _chevelure(t, g);
+    _chevelure(t, g);
     if (!_detail) {
       _yeuxSimples(t, g);
       return;
@@ -725,7 +723,8 @@ extension _Tete on Peau3 {
   /// mèches (relief et couleur), une ligne frontale clairsemée ; posés sur
   /// le crâne.
   void _chevelure(_FormeTete t, _Grille tete) {
-    final rangs = _detail ? 11 : 7, cols = _detail ? 55 : 31;
+    final rangs = _detail ? 11 : (fin ? 7 : 5);
+    final cols = _detail ? 55 : (fin ? 31 : 17);
     final hs = Float64List(rangs * cols);
     final phis = Float64List(rangs * cols);
     final bruits = Float64List(rangs * cols);
@@ -766,6 +765,16 @@ extension _Tete on Peau3 {
         return e;
       },
     );
+    // Le SOMMET : la dernière rangée se referme en un point (elle laissait
+    // un petit rond de cuir chevelu, vu de dessus).
+    final haut = (rangs - 1) * cols;
+    var sommet = V3.zero;
+    for (var j = 0; j < cols; j++) {
+      sommet = sommet + g.sommet(haut + j) * (1 / cols);
+    }
+    for (var j = 0; j < cols; j++) {
+      g.poser(haut + j, sommet);
+    }
     g.teindre(_cheveux.couleur);
     for (var k = 0; k < g.n; k++) {
       final uu = hs[k], phi = phis[k];

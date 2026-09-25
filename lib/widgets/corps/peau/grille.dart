@@ -544,6 +544,51 @@ List<_Deplacement> _souder(
     final poids = 1 - _lisse(0.0, kk, db0);
     res.add((k0, p, n, poids, _lisse(0.4 * kk, kk, db0)));
   }
+  // Une POINTE (un anneau réduit à un point, le bout d'un membre) suit
+  // l'anneau voisin : chacun de ses sommets partait selon sa propre normale
+  // (la pointe s'ouvrait), ou restait en place pendant que l'anneau voisin
+  // gonflait (un creux retourné) — un petit trou.
+  final cols = g.cols;
+  for (final (r, voisin) in [(0, 1), (g.rangs - 1, g.rangs - 2)]) {
+    final b = r * cols;
+    var ecart = 0.0;
+    for (var j = 1; j < cols; j++) {
+      ecart = math.max(
+        ecart,
+        (g.x[b + j] - g.x[b]).abs() +
+            (g.y[b + j] - g.y[b]).abs() +
+            (g.z[b + j] - g.z[b]).abs(),
+      );
+    }
+    if (ecart > 1e-7) continue;
+    // Le déplacement moyen de l'anneau voisin.
+    final bv = voisin * cols;
+    var dep = V3.zero, n = V3.zero;
+    var poids = 0.0, trait = 1.0;
+    final pointe = <int>[];
+    for (var q = 0; q < res.length; q++) {
+      final k = res[q].$1;
+      if (k >= bv && k < bv + cols) {
+        dep = dep + (res[q].$2 - g.sommet(k)) * (1 / cols);
+        n = n + res[q].$3;
+        poids = math.max(poids, res[q].$4);
+        trait = math.min(trait, res[q].$5);
+      } else if (k >= b && k < b + cols) {
+        pointe.add(q);
+      }
+    }
+    if (poids <= 0) continue;
+    final p = g.sommet(b) + dep;
+    n = n.norme < 1e-9 ? V3.haut : n.unite;
+    for (final q in pointe) {
+      res[q] = (res[q].$1, p, n, poids, trait);
+    }
+    for (var j = 0; j < cols; j++) {
+      if (!pointe.any((q) => res[q].$1 == b + j)) {
+        res.add((b + j, p, n, poids, trait));
+      }
+    }
+  }
   return res;
 }
 

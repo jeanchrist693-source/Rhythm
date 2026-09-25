@@ -541,7 +541,7 @@ class Squelette3 {
     tete = cou + dirTete * (lCou + rTeteY * 0.9);
 
     // Les épaules et les bras.
-    final epaule = cou - dirTronc * (baisseEpaule - 0.024 * p.haussement);
+    _haussement = p.haussement;
     V3 dirBras(double th, double ec, double cote) => direction(th, ec, cote);
     Membre3 bras(
       double cote,
@@ -551,7 +551,7 @@ class Squelette3 {
       double eab,
       double flexion,
     ) {
-      final racine = epaule + lateralEpaules * (demiEpaules * cote);
+      final racine = _epaule(cote, dirBras(b, eb, cote));
       final coude = racine + dirBras(b, eb, cote) * lBras;
       final dAvant = dirBras(ab, eab, cote);
       final poignet = coude + dAvant * lAvantBras;
@@ -627,11 +627,34 @@ class Squelette3 {
     );
   }
 
+  /// Le haussement d'épaules demandé par la pose.
+  double _haussement = 0;
+
+  /// L'ÉPAULE et son RYTHME : l'omoplate suit le bras — haussée quand il
+  /// monte au-dessus de l'horizontale, avancée quand il pousse devant,
+  /// reculée quand il tire derrière. L'épaule d'un bras dans la direction
+  /// [dir] (calculée depuis le cou : elle suit le placement du corps).
+  V3 _epaule(double cote, V3 dir) {
+    final elev = math.acos(dir.dot(-dirTronc).clamp(-1.0, 1.0)) * 180 / math.pi;
+    final t = ((elev - 75) / 95).clamp(0.0, 1.0);
+    final h = math.max(
+      _haussement,
+      math.min(1.0, _haussement + 0.6 * t * t * (3 - 2 * t)),
+    );
+    final avant = dir.dot(avantEpaules);
+    return cou -
+        dirTronc * (baisseEpaule - 0.024 * h) +
+        lateralEpaules * (demiEpaules * cote) +
+        avantEpaules * (avant > 0 ? 0.007 * avant : 0.005 * avant);
+  }
+
   /// La cinématique inverse : les membres qui ont une cible.
   void _cibles(Pose3 p) {
     void bras(Membre3 m, Cible? c, double cote, V3? pole, bool proche) {
       if (c == null) return;
       final cible = V3(c.x, c.y, c.z ?? m.racine.z);
+      // L'épaule suit le bras qui va vers sa cible.
+      m.racine = _epaule(cote, (cible - _epaule(cote, V3.zero)).unite);
       if (c.y >= yPaume - 0.006) {
         _mainAPlat(m, cible, cote, pole, proche);
         return;

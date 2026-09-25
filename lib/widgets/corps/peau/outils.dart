@@ -62,6 +62,10 @@ typedef _Profil = List<(double, double, double, double)>;
 /// Le profil en [s] : une courbe d'Hermite (sans les méplats d'une
 /// interpolation « lissée » station par station, qui se voyaient en bandes).
 (double, double, double) _profil(_Profil p, double s) {
+  // Aux bouts, le profil tel quel : une pointe à 0 se FERME (le plancher
+  // de 1,5 mm y laissait un trou, visible quand la pointe sort du tronc).
+  if (s <= p.first.$1) return (p.first.$2, p.first.$3, p.first.$4);
+  if (s >= p.last.$1) return (p.last.$2, p.last.$3, p.last.$4);
   final (a, b, c) = _hermite(p, s);
   return (math.max(0.0015, a), math.max(0.0015, b), math.max(0.0015, c));
 }

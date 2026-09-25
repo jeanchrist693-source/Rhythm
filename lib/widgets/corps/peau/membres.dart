@@ -37,6 +37,8 @@ class _FormeMembre {
     required List<_Bosse> Function(double phiDedans) bosses,
     required this.tasse,
     this.ourlet = -9,
+    this.bassin,
+    this.arc,
   }) {
     l1 = (j1 - j0).norme;
     l2 = (j2 - j1).norme;
@@ -69,6 +71,20 @@ class _FormeMembre {
   final (double, double) racine;
   final _Profil profil;
   final double tasse, ourlet;
+
+  /// La RACINE D'UNE JAMBE, du short : le point de la demi-section du
+  /// bassin (celle du tronc, de son côté) pour l'anneau [s] et l'angle
+  /// [phi] ; `null` pour un bras.
+  final V3 Function(double s, double phi, double plus)? bassin;
+
+  /// Où la demi-section du bassin se fond dans la cuisse.
+  static const double fonduBassin0 = 0.1, fonduBassin1 = 0.28;
+
+  /// La RACINE qui s'étire EN ARC autour de l'articulation (plutôt que de
+  /// tourner d'un bloc, ce qui la retournait du côté du pli — des trous) :
+  /// de la racine à [arc].$1, l'arc ; puis le fondu vers le membre, qui
+  /// tourne d'un bloc à partir de [arc].$2.
+  final (double, double)? arc;
   late final double l1, l2, th0, th1, flexion, phiDedans;
   late final V3 d1, a1, o1, a0, o0, ax0, ax1;
   late final List<_Bosse> reliefs;
@@ -120,7 +136,54 @@ class _FormeMembre {
     return pli * c * c;
   }
 
+  /// Le point [p] de la racine (au repos, attaché au tronc) quand le
+  /// membre s'est levé : dans le plan du mouvement, autour de
+  /// l'articulation, la peau du côté OPPOSÉ (la fesse quand la cuisse monte
+  /// devant, l'aine quand elle part derrière, l'aisselle quand le bras
+  /// s'écarte) s'ÉTIRE en arc, du tronc (immobile) jusqu'au membre ; celle
+  /// du côté du PLI se tasse, sans jamais se retourner (le pli s'élargit
+  /// avec l'angle). Le haut de la taille ne bouge pas.
+  V3 _suivre(V3 p, double s) {
+    final w = bassin == null ? 1.0 : _lisse(-0.09, -0.03, s);
+    if (th0 < 0.02 || w <= 0) return p;
+    final e2 = ax0.cross(repos);
+    final v = p - j0;
+    final psi = math.atan2(v.dot(e2), v.dot(repos));
+    const etire = 110 * math.pi / 180;
+    final tasse = math.max(100 * math.pi / 180, th0 + 25 * math.pi / 180);
+    final nouveau = psi <= 0
+        ? psi + th0 * (1 + psi / etire).clamp(0.0, 1.0)
+        : psi + th0 * (1 - psi / tasse).clamp(0.0, 1.0);
+    return j0 + v.tourne(ax0, (nouveau - psi) * w);
+  }
+
   V3 pointCS(double s, double phi, double cph, double sph, double plus) {
+    final a = arc;
+    if (a != null && s < a.$2) {
+      final hanche = bassin;
+      final pe = _suivre(
+        hanche != null
+            ? hanche(s, phi, plus)
+            : _pointMembre(s, phi, cph, sph, plus, repos: true),
+        s,
+      );
+      final m = _lisse(a.$1, a.$2, s);
+      if (m <= 0) return pe;
+      return V3.lerp(pe, _pointMembre(s, phi, cph, sph, plus), m);
+    }
+    return _pointMembre(s, phi, cph, sph, plus);
+  }
+
+  /// Le point du membre en (s, [phi]) ; [repos] : sans la rotation de la
+  /// racine (le membre encore le long du corps).
+  V3 _pointMembre(
+    double s,
+    double phi,
+    double cph,
+    double sph,
+    double plus, {
+    bool repos = false,
+  }) {
     final (base, long, a, o, rot, pr, pli) = _anneauEn(s);
     var r = _rayonDe(pr, cph);
     for (final b in _actifs) {
@@ -133,6 +196,7 @@ class _FormeMembre {
     final vx = long.x + (a.x * cph + o.x * sph) * r;
     final vy = long.y + (a.y * cph + o.y * sph) * r;
     final vz = long.z + (a.z * cph + o.z * sph) * r;
+    if (repos) return V3(base.x + vx, base.y + vy, base.z + vz);
     return V3(
       base.x + rot.m00 * vx + rot.m01 * vy + rot.m02 * vz,
       base.y + rot.m10 * vx + rot.m11 * vy + rot.m12 * vz,
@@ -156,8 +220,13 @@ extension _Membres on Peau3 {
   }
 
   static const _Profil _profilBras = [
-    (-0.19, 0.003, 0.003, 0.003),
-    (-0.15, 0.014, 0.015, 0.016),
+    // Le haut de l'épaule : un DÔME (pas une pointe — bras levé devant, il
+    // sort du tronc).
+    (-0.19, 0.0, 0.0, 0.0),
+    (-0.186, 0.0055, 0.0058, 0.006),
+    (-0.178, 0.0092, 0.0097, 0.0101),
+    (-0.165, 0.0125, 0.0132, 0.0138),
+    (-0.15, 0.015, 0.0158, 0.0165),
     (-0.09, 0.022, 0.024, 0.025),
     (0.0, 0.028, 0.03, 0.03),
     (0.15, 0.0285, 0.0305, 0.0305),
@@ -174,13 +243,15 @@ extension _Membres on Peau3 {
   ];
 
   static const List<double> _ssBrasFin = [
-    -0.19, -0.16, -0.12, -0.07, -0.02, 0.05, 0.12, 0.2, 0.29, 0.38, //
+    -0.19, -0.186, -0.178, -0.165, -0.145, -0.12, -0.07, -0.02, 0.05, //
+    0.12, 0.2, 0.29, 0.38, //
     0.47, 0.56, 0.65, 0.74, 0.82, 0.88, 0.93, 0.97, 1.0, 1.03, //
     1.07, 1.12, 1.19, 1.28, 1.38, 1.49, 1.6, 1.71, 1.81, 1.9, //
     1.96, 2.01, 2.05,
   ];
   static const List<double> _ssBrasLeger = [
-    -0.19, -0.13, -0.05, 0.05, 0.18, 0.34, 0.5, 0.66, 0.8, 0.9, //
+    -0.19, -0.18, -0.16, -0.12, -0.05, 0.05, 0.18, 0.34, 0.5, 0.66, 0.8, //
+    0.9, //
     0.97, 1.03, 1.1, 1.24, 1.42, 1.6, 1.78, 1.92, 2.01, 2.05,
   ];
 
@@ -242,6 +313,7 @@ extension _Membres on Peau3 {
         const _Bosse(1.02, 1.55, 0.28, -45, 60, 0.003),
       ],
       tasse: 0.35,
+      arc: const (0.05, 0.35),
     );
     final g = _nappe(
       f.pointCS,
@@ -290,19 +362,37 @@ extension _Membres on Peau3 {
   static const double _ourlet = 0.38;
   static const double _soquette = 1.84;
 
+  /// La jambe part de la TAILLE (sous la ceinture) : son premier anneau,
+  /// rentré dans la ceinture.
+  static const double _taille = -0.092;
+
   static const List<double> _ssJambeFin = [
-    -0.075, -0.055, -0.03, 0.0, 0.04, 0.09, 0.14, 0.2, 0.26, 0.32, 0.376, //
+    _taille, -0.078, -0.06, -0.04, -0.02, 0.0, 0.03, 0.06, 0.09, 0.12, //
+    0.15, 0.18, 0.21, 0.24, 0.27, 0.3, 0.34, 0.376, //
     0.38, 0.44, 0.5, 0.56, 0.64, 0.72, 0.79, 0.85, 0.9, 0.94, //
     0.97, 1.0, 1.03, 1.06, 1.1, 1.15, 1.21, 1.28, 1.36, 1.45, //
     1.55, 1.65, 1.75, 1.83, 1.84, 1.92, 1.98, 2.04, 2.1,
   ];
   static const List<double> _ssJambeLeger = [
-    -0.075, -0.04, 0.0, 0.06, 0.14, 0.24, 0.32, 0.376, 0.38, 0.48, 0.6, //
+    _taille, -0.075, -0.04, 0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.32, 0.376, //
+    0.38, 0.48, 0.6, //
     0.74, 0.86, 0.94, 1.0, 1.06, 1.14, 1.26, 1.42, 1.6, 1.78, //
     1.84, 1.92, 2.02, 2.1,
   ];
 
   static const List<_Zone> _zonesJambe = [
+    // Le fessier : de la taille au pli fessier, derrière et dehors.
+    (
+      Muscle.fessiers,
+      -0.075,
+      0.29,
+      [
+        (0.0, 125, 172, 0),
+        (0.3, 110, 178, 0),
+        (0.65, 108, 178, 0),
+        (1.0, 128, 168, 0),
+      ],
+    ),
     // Le quadriceps : large sous la hanche, la « goutte » du vaste interne
     // au-dessus du genou, qui se resserre sur la rotule.
     (
@@ -354,6 +444,7 @@ extension _Membres on Peau3 {
     Membre3 j,
     double cote,
     V3 talon,
+    _FormeTronc tronc,
   ) {
     final d1 = (j.milieu - j.racine).unite;
     final d2 = (j.bout - j.milieu).unite;
@@ -382,6 +473,9 @@ extension _Membres on Peau3 {
         _Bosse(0.55, 0.97, 0.72, -42, 45, 0.006 - 0.002 * plie),
         const _Bosse(0.12, 0.9, 0.42, 180, 60, 0.003),
         const _Bosse(-0.05, 0.55, 0.3, -95, 45, 0.004),
+        // Le haut de l'intérieur de la cuisse, plein : les cuisses se
+        // touchent sous l'entrejambe.
+        const _Bosse(0.08, 0.5, 0.3, -90, 50, 0.005),
         // La rotule.
         const _Bosse(0.92, 1.08, 0.5, 0, 42, 0.004),
         // Les deux chefs du mollet, qui gonflent sur la pointe des pieds.
@@ -391,6 +485,8 @@ extension _Membres on Peau3 {
       ],
       tasse: 0.4,
       ourlet: _ourlet,
+      bassin: (ss, phi, plus) => _demiBassin(tronc, ss, phi, plus, cote),
+      arc: const (_FormeMembre.fonduBassin0, _FormeMembre.fonduBassin1),
     );
     final ss = fin ? _ssJambeFin : _ssJambeLeger;
     final cols = fin ? 18 : 12;
@@ -405,6 +501,7 @@ extension _Membres on Peau3 {
           (1 - _cloche(s, _ourlet - 0.03, _ourlet + 0.02)),
       ombre: f.ombre,
     );
+    _coutures(g, s);
     for (var i = 0; i < ss.length - 1; i++) {
       if (ss[i + 1] <= _ourlet + 1e-6) {
         g.matiere.fillRange(i * cols, (i + 1) * cols, 1);
@@ -413,6 +510,61 @@ extension _Membres on Peau3 {
       }
     }
     return (f, g);
+  }
+
+  /// La DEMI-SECTION DU BASSIN d'une jambe : celle du tronc, de son côté
+  /// (l'angle de la jambe, de son avant vers son dehors, jusqu'à son
+  /// arrière), refermée par une corde sur le plan du milieu. Les deux jambes
+  /// ensemble refont exactement le bas du tronc, et leurs coutures
+  /// (devant, derrière) tombent sur les mêmes points : bord à bord.
+  static V3 _demiBassin(
+    _FormeTronc tronc,
+    double s,
+    double phi,
+    double plus,
+    double cote,
+  ) {
+    // La hauteur sur le tronc de cet anneau (la jambe descend de la
+    // hanche, le tronc monte du bassin) ; le premier anneau rentre dans la
+    // ceinture.
+    final t = -s * lCuisse / lTronc;
+    final p = plus - 0.0025 * (1 - _lisse(_taille, -0.078, s));
+    V3 sur(double a) {
+      final r = a * cote * math.pi / 180;
+      return tronc.pointCS(t, a * cote, math.cos(r), math.sin(r), p);
+    }
+
+    if (phi <= 180) return sur(phi);
+    return V3.lerp(sur(180), sur(0), (phi - 180) / 180);
+  }
+
+  /// Sur les coutures du milieu (devant, derrière), la normale d'un
+  /// demi-bassin est celle du tronc — sans rien de côté — et pas la
+  /// moyenne avec la corde : la lumière passe d'une jambe à l'autre sans
+  /// trait.
+  void _coutures(_Grille g, Squelette3 s) {
+    final cols = g.cols, ss = g.ss!;
+    final lat = s.lateralBassin;
+    for (var i = 1; i < g.rangs - 1; i++) {
+      final w =
+          1 -
+          _lisse(_FormeMembre.fonduBassin0, _FormeMembre.fonduBassin1, ss[i]);
+      if (w <= 0) break;
+      for (final (j, vers) in [(0, 1), (cols ~/ 2, -1)]) {
+        final k = i * cols + j;
+        final p = g.sommet(k);
+        final le = g.sommet(i * cols + j + vers) - p;
+        final lo = g.sommet(k + cols) - g.sommet(k - cols);
+        var n = le.cross(lo);
+        n = n.sansComposante(lat);
+        if (n.norme < 1e-9) continue;
+        n = n.unite;
+        // Vers le dehors (devant pour la couture de devant).
+        final dehors = (p - s.bassin).sansComposante(lat);
+        if (n.dot(dehors) < 0) n = -n;
+        g.imposer(k, n.x, n.y, n.z, w);
+      }
+    }
   }
 
   void _peindreJambe(_Grille g, int partie) {

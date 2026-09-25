@@ -163,6 +163,16 @@ extension _Rendu on Peau3 {
     int partie = -1,
     double largeurTrait = 1,
   }) {
+    Peau3.inspecter?.call(
+      partie,
+      g.rangs,
+      g.cols,
+      g.boucle,
+      g.x,
+      g.y,
+      g.z,
+      g.cachees,
+    );
     final n = g.n;
     final cols = g.cols, qc = g.casesParRang, bandes = g.rangs - 1;
     final sx = Float64List(n), sy = Float64List(n), pr = Float64List(n);

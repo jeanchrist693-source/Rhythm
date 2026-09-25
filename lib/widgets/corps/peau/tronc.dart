@@ -106,7 +106,7 @@ class _FormeTronc {
     for (final b in _actifs) {
       h += b.en(t, phi);
     }
-    if (t < taille - 1e-6) h += 0.003;
+    if (t < taille - 1e-6) h += t > 0.066 ? 0.0045 : 0.003;
     final ox = av.x * ex + lat.x * ey;
     final oy = av.y * ex + lat.y * ey;
     final oz = av.z * ex + lat.z * ey;
@@ -117,15 +117,31 @@ class _FormeTronc {
 }
 
 extension _Tronc on Peau3 {
+  // Le tronc s'arrête sous la CEINTURE : plus bas, le bassin appartient aux
+  // jambes (`membres.dart`, la demi-section de chaque côté), qui partent de
+  // la taille ; il se referme dedans.
   static const List<double> _tsFin = [
-    -0.28, -0.265, -0.245, -0.22, -0.19, -0.15, -0.1, -0.05, 0.0, 0.04, //
-    0.07, 0.097, 0.1, 0.14, 0.18, 0.22, 0.26, 0.3, 0.34, 0.38, 0.42, //
+    0.0,
+    0.03,
+    0.05,
+    0.066,
+    0.08,
+    0.097,
+    0.1,
+    0.14,
+    0.18,
+    0.22,
+    0.26,
+    0.3,
+    0.34,
+    0.38,
+    0.42, //
     0.46, 0.5, 0.54, 0.58, 0.62, 0.66, 0.7, 0.74, 0.78, 0.82, 0.86, //
     0.89, 0.92, 0.945, 0.965, 0.985, 1.005, 1.025, 1.045, 1.07, 1.1, 1.12,
   ];
 
   static const List<double> _tsLeger = [
-    -0.28, -0.25, -0.2, -0.12, -0.04, 0.03, 0.065, 0.097, 0.1, 0.2, 0.32, //
+    0.0, 0.04, 0.066, 0.097, 0.1, 0.2, 0.32, //
     0.44, 0.56, 0.66, 0.76, 0.85, 0.93, 1.0, 1.05, 1.09, 1.12,
   ];
 
@@ -146,12 +162,6 @@ extension _Tronc on Peau3 {
     (0.7, 108, 172, 0),
     (0.9, 104, 162, 0),
     (1.0, 118, 150, 0),
-  ];
-  static const _Profil _fessier = [
-    (0.0, 128, 168, 0),
-    (0.35, 108, 178, 0),
-    (0.7, 110, 178, 0),
-    (1.0, 125, 172, 0),
   ];
 
   static final List<_Zone> _zonesTronc = [
@@ -187,8 +197,6 @@ extension _Tronc on Peau3 {
     ),
     (Muscle.lombaires, 0.08, 0.46, _amande(166, 15)),
     (Muscle.lombaires, 0.08, 0.46, _amande(-166, 15)),
-    (Muscle.fessiers, -0.24, 0.09, _fessier),
-    (Muscle.fessiers, -0.24, 0.09, _miroir(_fessier)),
     (Muscle.obliques, 0.14, 0.58, _amande(64, 20)),
     (Muscle.obliques, 0.14, 0.58, _amande(-64, 20)),
   ];
@@ -264,8 +272,15 @@ extension _Tronc on Peau3 {
     final ts = fin ? _tsFin : _tsLeger;
     final cols = fin ? 36 : 16;
     // Le contour s'efface dans la tête, et à la ceinture (une couture).
+    V3 point(double t, double phi, double cp, double sp, double plus) {
+      final p = f.pointCS(t, phi, cp, sp, plus);
+      if (t >= 0.066) return p;
+      final c = f._dos(t);
+      return c + (p - c) * (0.02 + 0.93 * _lisse(0.0, 0.066, t));
+    }
+
     final g = _nappe(
-      f.pointCS,
+      point,
       ts,
       cols,
       (t) => (1 - _lisse(1.0, 1.08, t)) * (1 - _cloche(t, 0.07, 0.13)),
