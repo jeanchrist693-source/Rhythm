@@ -23,6 +23,7 @@ import 'geometrie3.dart';
 import 'squelette3.dart'
     show
         Squelette3,
+        baisseEpaule,
         hDebout,
         lCou,
         lCuisse,

@@ -11,6 +11,7 @@ import 'dart:ui' as ui;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rhythm/widgets/corps/animations_corps.dart';
 import 'package:rhythm/widgets/corps/corps_humain.dart';
+import 'package:rhythm/widgets/corps/peau3.dart';
 import 'package:rhythm/widgets/corps/peintre3.dart';
 import 'package:rhythm/widgets/corps/squelette3.dart';
 
@@ -29,6 +30,8 @@ void main() {
         for (var i = 0; i < 30; i++) {
           _peindre(anim, cote, i / 30);
         }
+        Peau3.chronos.clear();
+        Peau3.chronometrer = true;
         final chrono = Stopwatch()..start();
         const n = 120;
         for (var i = 0; i < n; i++) {
@@ -39,6 +42,11 @@ void main() {
         print(
           '$id à ${cote.round()} px : '
           '${(chrono.elapsedMicroseconds / n / 1000).toStringAsFixed(2)} ms',
+        );
+        Peau3.chronometrer = false;
+        // ignore: avoid_print
+        print(
+          '  ${[for (final e in Peau3.chronos.entries) '${e.key} ${(e.value / n / 1000).toStringAsFixed(2)}'].join(' · ')}',
         );
       }
     }

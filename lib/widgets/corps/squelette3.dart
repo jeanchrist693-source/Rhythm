@@ -36,6 +36,10 @@ const double lJambe = 0.2;
 const double lPied = 0.085;
 const double hCheville = 0.028;
 const double demiEpaules = 0.083;
+
+/// De combien l'articulation de l'épaule est sous la base du cou (le long
+/// du tronc) : la clavicule descend un peu vers l'épaule.
+const double baisseEpaule = 0.036;
 const double demiHanches = 0.048;
 
 /// Debout jambes tendues, pieds à plat : la hauteur de la hanche.
@@ -382,6 +386,10 @@ class Squelette3 {
   /// Le talon et les orteils de chaque pied ; l'avant du pied.
   late V3 talonP, talonL, avantPiedP, avantPiedL;
 
+  /// Une main posée À PLAT au sol : la direction de ses doigts (sinon
+  /// `null`) et ses jointures, sur le sol.
+  V3? doigtsAuSolP, doigtsAuSolL, jointuresP, jointuresL;
+
   static double teteNaturelle(double tronc) {
     if (tronc > -165 && tronc < -15) return tronc - (tronc + 90) * 0.35;
     return tronc;
@@ -533,7 +541,7 @@ class Squelette3 {
     tete = cou + dirTete * (lCou + rTeteY * 0.9);
 
     // Les épaules et les bras.
-    final epaule = cou - dirTronc * (0.028 - 0.024 * p.haussement);
+    final epaule = cou - dirTronc * (baisseEpaule - 0.024 * p.haussement);
     V3 dirBras(double th, double ec, double cote) => direction(th, ec, cote);
     Membre3 bras(
       double cote,
@@ -621,9 +629,13 @@ class Squelette3 {
 
   /// La cinématique inverse : les membres qui ont une cible.
   void _cibles(Pose3 p) {
-    void bras(Membre3 m, Cible? c, double cote, V3? pole) {
+    void bras(Membre3 m, Cible? c, double cote, V3? pole, bool proche) {
       if (c == null) return;
       final cible = V3(c.x, c.y, c.z ?? m.racine.z);
+      if (c.y >= yPaume - 0.006) {
+        _mainAPlat(m, cible, cote, pole, proche);
+        return;
+      }
       final (coude, main) = deuxSegments(
         m.racine,
         cible,
@@ -659,9 +671,46 @@ class Squelette3 {
       }
     }
 
-    bras(brasP, p.mainP, 1, p.coudeP);
-    bras(brasL, p.mainL, -1, p.coudeL);
+    bras(brasP, p.mainP, 1, p.coudeP, true);
+    bras(brasL, p.mainL, -1, p.coudeL, false);
     jambe(jambeP, p.piedCibleP, 1, p.genouP, true);
     jambe(jambeL, p.piedCibleL, -1, p.genouL, false);
+  }
+
+  /// La main posée À PLAT au sol (pompes, planches, appuis) : la paume sur
+  /// le sol, les doigts vers l'avant du corps (vers la tête quand on est
+  /// face au sol, vers les pieds quand on lui tourne le dos), un peu ouverts
+  /// vers le dehors ; la cinématique vise le POIGNET, au-dessus du talon de
+  /// la main (hors de portée, le talon se soulève : la main bascule sur ses
+  /// doigts).
+  void _mainAPlat(Membre3 m, V3 paume, double cote, V3? pole, bool proche) {
+    V3 horizontal(V3 v) => V3(v.x, 0, v.z);
+    var f = horizontal(dirTronc) * (avantEpaules.y >= 0 ? 1.0 : -1.0);
+    if (f.norme < 0.35) f = f + horizontal(avantEpaules) * 0.8;
+    if (f.norme < 1e-3) f = V3.avant;
+    f = f.unite;
+    // Un peu ouverte vers le dehors.
+    final dehors = horizontal(lateralEpaules * cote);
+    if (dehors.norme > 1e-3) f = (f + dehors.unite * 0.18).unite;
+    final centre = V3(paume.x, kSol - 0.0068, paume.z);
+    final poignet = centre - f * 0.02 + V3.haut * 0.005;
+    final (coude, bout) = deuxSegments(
+      m.racine,
+      poignet,
+      lBras,
+      lAvantBras + 0.008,
+      pole ?? V3(-0.25, 1, 0.7 * cote),
+    );
+    m.milieu = coude;
+    m.bout = coude + (bout - coude).unite * lAvantBras;
+    m.extremite = centre;
+    final jointures = centre + f * 0.022 + V3.bas * 0.0015;
+    if (proche) {
+      doigtsAuSolP = f;
+      jointuresP = jointures;
+    } else {
+      doigtsAuSolL = f;
+      jointuresL = jointures;
+    }
   }
 }

@@ -10,10 +10,11 @@ part of '../animations_corps.dart';
 // ── Repères ────────────────────────────────────────────────────────────────
 
 /// De la hanche à l'articulation de l'épaule, le long du tronc.
-const double _lEpaule = lTronc - 0.028;
+const double _lEpaule = lTronc - baisseEpaule;
 
-/// La cheville d'un pied posé sur la pointe (planche, pompe).
-const double _pointe = kSol - 0.09;
+/// La cheville d'un pied posé sur la pointe (planche, pompe) : la PLANTE
+/// sur le sol, les orteils pliés à plat (la chaussure se plie).
+const double _pointe = kSol - 0.058;
 
 /// Le banc plat (dessus à 0,64) et le banc à dossier incliné (30°).
 const Rect _bancPlat = Rect.fromLTRB(0.2, 0.64, 0.8, 0.675);
@@ -84,6 +85,11 @@ Pose3 _pompe(
   V3 coude = const V3(-0.6, -1, 0.7),
 }) {
   final l = (genoux ? lCuisse : lCuisse + lJambe) + _lEpaule;
+  // Les mains à plat au sol : le poignet est plus bas qu'une main debout,
+  // l'épaule descend d'autant quand les bras sont tendus.
+  if (main.dy >= yPaume - 0.006) {
+    yEpaule += 0.011 * ((kSol - yEpaule - 0.18) / 0.1).clamp(0.0, 1.0);
+  }
   final dy = yEpaule - appui.dy;
   final dx = math.sqrt(math.max(0, l * l - dy * dy));
   return _gaine(

@@ -126,6 +126,7 @@ class PeintreCorps3 {
       principaux: principaux,
       secondaires: secondaires,
       respiration: respiration,
+      accessoires: acc,
     ).habiller(s, tampon);
     final ordre = tampon.ordre();
     // Le matériel tenu, chaque pièce à sa profondeur parmi eux.
@@ -482,12 +483,11 @@ class PeintreCorps3 {
     Accessoires acc,
     void Function(double, void Function()) piece,
   ) {
+    // Le matériel est tenu DANS LE POING (le repère de chaque main).
+    final mainP = repereMain(s, true, acc), mainL = repereMain(s, false, acc);
     if (acc.halteres || acc.haltereUne) {
-      for (final b in acc.halteres ? [s.brasP, s.brasL] : [s.brasP]) {
-        final axeAvant = (b.extremite - b.bout).unite;
-        var axe = s.lateralEpaules.sansComposante(axeAvant);
-        if (axe.norme < 0.3) axe = s.avantEpaules.sansComposante(axeAvant);
-        _haltere(b.extremite + axeAvant * 0.006, axe.unite, piece);
+      for (final m in acc.halteres ? [mainP, mainL] : [mainP]) {
+        _haltere(m.poignee, m.axePoignee, piece);
       }
     }
     if (acc.goblet) {
@@ -497,8 +497,8 @@ class PeintreCorps3 {
       _haltere(centre, s.dirTronc, piece);
     }
     if (acc.barre) {
-      final centre = V3.lerp(s.brasP.extremite, s.brasL.extremite, 0.5);
-      var axe = s.brasP.extremite - s.brasL.extremite;
+      final centre = V3.lerp(mainP.poignee, mainL.poignee, 0.5);
+      var axe = mainP.poignee - mainL.poignee;
       axe = axe.norme < 0.08 ? s.lateralEpaules : axe.unite;
       _barre(centre, axe, piece);
     }
@@ -511,14 +511,14 @@ class PeintreCorps3 {
     }
     final ensemble =
         acc.kettlebell && (s.brasP.extremite - s.brasL.extremite).norme < 0.1;
-    for (final b in [
-      if (acc.kettlebell || acc.kettlebells) s.brasP,
-      if (acc.kettlebells) s.brasL,
+    for (final m in [
+      if (acc.kettlebell || acc.kettlebells) mainP,
+      if (acc.kettlebells) mainL,
     ]) {
       final prise = ensemble
-          ? V3.lerp(s.brasP.extremite, s.brasL.extremite, 0.5)
-          : b.extremite;
-      final bas = (b.extremite - b.bout).unite;
+          ? V3.lerp(mainP.poignee, mainL.poignee, 0.5)
+          : m.poignee;
+      final bas = m.axe;
       final boule = prise + bas * 0.05;
       piece(_z(boule) - 0.004, () {
         final pts = _ellipsoide(
@@ -533,7 +533,7 @@ class PeintreCorps3 {
           boule - V3.bas * 0.03,
           boule + V3.bas * 0.03,
         );
-        final l = s.lateralEpaules;
+        final l = m.axePoignee;
         final p0 = _e(boule - l * 0.024 - bas * 0.02);
         final p1 = _e(prise - bas * 0.01);
         final p2 = _e(boule + l * 0.024 - bas * 0.02);
