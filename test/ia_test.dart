@@ -508,9 +508,12 @@ void main() {
       );
       expect(b.joursNotes, inInclusiveRange(1, 7));
       expect(b.moyenne.kcal, greaterThan(1000));
+      // Surtout des entrées rapides : fibres et sodium inconnus.
+      expect(b.microsConnus, isFalse);
       final m = invitesBilan(b, objectif: etat.profil.objectif);
       final tout = m.map((x) => x.contenu).join('\n');
       expect(tout, contains('${b.joursNotes} sur 7'));
+      expect(tout, contains("n'en parle pas"));
       // Ni poids, ni libération, ni nom.
       expect(tout, isNot(contains('kg')));
       expect(tout, isNot(contains('énergisantes')));

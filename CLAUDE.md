@@ -25,8 +25,8 @@ d'ouverture et une entrée animée de l'accueil ; puis on « fait vivre » l'app
 SECTION PAR SECTION (demande de l'utilisateur). **Les HABITUDES sont
 fonctionnelles et PERSISTÉES** (§ 3 bis), **les SPORTS aussi** (§ 3 ter,
 25 sept. 2026), **l'ALIMENTATION est en cours, palier par palier**
-(§ 3 quater : paliers 1 à 3 livrés — le socle, les achats, les
-recettes ; le palier 4, l'IA, attend). Biblique affiche encore les données de la
+(§ 3 quater : paliers 1 à 4 livrés — le socle, les achats, les
+recettes, l'IA ; le palier 4 est à tester). Biblique affiche encore les données de la
 maquette (`lib/modele/graine.dart`), posées sur les vraies dates.
 
 ---
@@ -435,8 +435,8 @@ maquette lui plaît : on le garde, on l'enrichit sans s'en éloigner.
    « C'est prêt » → journal, garde-manger décompté, restes), « À la
    liste », PLANIFICATION sur 7 jours (liste de la semaine moins le
    garde-manger, rappel de décongélation la veille), cuisine en lot.
-4. **L'IA** (Groq, comme Studio / Net Worth — gratuit, en ligne ; ajoutera
-   la permission INTERNET, absente aujourd'hui) : bilan de la semaine,
+4. **L'IA** (LIVRÉ, à tester — Groq, comme Studio / Net Worth — gratuit,
+   en ligne ; la permission INTERNET ajoutée) : bilan de la semaine,
    idées de repas → livre / plan / liste (macros RECALCULÉES par la base),
    planifier la semaine, anti-gaspillage, combler l'écart du soir,
    estimer un repas sans recette, importer une recette collée,
@@ -709,6 +709,82 @@ pour le palier 3 »). Tout HORS LIGNE.
   planifier », comme la maquette ; le pâté chinois de demain demande le
   bœuf haché congelé → décongélation ce soir).
 
+### Palier 4 — l'IA (livré le 25 sept. 2026)
+
+Lancé par l'utilisateur après le palier 3 (« on attend le palier 4 » puis
+« conclus ») : l'ASSISTANT de l'Alimentation, EN LIGNE, seulement quand on
+le sollicite — le reste de l'app ne sort jamais du téléphone.
+
+- **Le service** (`lib/ia/service_ia.dart`, repris de Studio) : Groq,
+  cascade `openai/gpt-oss-120b` → `gpt-oss-20b` (quotas séparés), deux
+  essais par modèle, réponse forcée en JSON, erreurs typées (`ErreurIa` :
+  quota, surcharge, réseau, sans clé…). `ServiceIa.instance` se remplace
+  dans les tests (`test/outils/faux_ia.dart`, aucun réseau).
+- ⛔ **La CLÉ n'est PAS dans le code** (`lib/ia/cles_api.dart`) : elle
+  vient de la construction, `--dart-define-from-file=cles.json`, où
+  `cles.json` (à la racine, HORS du dépôt — `.gitignore`) contient
+  `{"GROQ_CLE": "gsk_…"}` (la clé de Studio / Net Worth). Sans elle,
+  l'assistant le dit (`ErreurIa.sansCle`) ; le reste de l'app marche.
+- **Les règles** (`lib/ia/ia_alimentation.dart` — pour chaque demande :
+  l'INVITE pure, l'appel, la LECTURE pure et tolérante, toutes testées) :
+  rien de CHIFFRÉ ne vient de l'IA — elle nomme des aliments, des
+  quantités et des MOTS-CLÉS du FCÉN ; ses « kcal » ne servent qu'à
+  départager les candidats de la base ; rien de personnel ne part (ni nom,
+  ni poids, âge, sexe, ni habitudes ni libérations — testé : seulement des
+  aliments, des recettes, les objectifs du jour et perdre / maintenir /
+  prendre) ; jamais de taxe ; pas d'avis médical (renvoi vers une
+  diététiste-nutritionniste). Ses textes passent par `texteIa`
+  (`lib/ia/texte_ia.dart` : sans Markdown ni emoji, apostrophes droites,
+  « ≈ → ≥ ≤ » remplacés — absents des polices —, insécables françaises).
+- **La correspondance** (`modele/alimentation/correspondance.dart`) :
+  chaque aliment proposé est CHERCHÉ dans la base (un mot inconnu laissé
+  de côté, puis les derniers mots tombent tant que rien ne répond) et
+  chiffré par elle — une portion du FCÉN quand elle existe (« 2 × 1
+  gousse »), sinon les grammes estimés ; introuvable → ingrédient LIBRE,
+  dit « hors de la base » (pas compté). `RecetteProposee` → une `Recette`
+  du livre, région et moments vérifiés.
+- **Le bilan** (`modele/alimentation/bilan_semaine.dart`) : les CHIFFRES
+  de la semaine calculés sur le téléphone (journées NOTÉES seulement,
+  fibres 25 g, sodium 2 300 mg — Santé Canada) ; l'IA les commente sans
+  les recalculer. Trop d'entrées rapides (plus du quart des calories) :
+  fibres et sodium INCONNUS — ni montrés (corrigé : l'écran les affichait
+  à « 0 g »), ni commentés.
+- **Écrans** (`ecrans/alimentation/ia/`) : `assistant_ecran` (la ligne
+  « Assistant » de l'onglet ; chaque entrée dit ce qui la rend utile
+  maintenant), `idees_ecran` (on choisit AVANT de générer : la RÉGION —
+  `ChoixRegion`, grandes régions puis cuisines —, le MOMENT, le GENRE de
+  plat — plat, soupe, salade, sandwich, bol, dessert, boisson —, les
+  portions, rapide, protéiné, végétarien, avec mon garde-manger,
+  précisions ; trois idées chiffrées par la base ; « Autres idées » n'en
+  repropose aucune ; mode ANTI-GASPILLAGE depuis « À consommer
+  bientôt »), `recette_proposee_ecran` (région, moments, par portion,
+  ingrédients, étapes aux minuteurs ; « Ajouter à mon livre » → la fiche),
+  `importer_ecran` (texte collé, « Coller » ; structuré SANS RIEN
+  INVENTER), `ecart_ecran` (ce qui reste de la journée, trois options —
+  une recette du livre ou ses restes, ou des aliments —, « Noter au
+  journal »), `plan_ia_ecran` (les cases LIBRES des 7 jours avec MON
+  LIVRE, restes d'abord ; cocher / décocher ; « Ajouter à ma semaine »),
+  `estimer_ecran` (un repas décrit → aliments de la base, toucher une ligne
+  la retire ; depuis « Noter un repas »), `substitution_ecran` (depuis la
+  fiche d'une recette : l'ingrédient, pourquoi, trois remplaçants chiffrés
+  — ce que la portion gagne ou perd —, « Remplacer »), `conservation_ia`
+  (« Comment le garder ? » pour un aliment HORS du guide, au rangement et
+  au garde-manger : le repère est APPRIS une fois —
+  `CoursesNotifier.apprendreConservation`, table `conservationIa` — et
+  dit « repère de l'IA »), `bilan_ecran` (les chiffres, puis l'avis et
+  trois pistes ; gardé le temps de la session, « Refaire le bilan »),
+  `pieces_ia` (`AppelIa` : un appel à la fois ; `AttenteIa` : les quatre
+  capsules du logo battent pendant l'attente ; `ErreurIaBloc` +
+  « Réessayer » ; `MentionIa` : ce qui part, ce qui reste).
+- **Liens** : l'onglet (« Assistant » ; « Des idées pour les utiliser »
+  sous « À consommer bientôt »), le livre (idées, importer), la fiche
+  d'une recette (remplacer un ingrédient), Ma semaine (planifier avec
+  l'IA), « Noter un repas » (estimer, aussi à partir du mot cherché), le
+  rangement et la fiche du garde-manger (conservation).
+- **Persistance** : une table, `conservationIa` (les repères de
+  conservation appris, lus avec l'état des courses). Les réponses de l'IA
+  ne sont pas gardées : une recette l'est une fois AJOUTÉE au livre.
+
 ## 3. Architecture
 
 ```
@@ -856,6 +932,23 @@ test/habitudes_test.dart  règles des séries, démonstration = maquette,
   l10n/libelles_recettes.dart  tri, fractions (¼ ½ ¾), durées, portions,
                           quantité d'un ingrédient
   systeme/rappels_recettes.dart  décongélation et minuteurs (pur)
+  ia/                     (palier 4) cles_api (la clé, depuis cles.json),
+                          service_ia (Groq), texte_ia (nettoyage),
+                          ia_alimentation (invites + lectures)
+  modele/alimentation/    (palier 4) correspondance (IA → base du FCÉN),
+                          bilan_semaine (les chiffres de la semaine)
+  ecrans/alimentation/ia/  assistant, idées, recette proposée, importer,
+                          écart, planifier, estimer, remplacer,
+                          conservation, bilan, pieces_ia
+test/ia_test.dart         textes nettoyés, correspondance (vraie base),
+                          lectures tolérantes, invites (rien de
+                          personnel), bilan, conservation apprise, service
+test/ia_ecrans_test.dart  au doigt, avec le faux service : idées → livre,
+                          importer, estimer → journal, écart → journal,
+                          semaine, remplacer, conservation, bilan, erreurs,
+                          petit écran
+test/outils/faux_ia.dart  le faux service d'IA (répond comme Groq)
+test/outils/captures_ia_test.dart  captures de l'assistant (i01 à i25)
 test/recettes_test.dart   étapes, minuteurs, quantités, besoins (placard,
                           arrondi), semaine et lots, partagés, décompte,
                           restes, décongélation, livre, état (cuisiner →
@@ -907,8 +1000,10 @@ design/Rhythm.html        la maquette (source de vérité)
 ### Build et installation
 
 ```bash
-flutter build apk --release
+flutter build apk --release --dart-define-from-file=cles.json
 ```
+(`cles.json` à la racine, hors du dépôt : `{"GROQ_CLE": "gsk_…"}` — sans
+lui, l'APK se construit, mais l'assistant répond « sans clé ».)
 ```bash
 C:\Users\Gardien\AppData\Local\Android\Sdk\platform-tools\adb.exe -s R3GL104SS1V install -r build\app\outputs\flutter-apk\app-release.apk
 ```
@@ -1084,15 +1179,14 @@ lancer aussi DEPUIS L'ICÔNE.
 - **Pas encore vérifié sur le téléphone** : la scène d'ouverture filmée,
   et les notifications réelles (autorisation, rappel, bilan du soir,
   soutien discret sur l'écran verrouillé).
-- **Alimentation : palier 3 livré (à tester), puis 4 (IA)** — § 3
-  quater ; on n'avance qu'après les retours de l'utilisateur sur le palier
-  précédent. Au palier 4 : choisir la RÉGION (les grandes régions et leurs
-  cuisines, `ChoixRegion`) et le TYPE DE REPAS avant de générer une
-  recette (demande du 25 sept.). En suspens : héberger le
-  barème des taxes en ligne (et la permission INTERNET, qui viendra avec
-  l'IA). À vérifier sur le téléphone : un minuteur du mode cuisine quand
-  l'app passe derrière (notification inexacte), le rappel de
-  décongélation.
+- **Alimentation : palier 4 (IA) livré, à tester** — § 3 quater ; les
+  vrais appels à Groq n'ont été faits qu'avec le faux service (le réseau
+  du conteneur de la session du 25 sept. refusait api.groq.com) : à juger
+  sur le téléphone (qualité des idées, correspondance avec la base,
+  délais). En suspens : héberger le barème des taxes en ligne (la
+  permission INTERNET est là). À vérifier sur le téléphone : un minuteur
+  du mode cuisine quand l'app passe derrière (notification inexacte), le
+  rappel de décongélation.
 - Faire vivre Biblique (lecteur, plan, prière, méditation) ; brancher les
   boutons « Bientôt disponible » (Partager, Continuer, Prière, Méditation).
   Chaque module ajoutera SES tables au dépôt.
@@ -1112,7 +1206,16 @@ lancer aussi DEPUIS L'ICÔNE.
 
 ---
 
-**Dernière mise à jour** : 25 septembre 2026 (suite 6) — le mode
+**Dernière mise à jour** : 25 septembre 2026 (suite 7) — **Alimentation,
+palier 4 : l'IA** (§ 3 quater), conclu : assistant (idées de recettes
+avec région, moment et genre choisis avant, anti-gaspillage, écart du
+soir, semaine planifiée avec le livre, repas estimé, recette importée,
+ingrédient remplacé, conservation hors du guide apprise, bilan de la
+semaine) ; tout ce qui est chiffré vient de la base du FCÉN ; clé hors du
+dépôt (`cles.json`). Revue : le bilan affichait fibres et sodium à
+« 0 g » quand ils sont inconnus — corrigé, testé. 186 tests ; analyse
+vide ; captures de l'assistant regardées. Pas encore installé.
+— 25 septembre 2026 (suite 6) — le mode
 cuisine, retour de l'utilisateur (« le minuteur, sa disparition et son
 apparition, n'est pas synchronisé avec le reste, le saut persiste ») :
 l'étape entière (texte + minuteurs) en fondu enchaîné, hauteur qui glisse

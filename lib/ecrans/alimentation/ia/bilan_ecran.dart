@@ -150,23 +150,30 @@ class _BilanEcranState extends ConsumerState<BilanEcran>
                 progression: m.proteines / b.proteinesVisees,
                 couleur: RhythmCouleurs.corail,
               ),
-              _Chiffre(
-                libelle: tr.iaFibresParJour,
-                valeur: tr.iaRepere(f.g(m.fibres, tr), f.g(kFibresVisees, tr)),
-                progression: m.fibres / kFibresVisees,
-                couleur: RhythmCouleurs.menthe,
-              ),
-              _Chiffre(
-                libelle: tr.iaSodiumParJour,
-                valeur: tr.iaLimite(
-                  tr.iaMg(f.entier(m.sodium.round())),
-                  tr.iaMg(f.entier(kSodiumLimite.round())),
+              // Trop d'entrées rapides : fibres et sodium inconnus (pas
+              // nuls) — ni montrés, ni commentés par l'IA.
+              if (b.microsConnus) ...[
+                _Chiffre(
+                  libelle: tr.iaFibresParJour,
+                  valeur: tr.iaRepere(
+                    f.g(m.fibres, tr),
+                    f.g(kFibresVisees, tr),
+                  ),
+                  progression: m.fibres / kFibresVisees,
+                  couleur: RhythmCouleurs.menthe,
                 ),
-                progression: m.sodium / kSodiumLimite,
-                couleur: m.sodium > kSodiumLimite
-                    ? RhythmCouleurs.corail
-                    : RhythmCouleurs.lavande,
-              ),
+                _Chiffre(
+                  libelle: tr.iaSodiumParJour,
+                  valeur: tr.iaLimite(
+                    tr.iaMg(f.entier(m.sodium.round())),
+                    tr.iaMg(f.entier(kSodiumLimite.round())),
+                  ),
+                  progression: m.sodium / kSodiumLimite,
+                  couleur: m.sodium > kSodiumLimite
+                      ? RhythmCouleurs.corail
+                      : RhythmCouleurs.lavande,
+                ),
+              ],
             ],
             _Chiffre(
               libelle: tr.hydratation,

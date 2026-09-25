@@ -317,6 +317,10 @@ void main() {
     await _toucher(tester, find.text('Bilan de la semaine'));
     expect(find.text('LES CHIFFRES'), findsOneWidget);
     expect(find.text('Journées notées'), findsOneWidget);
+    // La démonstration : surtout des entrées rapides — fibres et sodium
+    // inconnus, pas affichés à « 0 g ».
+    expect(find.text('Fibres par jour'), findsNothing);
+    expect(find.text('Sodium par jour'), findsNothing);
     expect(
       find.textContaining('Tu as noté presque tous tes repas : bravo'),
       findsOneWidget,
