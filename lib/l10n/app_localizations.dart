@@ -7356,6 +7356,426 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Repère de l\'IA : vérifie aussi l\'emballage.'**
   String get iaRepereDeLIa;
+
+  /// No description provided for @monAssiette.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mon assiette'**
+  String get monAssiette;
+
+  /// No description provided for @assietteLegumesFruits.
+  ///
+  /// In fr, this message translates to:
+  /// **'Légumes et fruits'**
+  String get assietteLegumesFruits;
+
+  /// No description provided for @assietteProteines.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aliments protéinés'**
+  String get assietteProteines;
+
+  /// No description provided for @assietteGrains.
+  ///
+  /// In fr, this message translates to:
+  /// **'Grains'**
+  String get assietteGrains;
+
+  /// No description provided for @assietteALimiter.
+  ///
+  /// In fr, this message translates to:
+  /// **'À limiter'**
+  String get assietteALimiter;
+
+  /// No description provided for @assietteNeutre.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ne compte pas'**
+  String get assietteNeutre;
+
+  /// No description provided for @assietteNonReparti.
+  ///
+  /// In fr, this message translates to:
+  /// **'Non réparti'**
+  String get assietteNonReparti;
+
+  /// No description provided for @assietteLegumesFruitsDetail.
+  ///
+  /// In fr, this message translates to:
+  /// **'La moitié de l\'assiette.'**
+  String get assietteLegumesFruitsDetail;
+
+  /// No description provided for @assietteProteinesDetail.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un quart de l\'assiette.'**
+  String get assietteProteinesDetail;
+
+  /// No description provided for @assietteGrainsDetail.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un quart de l\'assiette, en grains entiers de préférence.'**
+  String get assietteGrainsDetail;
+
+  /// No description provided for @assietteALimiterDetail.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sucreries, grignotines, pâtisseries, jus, boissons sucrées ou alcoolisées, restauration rapide.'**
+  String get assietteALimiterDetail;
+
+  /// No description provided for @assietteNeutreDetail.
+  ///
+  /// In fr, this message translates to:
+  /// **'Matières grasses, sauces, épices, eau, café, thé, lait à boire : hors de l\'assiette.'**
+  String get assietteNeutreDetail;
+
+  /// No description provided for @assietteNonRepartiDetail.
+  ///
+  /// In fr, this message translates to:
+  /// **'Entrées rapides et plats composés : leur contenu n\'est pas connu. Noté avec la base ou une recette, un repas se répartit.'**
+  String get assietteNonRepartiDetail;
+
+  /// No description provided for @assietteSur.
+  ///
+  /// In fr, this message translates to:
+  /// **'sur {vise}'**
+  String assietteSur(String vise);
+
+  /// No description provided for @assietteGrainsEntiers.
+  ///
+  /// In fr, this message translates to:
+  /// **'Grains entiers'**
+  String get assietteGrainsEntiers;
+
+  /// No description provided for @assietteDesGrains.
+  ///
+  /// In fr, this message translates to:
+  /// **'{part} des grains'**
+  String assietteDesGrains(String part);
+
+  /// No description provided for @assietteDeCeQuiEstMange.
+  ///
+  /// In fr, this message translates to:
+  /// **'{part} de ce qui est mangé'**
+  String assietteDeCeQuiEstMange(String part);
+
+  /// No description provided for @assietteNonRepartisNombre.
+  ///
+  /// In fr, this message translates to:
+  /// **'{n, plural, =0{aucun} =1{1 aliment} other{{n} aliments}}'**
+  String assietteNonRepartisNombre(int n);
+
+  /// No description provided for @assietteGrainEntier.
+  ///
+  /// In fr, this message translates to:
+  /// **'grain entier'**
+  String get assietteGrainEntier;
+
+  /// No description provided for @assietteRienDeNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien de noté ce jour-là : l\'assiette est vide.'**
+  String get assietteRienDeNote;
+
+  /// No description provided for @assietteConseilVide.
+  ///
+  /// In fr, this message translates to:
+  /// **'Encore trop peu dans l\'assiette pour en juger.'**
+  String get assietteConseilVide;
+
+  /// No description provided for @assietteConseilLegumesFruits.
+  ///
+  /// In fr, this message translates to:
+  /// **'Il manque des légumes et des fruits : ils font la moitié de l\'assiette.'**
+  String get assietteConseilLegumesFruits;
+
+  /// No description provided for @assietteConseilProteines.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un peu plus d\'aliments protéinés : légumineuses, poisson, œufs, noix, yogourt, viande.'**
+  String get assietteConseilProteines;
+
+  /// No description provided for @assietteConseilGrains.
+  ///
+  /// In fr, this message translates to:
+  /// **'Il manque des grains : un quart de l\'assiette, en grains entiers.'**
+  String get assietteConseilGrains;
+
+  /// No description provided for @assietteConseilALimiter.
+  ///
+  /// In fr, this message translates to:
+  /// **'Beaucoup d\'aliments à limiter : l\'eau, les fruits et les noix les remplacent bien.'**
+  String get assietteConseilALimiter;
+
+  /// No description provided for @assietteConseilEntiers.
+  ///
+  /// In fr, this message translates to:
+  /// **'Des grains, mais peu d\'entiers : riz brun, pain de blé entier, gruau, quinoa.'**
+  String get assietteConseilEntiers;
+
+  /// No description provided for @assietteConseilEquilibree.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une assiette équilibrée, comme le propose le Guide.'**
+  String get assietteConseilEquilibree;
+
+  /// No description provided for @assietteCourtVide.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pas encore assez noté pour en juger'**
+  String get assietteCourtVide;
+
+  /// No description provided for @assietteCourtLegumesFruits.
+  ///
+  /// In fr, this message translates to:
+  /// **'Plus de légumes et de fruits'**
+  String get assietteCourtLegumesFruits;
+
+  /// No description provided for @assietteCourtProteines.
+  ///
+  /// In fr, this message translates to:
+  /// **'Plus d\'aliments protéinés'**
+  String get assietteCourtProteines;
+
+  /// No description provided for @assietteCourtGrains.
+  ///
+  /// In fr, this message translates to:
+  /// **'Plus de grains entiers'**
+  String get assietteCourtGrains;
+
+  /// No description provided for @assietteCourtALimiter.
+  ///
+  /// In fr, this message translates to:
+  /// **'Moins d\'aliments à limiter'**
+  String get assietteCourtALimiter;
+
+  /// No description provided for @assietteCourtEntiers.
+  ///
+  /// In fr, this message translates to:
+  /// **'Des grains plus souvent entiers'**
+  String get assietteCourtEntiers;
+
+  /// No description provided for @assietteCourtEquilibree.
+  ///
+  /// In fr, this message translates to:
+  /// **'Équilibrée, selon le Guide'**
+  String get assietteCourtEquilibree;
+
+  /// No description provided for @assietteSeptJours.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ces 7 jours'**
+  String get assietteSeptJours;
+
+  /// No description provided for @assietteSeptJoursDetail.
+  ///
+  /// In fr, this message translates to:
+  /// **'Légumes et fruits {lf} · protéinés {p} · grains {g}'**
+  String assietteSeptJoursDetail(String lf, String p, String g);
+
+  /// No description provided for @assietteLeGuide.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le Guide alimentaire canadien'**
+  String get assietteLeGuide;
+
+  /// No description provided for @assietteGuide1.
+  ///
+  /// In fr, this message translates to:
+  /// **'La moitié de l\'assiette : des légumes et des fruits, de toutes les couleurs.'**
+  String get assietteGuide1;
+
+  /// No description provided for @assietteGuide2.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un quart : des aliments protéinés, plus souvent d\'origine végétale.'**
+  String get assietteGuide2;
+
+  /// No description provided for @assietteGuide3.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un quart : des aliments à grains entiers.'**
+  String get assietteGuide3;
+
+  /// No description provided for @assietteGuide4.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'eau pour boisson ; peu d\'aliments hautement transformés.'**
+  String get assietteGuide4;
+
+  /// No description provided for @assietteEstimation.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une estimation d\'après le poids des aliments notés (les grains et légumineuses secs d\'une recette comptent cuits). Guide alimentaire canadien, Santé Canada. Pas un avis médical.'**
+  String get assietteEstimation;
+
+  /// No description provided for @kcalPrevues.
+  ///
+  /// In fr, this message translates to:
+  /// **'kcal prévues'**
+  String get kcalPrevues;
+
+  /// No description provided for @prevuSur.
+  ///
+  /// In fr, this message translates to:
+  /// **'sur {kcal}'**
+  String prevuSur(String kcal);
+
+  /// No description provided for @dontDejaNotees.
+  ///
+  /// In fr, this message translates to:
+  /// **'dont {kcal} déjà notées'**
+  String dontDejaNotees(String kcal);
+
+  /// No description provided for @repasSansValeur.
+  ///
+  /// In fr, this message translates to:
+  /// **'{n, plural, =0{aucun repas sans valeur} =1{+ 1 repas sans valeur (autre chose)} other{+ {n} repas sans valeur (autre chose)}}'**
+  String repasSansValeur(int n);
+
+  /// No description provided for @triFavorites.
+  ///
+  /// In fr, this message translates to:
+  /// **'Favorites'**
+  String get triFavorites;
+
+  /// No description provided for @ajouterAuxFavorites.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter aux favorites'**
+  String get ajouterAuxFavorites;
+
+  /// No description provided for @retirerDesFavorites.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer des favorites'**
+  String get retirerDesFavorites;
+
+  /// No description provided for @recetteFavorite.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajoutée aux favorites.'**
+  String get recetteFavorite;
+
+  /// No description provided for @recettePlusFavorite.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirée des favorites.'**
+  String get recettePlusFavorite;
+
+  /// No description provided for @etiquettesFacultatif.
+  ///
+  /// In fr, this message translates to:
+  /// **'Étiquettes (facultatif)'**
+  String get etiquettesFacultatif;
+
+  /// No description provided for @indiceEtiquette.
+  ///
+  /// In fr, this message translates to:
+  /// **'Écrire une autre étiquette'**
+  String get indiceEtiquette;
+
+  /// No description provided for @toutesLesEtiquettes.
+  ///
+  /// In fr, this message translates to:
+  /// **'Toutes les étiquettes'**
+  String get toutesLesEtiquettes;
+
+  /// No description provided for @mesEmplacements.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mes emplacements'**
+  String get mesEmplacements;
+
+  /// No description provided for @mesEmplacementsDetail.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un deuxième congélateur, une cave, le frigo du garage…'**
+  String get mesEmplacementsDetail;
+
+  /// No description provided for @mesEmplacementsAide.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le frigo, le congélateur, l\'armoire et le comptoir sont déjà là. Ajoute les tiens : chacun se garde comme l\'un des quatre (mêmes durées de conservation).'**
+  String get mesEmplacementsAide;
+
+  /// No description provided for @ajouterUnEmplacement.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter un emplacement'**
+  String get ajouterUnEmplacement;
+
+  /// No description provided for @nouvelEmplacement.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouvel emplacement'**
+  String get nouvelEmplacement;
+
+  /// No description provided for @modifierEmplacement.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier l\'emplacement'**
+  String get modifierEmplacement;
+
+  /// No description provided for @indiceEmplacement.
+  ///
+  /// In fr, this message translates to:
+  /// **'Congélateur du sous-sol, cave…'**
+  String get indiceEmplacement;
+
+  /// No description provided for @seGardeCommeTitre.
+  ///
+  /// In fr, this message translates to:
+  /// **'Se garde comme'**
+  String get seGardeCommeTitre;
+
+  /// No description provided for @seGardeComme.
+  ///
+  /// In fr, this message translates to:
+  /// **'comme {genre}'**
+  String seGardeComme(String genre);
+
+  /// No description provided for @seGardeCommeDetail.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les durées de conservation et les dates proposées suivent celles du genre choisi ({genre}).'**
+  String seGardeCommeDetail(String genre);
+
+  /// No description provided for @emplacementEnregistre.
+  ///
+  /// In fr, this message translates to:
+  /// **'« {nom} » enregistré.'**
+  String emplacementEnregistre(String nom);
+
+  /// No description provided for @retirerEmplacement.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer cet emplacement'**
+  String get retirerEmplacement;
+
+  /// No description provided for @toucherEncorePourRetirer.
+  ///
+  /// In fr, this message translates to:
+  /// **'Toucher encore pour retirer'**
+  String get toucherEncorePourRetirer;
+
+  /// No description provided for @retirerEmplacementDetail.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce qui y est rangé reste au garde-manger, dans « {genre} ».'**
+  String retirerEmplacementDetail(String genre);
+
+  /// No description provided for @emplacementRetire.
+  ///
+  /// In fr, this message translates to:
+  /// **'« {nom} » retiré : ses aliments sont dans « {genre} ».'**
+  String emplacementRetire(String nom, String genre);
+
+  /// No description provided for @iaRemplacerCuisine.
+  ///
+  /// In fr, this message translates to:
+  /// **'Il en manque un ? L\'IA propose des remplaçants'**
+  String get iaRemplacerCuisine;
 }
 
 class _AppLocalizationsDelegate

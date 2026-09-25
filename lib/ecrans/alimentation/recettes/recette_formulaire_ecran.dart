@@ -4,9 +4,10 @@
 // fois), ce qu'elle donne, ses temps ; les INGRÉDIENTS — chacun cherché dans
 // la base du FCÉN ou dans mes produits (ses macros suivent), ou libre (sel,
 // épices) ; les ÉTAPES, une par ligne (les minuteurs y sont repérés : « 10
-// minutes » deviendra un minuteur du mode cuisine) ; la région, une note,
-// « se congèle bien » ; ce qu'une portion apporte, en direct. Supprimer en
-// deux temps.
+// minutes » deviendra un minuteur du mode cuisine) ; la région, les
+// ÉTIQUETTES (des capsules : les siennes, celles du livre, quelques
+// propositions ; un champ pour en écrire une), une note, « se congèle
+// bien » ; ce qu'une portion apporte, en direct. Supprimer en deux temps.
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -58,7 +59,8 @@ class _RecetteFormulaireEcranState extends ConsumerState<RecetteFormulaireEcran>
   );
   late final _region = TextEditingController(text: widget.recette?.region);
   late final _note = TextEditingController(text: widget.recette?.note);
-  final _focus = List.generate(4, (_) => FocusNode());
+  final _nouvelleEtiquette = TextEditingController();
+  final _focus = List.generate(5, (_) => FocusNode());
 
   late Set<MomentRepas> _moments = {...?widget.recette?.moments};
   late int _portions = widget.recette?.portions ?? 4;
@@ -66,6 +68,7 @@ class _RecetteFormulaireEcranState extends ConsumerState<RecetteFormulaireEcran>
   late int _cuisson = widget.recette?.cuisson ?? 0;
   late List<Ingredient> _ingredients = [...?widget.recette?.ingredients];
   late bool _congele = widget.recette?.seCongele ?? false;
+  late List<String> _etiquettes = [...?widget.recette?.etiquettes];
 
   bool get _edition => widget.recette != null;
 
@@ -84,6 +87,7 @@ class _RecetteFormulaireEcranState extends ConsumerState<RecetteFormulaireEcran>
     _etapes.dispose();
     _region.dispose();
     _note.dispose();
+    _nouvelleEtiquette.dispose();
     for (final f in _focus) {
       f.dispose();
     }
@@ -115,6 +119,16 @@ class _RecetteFormulaireEcranState extends ConsumerState<RecetteFormulaireEcran>
     });
   }
 
+  /// L'étiquette tapée rejoint les autres (une seule fois).
+  void _ajouterEtiquette() {
+    final e = _nouvelleEtiquette.text.trim();
+    if (e.isEmpty) return;
+    setState(() {
+      _etiquettes = etiquettesPropres([..._etiquettes, e]);
+      _nouvelleEtiquette.clear();
+    });
+  }
+
   void _enregistrer() {
     if (transitionEnCours) return;
     final tr = context.tr;
@@ -141,6 +155,9 @@ class _RecetteFormulaireEcranState extends ConsumerState<RecetteFormulaireEcran>
       note: note.isEmpty ? null : note,
       seCongele: _congele,
       cuisinee: avant?.cuisinee ?? const [],
+      favorite: avant?.favorite ?? false,
+      // Celle qu'on vient de taper, sans l'avoir validée, compte aussi.
+      etiquettes: etiquettesPropres([..._etiquettes, _nouvelleEtiquette.text]),
     );
     notifier.enregistrer(r);
     HapticFeedback.lightImpact();
@@ -173,6 +190,12 @@ class _RecetteFormulaireEcranState extends ConsumerState<RecetteFormulaireEcran>
       for (final r in ref.watch(recettesProvider).recettes)
         if (r.region != null && grandeRegionDe(r.region) == null) r.region!,
     }.toList()..sort();
+    // Les capsules : les siennes, celles du livre, puis quelques-unes.
+    final capsules = etiquettesPropres([
+      ..._etiquettes,
+      ...etiquettesDuLivre(ref.watch(recettesProvider).recettes),
+      ...kEtiquettesProposees,
+    ]);
     String minutes(int m) => m == 0 ? '—' : f.minutes(m);
 
     return PageSecondaire(
@@ -316,6 +339,52 @@ class _RecetteFormulaireEcranState extends ConsumerState<RecetteFormulaireEcran>
               aucune: tr.aucune,
               autres: autres,
               onChanged: (r) => setState(() => _region.text = r ?? ''),
+            ),
+          ],
+        ),
+        Column(
+          key: const ValueKey('etiquettes'),
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            EtiquetteChamp(tr.etiquettesFacultatif),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final e in capsules)
+                  Builder(
+                    builder: (context) {
+                      final choisie = _etiquettes.any(
+                        (x) => memeEtiquette(x, e),
+                      );
+                      return Puce(
+                        libelle: e,
+                        choisie: choisie,
+                        couleur: RhythmCouleurs.peche,
+                        onTap: () {
+                          HapticFeedback.selectionClick();
+                          setState(
+                            () => _etiquettes = choisie
+                                ? [
+                                    for (final x in _etiquettes)
+                                      if (!memeEtiquette(x, e)) x,
+                                  ]
+                                : [..._etiquettes, e],
+                          );
+                        },
+                      );
+                    },
+                  ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            ChampRhythm(
+              key: const ValueKey('champEtiquette'),
+              controleur: _nouvelleEtiquette,
+              focus: _focus[4],
+              indice: tr.indiceEtiquette,
+              actionClavier: TextInputAction.done,
+              onValider: (_) => _ajouterEtiquette(),
             ),
           ],
         ),

@@ -27,7 +27,7 @@ fonctionnelles et PERSISTÉES** (§ 3 bis), **les SPORTS aussi — section
 CONCLUE** (§ 3 ter, 25 sept. 2026 : reste à les éprouver sur le
 téléphone, § 6), **l'ALIMENTATION est en cours, palier par palier**
 (§ 3 quater : paliers 1 à 4 livrés — le socle, les achats, les
-recettes, l'IA ; le palier 4 est à tester). Biblique affiche encore les données de la
+recettes, l'IA — puis le lot 5, les finitions du plan, à tester). Biblique affiche encore les données de la
 maquette (`lib/modele/graine.dart`), posées sur les vraies dates.
 
 ---
@@ -494,6 +494,61 @@ maquette lui plaît : on le garde, on l'enrichit sans s'en éloigner.
    préciser avec l'utilisateur : aussi la catégorie, soupe / plat /
    dessert ?) avant de générer ; la recette générée entre au livre avec sa
    région et ses moments, ses macros recalculées par la base.
+5. **Les finitions du plan** (LIVRÉ le 25 sept. 2026, à tester) : ce que
+   le plan validé promettait et que les paliers 1 à 4 n'avaient pas fait
+   (l'utilisateur : « passe au lot 5 » — il n'était pas écrit).
+
+### Lot 5 — les finitions du plan (livré le 25 sept. 2026)
+
+- **Mon assiette** (`modele/alimentation/assiette.dart`, pur, testé ;
+  `ecrans/alimentation/assiette_ecran.dart`) : l'assiette du GUIDE
+  ALIMENTAIRE CANADIEN — ½ légumes et fruits, ¼ protéinés, ¼ grains
+  (entiers de préférence). Chaque aliment est rangé d'après son GROUPE du
+  FCÉN et son nom (`categorieDe`), ou HORS de l'assiette : à limiter
+  (sucreries, grignotines 25, restauration rapide 21, pâtisseries, jus,
+  boissons sucrées ou alcoolisées), neutre (gras, sauces, épices, eau,
+  café, thé, LAIT À BOIRE), non réparti (entrée rapide, plat composé 22,
+  soupe, recette effacée). Une recette se répartit ingrédient par
+  ingrédient ; un produit comme l'aliment le plus proche de son nom
+  (`procheDe`, en retirant des mots). Mesure = le POIDS ; grains et
+  légumineuses secs × 2,5 (cuits). Conseil : la part la plus loin (< 60 %
+  de la visée), puis à limiter > 25 %, puis < 80 %, puis grains entiers
+  < 50 %, sinon équilibrée ; < 100 g : « trop peu ». Sur l'onglet, une
+  ligne sous l'eau (petite assiette dessinée — `AssietteDessin` : moitié
+  gauche, protéinés en haut à droite, grains en bas à droite, remplies en
+  SURFACE, séparées d'un trait noir). L'écran : grand dessin, la phrase,
+  les trois parts (atteint sur visé), grains entiers, à limiter, non
+  réparti, le détail par part, les 7 jours, ce que dit le Guide.
+- **Ma semaine** : le TOTAL PRÉVU du jour choisi à côté des objectifs
+  (`totalPrevuDu` : noté + prévus pas encore notés ; « autre chose » ne se
+  chiffre pas) — kcal, jauge, trois macros.
+- **Recettes FAVORITES et ÉTIQUETTES** : `Recette.favorite`,
+  `Recette.etiquettes` (`etiquettesPropres` : sans doublon à la casse et
+  aux accents près) ; le cœur (`Picto.coeur`, `plein`) sur la fiche ; le
+  tri « Favorites » ; une rangée d'étiquettes dans le livre (les plus
+  portées d'abord) ; la recherche les lit ; au formulaire, des capsules
+  (les siennes, celles du livre, `kEtiquettesProposees`) et un champ. Les
+  8 recettes de départ ont leurs étiquettes ; démonstration : chili et bol
+  au cœur.
+- **Mes EMPLACEMENTS** (`Lieu` : nom + genre, dans `ReglagesCourses.lieux` ;
+  `ArticleGardeManger.lieuId`) : « Congélateur du sous-sol », « Cave »…
+  chacun suit les règles de conservation de son GENRE (l'`emplacement` de
+  l'article reste le genre : toute la logique de dates est inchangée).
+  `ChoixEmplacement` propose les lieux sous les quatre (`onLieu`) ;
+  déplacer d'un lieu à un autre du même genre garde la date ; changer le
+  genre d'un lieu déplace ce qui y est ; le retirer rend ses aliments à
+  son genre. Filtre du garde-manger par lieu ; « Mes emplacements » en bas
+  du garde-manger (`courses/lieux_ecran.dart`) ; `ouEstRange` affiche le
+  lieu partout.
+- **Mode cuisine** : « Remplacer un ingrédient » sous la mise en place
+  (l'IA) ; le mode cuisine lit la recette À JOUR (un ingrédient remplacé
+  y paraît aussitôt).
+- Démonstration : le gruau du journal vient maintenant de la base (1414,
+  250 g) — l'assiette de la maquette dit « Il manque des légumes et des
+  fruits » (le bol, entrée rapide, reste non réparti).
+- Pas fait (à proposer) : le SCAN DE CODE-BARRES (« plus tard » dans le
+  plan : caméra + Open Food Facts en ligne) ; héberger le barème des
+  taxes.
 
 ### Palier 1 — le socle (livré le 25 sept. 2026)
 
@@ -762,7 +817,15 @@ le sollicite — le reste de l'app ne sort jamais du téléphone.
   cascade `openai/gpt-oss-120b` → `gpt-oss-20b` (quotas séparés), deux
   essais par modèle, réponse forcée en JSON, erreurs typées (`ErreurIa` :
   quota, surcharge, réseau, sans clé…). `ServiceIa.instance` se remplace
-  dans les tests (`test/outils/faux_ia.dart`, aucun réseau).
+  dans les tests (`test/outils/faux_ia.dart`, aucun réseau). Éprouvé sur
+  le VRAI Groq (25 sept., suite 9) : le palier gratuit limite chaque
+  modèle à **8 000 jetons PAR MINUTE** — une demande d'idées en prend
+  5 000 à 6 000 (raisonnement compris) : deux de suite passent au modèle
+  de secours ; les deux à bout, le service ATTEND le `retry-after` de Groq
+  s'il est court (≤ 20 s, une fois), sinon l'erreur « quota » ; une
+  réponse ILLISIBLE (rare, vue une fois sur six) est redemandée une fois.
+  Délais mesurés : idées 7 à 11 s, semaine 5 à 8 s, écart ≈ 10 s, le
+  reste 0,3 à 3 s.
 - ⛔ **La CLÉ n'est PAS dans le code** (`lib/ia/cles_api.dart`) : elle
   vient de la construction, `--dart-define-from-file=cles.json`, où
   `cles.json` (à la racine, HORS du dépôt — `.gitignore`) contient
@@ -780,12 +843,84 @@ le sollicite — le reste de l'app ne sort jamais du téléphone.
   (`lib/ia/texte_ia.dart` : sans Markdown ni emoji, apostrophes droites,
   « ≈ → ≥ ≤ » remplacés — absents des polices —, insécables françaises).
 - **La correspondance** (`modele/alimentation/correspondance.dart`) :
-  chaque aliment proposé est CHERCHÉ dans la base (un mot inconnu laissé
-  de côté, puis les derniers mots tombent tant que rien ne répond) et
-  chiffré par elle — une portion du FCÉN quand elle existe (« 2 × 1
-  gousse »), sinon les grammes estimés ; introuvable → ingrédient LIBRE,
-  dit « hors de la base » (pas compté). `RecetteProposee` → une `Recette`
-  du livre, région et moments vérifiés.
+  chaque aliment proposé est CHERCHÉ dans la base et chiffré par elle —
+  une portion du FCÉN quand elle existe (« 2 × 1 gousse »), sinon les
+  grammes estimés ; introuvable → ingrédient LIBRE, dit « hors de la
+  base » (pas compté). `RecetteProposee` → une `Recette` du livre, région
+  et moments vérifiés. **Refaite le 25 sept. (suite 9)** après les vrais
+  appels et deux BALAYAGES (274 ingrédients et plats,
+  `test/outils/balayage_correspondance_test.dart`) — le faux service ne
+  montrait rien de tout ça. Les règles, dans l'ordre où elles jouent :
+  - des MOTS ENTIERS (au pluriel ou au féminin près, `_meme`) : « pois »
+    n'est pas « poisson », « vin » pas « vinaigre » (la note du journal,
+    qui prend les débuts de mots, reçoit `egal: _meme`) ; « pâtes »
+    (alimentaires) ≠ « pâte » (d'arachide, à pizza) ≠ « pâté » (sans
+    accents, le même mot : `pateviande`) ; « partiellement écrémé » ≠
+    « écrémé » ;
+  - la NÉGATION des deux côtés : « sans X » / « non X » ne sont pas X
+    (« Poulet, conserve, sans bouillon » ; « cuisse sans peau »), et
+    « non salé » = « sans sel » (`_racine`) ; la COMPOSITION entre
+    parenthèses ne compte pas (« Sauce, arachides (faite à partir de …
+    sauce soya) ») ;
+  - des SYNONYMES d'ici et de l'IA (`_synonymes` : cari, pois jaunes →
+    cassés, riz basmati → blanc long, pâte d'arachide → beurre, butternut
+    → musquée, haricots verts → italiens, chou vert → chou, baguette →
+    pain français, lait évaporé → concentré, germes de soya → mungo…) ;
+  - le NOM porte l'identité (sans ses mots de préparation — haché, frais,
+    moulu, épi… —, qui restent dans les mots-clés) : un candidat en porte
+    au moins la moitié ; un nom VAGUE (pâte, sauce, jus, huile, lait,
+    feuille…) exige son complément ; un nom de PRODUIT (confiture,
+    yogourt, fromage…) exige le produit ; un nom dont la base ne connaît
+    aucun mot (« Mascarpone ») → hors de la base, pas « un fromage » ;
+  - l'ÉTAT : cru (le FCÉN dit « sec » pour les grains : cru ≈ sec, mais
+    l'état exact passe devant — raisins secs ≠ raisins crus ; « à sec »
+    n'est pas un état) ; l'état contraire coûte cher (le riz d'une recette
+    n'est pas « cuit à la vapeur ») ;
+  - seulement si on les DEMANDE : les parties de la plante (feuilles,
+    germes, graines, pelure), les versions allégées (sans gras, réduit en
+    sodium, léger, écrémé), aromatisées (saveur, mélange, chocolat, miel,
+    sucrée…), transformées (broyée, étuvée, marinée, barre), et ce qu'un
+    aliment a « avec » / « au » / « aux » lui (un aliment de la base :
+    « aux canneberges », pas « au soleil ») ;
+  - la TÊTE (ce qu'est l'aliment) décrite par la proposition passe devant,
+    sans les parenthèses ni un préfixe vague du FCÉN (« Épices, … »,
+    « Boisson alcoolisée, … », « Jus, … », « Confiseries, … ») ; quelques
+    ingrédients de base passent devant leurs variantes
+    (`_ingredientsCourants` : riz blanc long sec, pâtes enrichies sèches,
+    poitrine de poulet sans peau crue) ;
+  - puis les CALORIES de l'IA départagent — elles sont souvent FAUSSES
+    (2 tasses de pois secs « 170 kcal », 1 500 dans la base) : du simple
+    au double (± 50 kcal seulement du tiers au triple), sinon la plus
+    proche du tiers au triple ; quand le premier candidat est une
+    correspondance FORTE (il porte le nom, sa tête est décrite), seules
+    ses variantes (même tête) sont départagées, et à défaut il est pris
+    tel quel — la base fait foi ;
+  - une quantité en g ou ml bien plus petite que le poids estimé (« 2 » ml
+    pour 2 tasses) : le poids estimé ; une taille que la base n'a pas
+    (« 1 moyen », elle n'a que « 1 gros ») : le poids estimé, compté ;
+    jamais une PARTIE non demandée (« 1 tranche moyenne » pour un oignon)
+    ni « 1 portion du guide » ;
+  - l'eau, la poudre à pâte, le bicarbonate : libres, même oubliés.
+  Balayage final : 274 cas, 11 hors de la base (absents du FCÉN :
+  mascarpone, gnocchis, boulghour, citronnelle, guacamole, tzatziki,
+  kombucha, pancetta, feuilles de manioc, hamburger, shawarma), 4 écarts
+  venus de l'estimation de l'IA.
+- **Les invites**, retouchées après les vrais appels : la conservation ne
+  donne plus d'exemple chiffré (le modèle recopiait « 3 à 5 jours / 60 à
+  90 jours » pour le kimchi comme pour le tofu) ; les mots-clés disent
+  « sec » pour les grains ; l'ESTIMATION garde entiers les plats courants
+  que le FCÉN connaît (poutine, pizza, pad thaï, sushi, lasagne, chow
+  mein…) et décompose le reste (pâté chinois, hamburger, hot-dog,
+  sandwich) ; la semaine n'utilise les restes que pour autant de repas
+  que leurs portions en donnent. Les ÉTAPES d'une idée (retour de
+  l'utilisateur, 25 sept. : « trop courtes, comme si elle rush ») : la
+  consigne disait « une action par étape » et « phrases courtes » — six
+  lignes bâclées pour un thiéboudienne ; maintenant `_etapesDetaillees`
+  (idées seulement) : 6 à 12 étapes d'une à trois phrases, la mise en
+  place d'abord, l'ustensile, le feu ou le four, la durée (une par étape
+  de préférence : les minuteurs), le signe que c'est prêt, les gestes qui
+  font le plat, le service à la fin ; l'IMPORT garde les étapes du texte,
+  toutes, sans en ajouter.
 - **Le bilan** (`modele/alimentation/bilan_semaine.dart`) : les CHIFFRES
   de la semaine calculés sur le téléphone (journées NOTÉES seulement,
   fibres 25 g, sodium 2 300 mg — Santé Canada) ; l'IA les commente sans
@@ -1000,6 +1135,13 @@ test/ia_ecrans_test.dart  au doigt, avec le faux service : idées → livre,
                           petit écran
 test/outils/faux_ia.dart  le faux service d'IA (répond comme Groq)
 test/outils/captures_ia_test.dart  captures de l'assistant (i01 à i25)
+test/outils/ia_reelle_test.dart  chaque demande de l'assistant au VRAI
+                          Groq (délais, recettes, correspondance ligne par
+                          ligne ; consomme le quota) :
+  flutter test --dart-define=IA_REELLE=true --dart-define-from-file=cles.json test/outils/ia_reelle_test.dart
+test/outils/balayage_correspondance_test.dart  274 ingrédients et plats →
+                          l'aliment du FCÉN choisi (✗ hors base, ⚠ écart) :
+  flutter test --dart-define=BALAYAGE=true test/outils/balayage_correspondance_test.dart
 test/recettes_test.dart   étapes, minuteurs, quantités, besoins (placard,
                           arrondi), semaine et lots, partagés, décompte,
                           restes, décongélation, livre, état (cuisiner →
@@ -1235,18 +1377,36 @@ lancer aussi DEPUIS L'ICÔNE.
 - Tests : `find.text` trouve aussi le texte d'un CHAMP (`EditableText`) —
   une capsule dont le libellé est aussi dans le champ : chercher sous son
   widget (`find.descendant(of: find.byType(ChoixRegion), …)`).
+- ⛔ IA : un FAUX service qui répond « bien » ne prouve rien — il cachait
+  un JSON illisible de temps en temps, le quota à la MINUTE (8 000 jetons
+  par modèle), et une vingtaine de confusions de la correspondance (pois →
+  poisson, vin → vinaigre, riz cuit pour du riz cru, « 1 tranche » pour un
+  oignon, la conservation qui recopiait l'exemple). Éprouver sur le vrai
+  Groq (`test/outils/ia_reelle_test.dart`) et BALAYER la correspondance
+  (`balayage_correspondance_test.dart`, comparer avant / après chaque
+  retouche : une règle qui répare un cas en casse souvent un autre).
+- La base du FCÉN est SANS ACCENTS une fois simplifiée : « pâte » et
+  « pâté » deviennent le même mot ; « sec » y dit l'état cru des grains
+  (et « rôties à sec », autre chose) ; les parenthèses y mêlent synonymes
+  (« Okra (gombo) », à garder) et composition (« (faite à partir de …) »,
+  à ignorer).
+- flutter_test remplace le réseau (HTTP 400) une fois le binding lancé :
+  un test qui parle à un vrai serveur (Groq, ou le faux Groq local des
+  tests du service) passe par `HttpOverrides.runWithHttpOverrides` avec
+  un `HttpOverrides` nu, ou met `HttpOverrides.global = null`.
 
 ## 6. Prochaines étapes (à valider avec l'utilisateur)
 
 - **Pas encore vérifié sur le téléphone** : la scène d'ouverture filmée,
   et les notifications réelles (autorisation, rappel, bilan du soir,
   soutien discret sur l'écran verrouillé).
-- **Alimentation : palier 4 (IA) livré, à tester** — § 3 quater ; les
-  vrais appels à Groq n'ont été faits qu'avec le faux service (le réseau
-  du conteneur de la session du 25 sept. refusait api.groq.com) : à juger
-  sur le téléphone (qualité des idées, correspondance avec la base,
-  délais). En suspens : héberger le barème des taxes en ligne (la
-  permission INTERNET est là). À vérifier sur le téléphone : un minuteur
+- **Alimentation : palier 4 (IA) livré, éprouvé sur le vrai Groq, à
+  tester sur le téléphone** — § 3 quater. La clé est configurée
+  (`cles.json` à la racine, hors du dépôt, celle de Studio / Net Worth ;
+  vérifiée : Groq répond, les deux modèles sont là). L'utilisateur juge
+  la qualité des idées et des estimations au quotidien ; ce qui reste
+  hors de la base est ce que le FCÉN n'a pas. En suspens : héberger le
+  barème des taxes en ligne (la permission INTERNET est là). À vérifier sur le téléphone : un minuteur
   du mode cuisine quand l'app passe derrière (notification inexacte), le
   rappel de décongélation.
 - Faire vivre Biblique (lecteur, plan, prière, méditation) ; brancher les
@@ -1274,7 +1434,32 @@ lancer aussi DEPUIS L'ICÔNE.
 
 ---
 
-**Dernière mise à jour** : 25 septembre 2026 (suite 8) — **Sports
+**Dernière mise à jour** : 25 septembre 2026 (suite 10) — **Alimentation,
+lot 5 : les finitions du plan** (§ 3 quater) : mon assiette (Guide
+alimentaire canadien), le total prévu du jour dans Ma semaine, recettes
+favorites et étiquettes, emplacements ajoutés au garde-manger, remplacer
+un ingrédient en mode cuisine. 205 tests ; analyse vide ; captures
+regardées (`captures du lot 5`, l01 à l14) ; release installée
+(`install -r`, 19 h 00), non lancée. Non commité.
+— 25 septembre 2026 (suite 9) — **Alimentation,
+palier 4 éprouvé sur le vrai Groq** (§ 3 quater) : les commits du cloud
+vérifiés (analyse vide, tests verts) ; la clé configurée (`cles.json`,
+hors du dépôt) ; chaque demande de l'assistant envoyée au vrai Groq
+(`ia_reelle_test`) — quota à la minute (attente courte), réponse
+illisible redemandée, conservation qui ne recopie plus l'exemple, bilan
+aux verdicts calculés (il disait « protéines atteintes » pour 96 g sur
+150), estimation qui garde entiers les plats du FCÉN ; la correspondance
+refaite après deux balayages (281 cas, `balayage_correspondance_test`) :
+une trentaine de confusions corrigées (pois → poisson, vin → vinaigre,
+riz cuit pour cru, pâte / pâtes / pâté, feuilles de betterave, sauce aux
+arachides pour la sauce soya, anchois pour l'huile d'olive…). 193 tests ;
+analyse vide ; release installée (`install -r`, 17 h 46), non lancée.
+Puis, sur retour de l'utilisateur (1er test de l'IA : les portions
+divisent bien les kcal, mais les étapes « rushent ») : les étapes des
+idées détaillées (9 étapes précises au lieu de 6 lignes, éprouvé sur le
+vrai Groq) ; chou blanc → chou, poulet ordinaire (pas de chapon). 194
+tests ; release installée (`install -r`, 18 h 21), non lancée.
+— 25 septembre 2026 (suite 8) — **Sports
 conclus** (§ 3 ter) : le corps 3D fini — le cou ne se froisse plus tête
 pendante (un seul virage, centré sur la base du cou ; le haut du tronc
 cisaillé), les volumes du cou et des épaules lus par plans (plus de trou

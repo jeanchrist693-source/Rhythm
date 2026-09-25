@@ -19,7 +19,8 @@
 // - le DÉCOMPTE du garde-manger après la cuisine (ce qu'il en restera) ;
 // - les RESTES (jusqu'à quand : 3 jours au frigo, 3 mois au congélateur —
 //   Thermoguide) ; la DÉCONGÉLATION (ce qu'un repas prévu demande et qui
-//   n'est qu'au congélateur) ;
+//   n'est qu'au congélateur) ; le TOTAL PRÉVU d'une journée (noté + prévu),
+//   à côté des objectifs ;
 // - les RÉGIONS : une cuisine et sa grande région (« Sénégalaise » est en
 //   « Afrique de l'Ouest ») ;
 // - le LIVRE : la recherche, le tri ; le lien avec le JOURNAL.
@@ -31,6 +32,7 @@ import 'base_aliments.dart' show motsDe, motsRecherche, simplifier;
 import 'calculs_courses.dart';
 import 'conservation.dart';
 import 'courses.dart';
+import 'nutriments.dart';
 import 'rayons.dart';
 import 'recettes.dart';
 
@@ -411,6 +413,59 @@ bool prevuNote(RepasPrevu p, List<EntreeJournal> journal) {
   return false;
 }
 
+/// Ce qu'une journée PRÉVUE donnera : ce qui est déjà noté au journal, plus
+/// les repas prévus pas encore notés (une recette, un produit : leurs
+/// portions) ; « autre chose » ne se chiffre pas ([inconnus]).
+class TotalPrevu {
+  const TotalPrevu({
+    this.nutriments = Nutriments.zero,
+    this.note = Nutriments.zero,
+    this.inconnus = 0,
+  });
+
+  /// Le tout : noté + prévu.
+  final Nutriments nutriments;
+
+  /// Ce qui est déjà noté.
+  final Nutriments note;
+
+  /// Les repas prévus sans valeur (« Souper chez des amis »).
+  final int inconnus;
+
+  bool get vide => nutriments.kcal <= 0 && inconnus == 0;
+}
+
+TotalPrevu totalPrevuDu(
+  DateTime jour, {
+  required EtatRecettes recettes,
+  required List<EntreeJournal> journal,
+  required List<Produit> produits,
+}) {
+  final j = jourDe(jour);
+  final note = Nutriments.somme([
+    for (final e in journal)
+      if (e.jour == j) e.nutriments,
+  ]);
+  var total = note;
+  var inconnus = 0;
+  for (final p in recettes.prevusLe(j)) {
+    if (prevuNote(p, journal)) continue;
+    final r = recettes.recette(p.recetteId);
+    Produit? produit;
+    for (final x in produits) {
+      if (x.id == p.produitId) produit = x;
+    }
+    if (r != null) {
+      total += r.parPortion * p.portions;
+    } else if (produit != null) {
+      total += produit.parPortion * p.portions;
+    } else {
+      inconnus++;
+    }
+  }
+  return TotalPrevu(nutriments: total, note: note, inconnus: inconnus);
+}
+
 /// Les recettes prévues de [debut] à [debut] + [jours] − 1, pas encore
 /// notées : la plus tôt prévue d'abord.
 List<RecetteDeLaSemaine> recettesDeLaSemaine(
@@ -700,9 +755,38 @@ bool recetteRepond(Recette r, String requete) {
       r.region ?? '',
       grandeRegionDe(r.region)?.nom ?? '',
       for (final i in r.ingredients) i.nom,
+      ...r.etiquettes,
     ].join(' '),
   );
   return q.every((m) => mots.any((w) => w.startsWith(m)));
+}
+
+/// La même étiquette, à la casse et aux accents près (« Végé » = « vege »).
+bool memeEtiquette(String a, String b) =>
+    simplifier(a).trim() == simplifier(b).trim();
+
+/// La recette porte-t-elle l'étiquette [e] ?
+bool aEtiquette(Recette r, String e) =>
+    r.etiquettes.any((x) => memeEtiquette(x, e));
+
+/// Les étiquettes du livre, les plus portées d'abord (puis A à Z) ; une
+/// seule écriture par étiquette (la première rencontrée).
+List<String> etiquettesDuLivre(List<Recette> recettes) {
+  final nombre = <String, int>{};
+  final ecriture = <String, String>{};
+  for (final r in recettes) {
+    for (final e in r.etiquettes) {
+      final c = simplifier(e).trim();
+      ecriture.putIfAbsent(c, () => e);
+      nombre[c] = (nombre[c] ?? 0) + 1;
+    }
+  }
+  final cles = nombre.keys.toList()
+    ..sort((a, b) {
+      final d = nombre[b]!.compareTo(nombre[a]!);
+      return d != 0 ? d : a.compareTo(b);
+    });
+  return [for (final c in cles) ecriture[c]!];
 }
 
 /// Le livre trié.
@@ -718,6 +802,10 @@ List<Recette> trierRecettes(List<Recette> recettes, TriRecettes tri) {
   l.sort(
     (a, b) => switch (tri) {
       TriRecettes.recentes => recente(b).compareTo(recente(a)),
+      TriRecettes.favorites =>
+        a.favorite != b.favorite
+            ? (a.favorite ? -1 : 1)
+            : recente(b).compareTo(recente(a)),
       TriRecettes.alphabetique => nom(a, b),
       TriRecettes.proteines => b.parPortion.proteines.compareTo(
         a.parPortion.proteines,

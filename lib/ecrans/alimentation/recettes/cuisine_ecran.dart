@@ -41,6 +41,7 @@ import '../../../widgets/pictos.dart';
 import '../../../widgets/pression_echelle.dart';
 import '../../../widgets/toast.dart';
 import '../courses/pieces_courses.dart';
+import '../ia/substitution_ecran.dart';
 import 'pieces_recettes.dart';
 import 'pret_ecran.dart';
 
@@ -167,12 +168,16 @@ class _CuisineEcranState extends ConsumerState<CuisineEcran> {
     );
   }
 
+  /// La recette À JOUR (un ingrédient remplacé en cours de route).
+  Recette get _recette =>
+      ref.read(recettesProvider).recette(widget.recette.id) ?? widget.recette;
+
   void _pret() {
     HapticFeedback.mediumImpact();
     remplacerEcran(
       context,
       PretEcran(
-        recette: widget.recette,
+        recette: _recette,
         portions: _portions,
         moment: widget.moment,
         retour: widget.retour,
@@ -184,7 +189,9 @@ class _CuisineEcranState extends ConsumerState<CuisineEcran> {
   Widget build(BuildContext context) {
     final tr = context.tr;
     final f = context.formats;
-    final r = widget.recette;
+    final r =
+        ref.watch(recettesProvider).recette(widget.recette.id) ??
+        widget.recette;
     final facteur = _portions / r.portions;
     final ingredients = [for (final i in r.ingredients) i.fois(facteur)];
     final minuteurs = ref.watch(minuteursProvider);
@@ -252,6 +259,18 @@ class _CuisineEcranState extends ConsumerState<CuisineEcran> {
                       );
                     },
                   ),
+              // Il manque un ingrédient : l'IA propose des remplaçants.
+              if (_coches.length < ingredients.length || _revoir) ...[
+                const Filet(),
+                LigneReglage(
+                  libelle: tr.iaRemplacer,
+                  detail: tr.iaRemplacerCuisine,
+                  onTap: () => pousserEcran(
+                    context,
+                    SubstitutionEcran(recetteId: r.id, retour: tr.modeCuisine),
+                  ),
+                ),
+              ],
             ],
           ),
         if (etapes.isEmpty)

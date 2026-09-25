@@ -55,6 +55,8 @@ enum Picto {
   poubelle,
   // L'assistant de l'Alimentation (palier 4 : tracé Lucide « sparkles »).
   etincelles,
+  // Les recettes favorites (lot 5 : tracé Lucide « heart »).
+  coeur,
 }
 
 const Map<Picto, List<String>> _traces = {
@@ -229,6 +231,10 @@ const Map<Picto, List<String>> _traces = {
     'M22 4h-4',
     'M6 20a2 2 0 1 1-4 0a2 2 0 1 1 4 0',
   ],
+  Picto.coeur: [
+    'M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 '
+        '2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z',
+  ],
   Picto.vague: [
     'M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 '
         '1.3 0 1.9.5 2.5 1',
@@ -246,6 +252,7 @@ class PictoRhythm extends StatelessWidget {
     this.taille = 22,
     this.couleur = RhythmCouleurs.texte,
     this.epaisseur = 1.8,
+    this.plein = false,
   });
 
   final Picto picto;
@@ -255,19 +262,23 @@ class PictoRhythm extends StatelessWidget {
   /// Épaisseur du trait dans la grille de 24.
   final double epaisseur;
 
+  /// Le tracé rempli aussi (le cœur d'une recette favorite).
+  final bool plein;
+
   @override
   Widget build(BuildContext context) => SizedBox.square(
     dimension: taille,
-    child: CustomPaint(painter: _Peintre(picto, couleur, epaisseur)),
+    child: CustomPaint(painter: _Peintre(picto, couleur, epaisseur, plein)),
   );
 }
 
 class _Peintre extends CustomPainter {
-  _Peintre(this.picto, this.couleur, this.epaisseur);
+  _Peintre(this.picto, this.couleur, this.epaisseur, this.plein);
 
   final Picto picto;
   final Color couleur;
   final double epaisseur;
+  final bool plein;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -278,8 +289,11 @@ class _Peintre extends CustomPainter {
       ..strokeWidth = epaisseur
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
+    final fond = Paint()..color = couleur;
     for (final d in _traces[picto]!) {
-      canvas.drawPath(cheminSvg(d), trait);
+      final chemin = cheminSvg(d);
+      if (plein) canvas.drawPath(chemin, fond);
+      canvas.drawPath(chemin, trait);
     }
   }
 
@@ -287,5 +301,6 @@ class _Peintre extends CustomPainter {
   bool shouldRepaint(_Peintre ancien) =>
       ancien.picto != picto ||
       ancien.couleur != couleur ||
-      ancien.epaisseur != epaisseur;
+      ancien.epaisseur != epaisseur ||
+      ancien.plein != plein;
 }

@@ -2,11 +2,12 @@
 //
 // MES RECETTES — le livre : « Nouvelle recette » et « Ma semaine » à portée
 // de pouce ; la recherche (nom, région, ingrédients), le moment (déjeuner,
-// dîner, collation, souper), le TRI (récentes, A à Z, protéines, calories,
-// rapides — retenu), la région s'il y en a (la grande région — « Afrique
-// de l'Ouest » —, puis ses cuisines) ; une capsule choisie, touchée de
-// nouveau, se retire ; chaque recette avec ses
-// portions, son temps, ses protéines et ses calories par portion. Livre
+// dîner, collation, souper), le TRI (récentes, favorites, A à Z, protéines,
+// calories, rapides — retenu), la région s'il y en a (la grande région —
+// « Afrique de l'Ouest » —, puis ses cuisines), les ÉTIQUETTES du livre ;
+// une capsule choisie, touchée de nouveau, se retire ; chaque recette avec
+// ses portions, son temps, ses protéines et ses calories par portion (un
+// cœur pêche : une favorite). Livre
 // vide : les huit recettes de départ, d'un toucher. L'IA (palier 4) :
 // « Idées » (des recettes générées, région et moment choisis) et
 // « Importer une recette » (un texte collé, structuré).
@@ -55,6 +56,7 @@ class _RecettesEcranState extends ConsumerState<RecettesEcran>
   final _focus = FocusNode();
   MomentRepas? _moment;
   String? _region;
+  String? _etiquette;
 
   @override
   void initState() {
@@ -112,10 +114,17 @@ class _RecettesEcranState extends ConsumerState<RecettesEcran>
             etat.recettes.any((r) => dansLaRegion(r.region, _region!))
         ? _region
         : null;
+    final etiquettes = etiquettesDuLivre(etat.recettes);
+    final etiquette =
+        _etiquette != null &&
+            etiquettes.any((e) => memeEtiquette(e, _etiquette!))
+        ? _etiquette
+        : null;
     final visibles = trierRecettes([
       for (final r in etat.recettes)
         if ((_moment == null || r.moments.contains(_moment)) &&
             (region == null || dansLaRegion(r.region, region)) &&
+            (etiquette == null || aEtiquette(r, etiquette)) &&
             recetteRepond(r, requete))
           r,
     ], etat.reglages.tri);
@@ -226,6 +235,20 @@ class _RecettesEcranState extends ConsumerState<RecettesEcran>
                   onChanged: (r) => setState(() => _region = r),
                 ),
               ],
+              if (etiquettes.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                RangeePuces<String?>(
+                  options: [
+                    (null, tr.toutesLesEtiquettes),
+                    for (final e in etiquettes) (e, e),
+                  ],
+                  valeur: etiquette,
+                  // L'étiquette choisie, touchée de nouveau : toutes.
+                  onChanged: (e) => setState(
+                    () => _etiquette = e == null || e == etiquette ? null : e,
+                  ),
+                ),
+              ],
             ],
           ),
           Column(
@@ -242,6 +265,15 @@ class _RecettesEcranState extends ConsumerState<RecettesEcran>
                   nom: r.nom,
                   detail: detailRecette(r, f, tr),
                   valeur: f.kcalDe(r.parPortion.kcal, tr),
+                  droite: r.favorite
+                      ? const PictoRhythm(
+                          Picto.coeur,
+                          taille: 16,
+                          epaisseur: 2,
+                          couleur: RhythmCouleurs.peche,
+                          plein: true,
+                        )
+                      : null,
                   onTap: () => pousserEcran(
                     context,
                     RecetteEcran(id: r.id, retour: titre),

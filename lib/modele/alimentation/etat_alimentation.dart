@@ -255,7 +255,20 @@ abstract final class GraineAlimentation {
       final j = plusJours(auj, -k);
       final v = (k * 37) % 7;
       journal
-        ..add(e(j, MomentRepas.dejeuner, 'Gruau', 300 + v * 5, 11, 50, 6))
+        ..add(
+          e(
+            j,
+            MomentRepas.dejeuner,
+            'Gruau',
+            300 + v * 5,
+            11,
+            50,
+            6,
+            source: SourceEntree.base,
+            code: 1414,
+            grammes: 250,
+          ),
+        )
         ..add(
           e(
             j,
@@ -314,7 +327,21 @@ abstract final class GraineAlimentation {
     // Aujourd'hui, la maquette : déjeuner 520, dîner 740, collation 380 ;
     // le souper reste à planifier.
     journal
-      ..add(e(auj, MomentRepas.dejeuner, 'Gruau', 225, 8, 38, 4, h: 7))
+      ..add(
+        e(
+          auj,
+          MomentRepas.dejeuner,
+          'Gruau',
+          225,
+          8,
+          38,
+          4,
+          h: 7,
+          source: SourceEntree.base,
+          code: 1414,
+          grammes: 250,
+        ),
+      )
       ..add(
         e(
           auj,

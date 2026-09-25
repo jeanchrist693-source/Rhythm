@@ -42,6 +42,14 @@ extension LibelleEmplacement on Emplacement {
   };
 }
 
+/// Où est rangé [a] : le nom de son lieu ajouté (« Congélateur du
+/// sous-sol »), sinon son emplacement.
+String ouEstRange(
+  ArticleGardeManger a,
+  ReglagesCourses reglages,
+  AppLocalizations tr,
+) => reglages.lieu(a.lieuId)?.nom ?? a.emplacement.libelle(tr);
+
 extension LibelleStatutTaxe on StatutTaxe {
   String libelle(AppLocalizations tr) => switch (this) {
     StatutTaxe.detaxe => tr.taxeDetaxe,

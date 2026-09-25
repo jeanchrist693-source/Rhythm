@@ -14,6 +14,7 @@ import 'traductions.dart';
 extension LibelleTriRecettes on TriRecettes {
   String libelle(AppLocalizations tr) => switch (this) {
     TriRecettes.recentes => tr.triRecentes,
+    TriRecettes.favorites => tr.triFavorites,
     TriRecettes.alphabetique => tr.triAlphabetique,
     TriRecettes.proteines => tr.triProteines,
     TriRecettes.calories => tr.triCalories,

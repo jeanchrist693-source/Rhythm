@@ -66,6 +66,7 @@ class _ArticleGardeMangerEcranState
   // L'ajout : le brouillon.
   Rayon _rayon = Rayon.autre;
   Emplacement _ou = Emplacement.frigo;
+  String? _lieu;
   bool _ouChoisi = false;
   DateTime? _date;
   bool _dateChoisie = false;
@@ -137,6 +138,7 @@ class _ArticleGardeMangerEcranState
         id: notifier.nouvelId('gm'),
         nom: nom[0].toUpperCase() + nom.substring(1),
         emplacement: _ou,
+        lieuId: _lieu,
         rayon: _rayon,
         entre: ref.read(horlogeProvider)(),
         quantite: q == null || q <= 0 ? null : Quantite(q, _unite),
@@ -231,11 +233,21 @@ class _ArticleGardeMangerEcranState
             TitreSection(tr.ou),
             ChoixEmplacement(
               valeur: _ou,
+              lieu: _lieu,
               onChanged: (e) => setState(() {
                 _ou = e;
+                _lieu = null;
                 _ouChoisi = true;
                 if (!_dateChoisie) {
                   _date = peremptionProposee(g, e, jourDe(auj));
+                }
+              }),
+              onLieu: (l) => setState(() {
+                _ou = l.genre;
+                _lieu = l.id;
+                _ouChoisi = true;
+                if (!_dateChoisie) {
+                  _date = peremptionProposee(g, l.genre, jourDe(auj));
                 }
               }),
             ),
@@ -303,6 +315,18 @@ class _ArticleGardeMangerEcranState
       retirerEcran(context);
     }
 
+    /// Déplacé ([lieu] : un lieu ajouté) : la date qui en découle.
+    void deplacer(Emplacement ou, String? lieu, String nom) {
+      notifier.deplacer(a.id, ou, lieu: lieu);
+      final n = ref.read(coursesProvider).enReserve(a.id);
+      if (n?.peremption != null) {
+        montrerToast(
+          context,
+          tr.deplaceJusquau(nom, f.dateCourte(n!.peremption!)),
+        );
+      }
+    }
+
     final durees = [
       if (g.frigo != null)
         tr.dureeA(tr.emplacementFrigo, f.dureeGuide(g.frigo!, tr)),
@@ -323,7 +347,7 @@ class _ArticleGardeMangerEcranState
           titre: a.nom,
           surtitre: Text(
             [
-              a.emplacement.libelle(tr),
+              ouEstRange(a, ref.watch(coursesProvider).reglages, tr),
               if (a.ouvertLe != null) tr.ouvertLe(f.dateCourte(a.ouvertLe!)),
             ].join(' · '),
             style: RhythmTypo.surtitre,
@@ -382,19 +406,9 @@ class _ArticleGardeMangerEcranState
             TitreSection(tr.ou),
             ChoixEmplacement(
               valeur: a.emplacement,
-              onChanged: (e) {
-                notifier.deplacer(a.id, e);
-                final n = ref.read(coursesProvider).enReserve(a.id);
-                if (n?.peremption != null) {
-                  montrerToast(
-                    context,
-                    tr.deplaceJusquau(
-                      e.libelle(tr),
-                      f.dateCourte(n!.peremption!),
-                    ),
-                  );
-                }
-              },
+              lieu: a.lieuId,
+              onChanged: (e) => deplacer(e, null, e.libelle(tr)),
+              onLieu: (l) => deplacer(l.genre, l.id, l.nom),
             ),
             const SizedBox(height: 8),
             ChoixDate(

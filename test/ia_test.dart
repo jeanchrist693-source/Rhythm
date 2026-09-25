@@ -8,6 +8,7 @@
 // les invites (ce qui part — et ce qui ne part pas) ; le bilan de la
 // semaine ; les repères de conservation appris, gardés au dépôt.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -44,6 +45,9 @@ IngredientPropose _p(Map<String, Object?> j) =>
     IngredientPropose.depuisJson(j)!;
 
 Correspondance _c(Map<String, Object?> j) => correspondre(_p(j), _base);
+
+/// Le vrai réseau (celui du faux Groq local), quoi que fasse l'outil de test.
+class _ReseauReel extends HttpOverrides {}
 
 void main() {
   group('les textes de l\'IA', () {
@@ -179,6 +183,286 @@ void main() {
         'fcen': 'haricots noirs conserve',
       });
       expect(h.aliment!.nom, startsWith('Haricots, noirs'));
+    });
+
+    test('les pièges vus sur le vrai Groq', () {
+      // « pois » n'est pas « poisson », même quand l'IA sous-estime les
+      // calories (170 pour 2 tasses de pois secs : 1 500 dans la base).
+      final pois = _c({
+        'nom': 'Pois jaunes secs',
+        'quantite': 500,
+        'unite': 'ml',
+        'grammes': 400,
+        'kcal': 170,
+        'fcen': 'pois jaunes secs',
+      });
+      expect(pois.aliment!.nom, startsWith('Pois, cassés'));
+      // Le riz d'une recette est cru (« sec » dans le FCÉN), pas cuit.
+      final riz = _c({
+        'nom': 'Riz basmati',
+        'quantite': 120,
+        'unite': 'g',
+        'kcal': 360,
+        'fcen': 'riz basmati cru',
+      });
+      expect(riz.aliment!.nom, contains('riz blanc'));
+      expect(riz.aliment!.nom, endsWith('sec'));
+      // Un oignon moyen n'est pas « 1 tranche moyenne » ; sans taille, un
+      // oignon entier.
+      Correspondance oignon(Map<String, Object?> plus) => _c({
+        'nom': 'Oignon haché',
+        'quantite': 1,
+        'unite': 'unite',
+        'grammes': 110,
+        'kcal': 44,
+        'fcen': 'oignon cru',
+        ...plus,
+      });
+      final moyen = oignon({'taille': 'moyen'});
+      expect(moyen.aliment!.code, 2401);
+      expect(moyen.ingredient.mesure, '1 moyen');
+      expect(moyen.ingredient.grammes, 110);
+      expect(oignon({}).ingredient.mesure, '1 gros');
+      // Un mot que le FCÉN écrit autrement ; un mot inconnu ne laisse pas
+      // la place à un autre aliment (« Tomate, poudre »).
+      final cari = _c({
+        'nom': 'Curry en poudre',
+        'quantite': 5,
+        'unite': 'ml',
+        'grammes': 2,
+        'kcal': 10,
+        'fcen': 'curry poudre',
+      });
+      expect(cari.aliment!.nom, 'Épices, cari, poudre');
+      expect(
+        _c({
+          'nom': 'Zzqwx en poudre',
+          'quantite': 5,
+          'unite': 'ml',
+          'fcen': 'zzqwx poudre',
+        }).horsBase,
+        isTrue,
+      );
+      // L'eau, même oubliée par l'IA, est libre (pas une eau aromatisée).
+      final eau = _c({
+        'nom': 'Eau bouillante',
+        'quantite': 250,
+        'unite': 'ml',
+        'fcen': 'eau',
+      });
+      expect(eau.ingredient.libre, isTrue);
+      expect(eau.horsBase, isFalse);
+      expect(_p({'nom': 'Eau de coco', 'fcen': 'eau coco'}).libre, isFalse);
+      // La poitrine crue sans la peau, pas la charcuterie ni la peau.
+      final poulet = _c({
+        'nom': 'Poitrines de poulet',
+        'quantite': 600,
+        'unite': 'g',
+        'kcal': 720,
+        'fcen': 'poulet poitrine crue',
+      });
+      expect(poulet.aliment!.code, 841);
+      // Des pâtes sèches ordinaires, pas de maïs.
+      final pates = _c({
+        'nom': 'Pâtes',
+        'quantite': 350,
+        'unite': 'g',
+        'kcal': 1260,
+        'fcen': 'pâtes alimentaires sèches',
+      });
+      expect(pates.aliment!.nom, startsWith('Pâtes (spaghetti'));
+      // Une quantité pas convertie (« 2 » ml pour 2 tasses) : le poids
+      // estimé fait foi.
+      final brut = _c({
+        'nom': 'Pois jaunes secs',
+        'quantite': 2,
+        'unite': 'ml',
+        'grammes': 400,
+        'kcal': 1400,
+        'fcen': 'pois cassés secs',
+      });
+      expect(brut.ingredient.grammes, 400);
+      expect(brut.nutriments.kcal, greaterThan(1200));
+    });
+
+    test('pâte, pâtes et pâté ; ce qu\'un aliment a « avec » ou « sans »', () {
+      Correspondance c(String nom, num q, String unite, num kcal, String f) =>
+          _c({
+            'nom': nom,
+            'quantite': q,
+            'unite': unite,
+            'grammes': q,
+            'kcal': kcal,
+            'fcen': f,
+          });
+      expect(
+        c(
+          "Pâte d'arachide",
+          200,
+          'g',
+          1120,
+          "beurre d'arachide naturel",
+        ).aliment!.nom,
+        startsWith("Beurre d'arachides"),
+      );
+      expect(
+        c('Pâte de tomate', 30, 'ml', 25, 'pâte de tomate').aliment!.nom,
+        contains('tomates'),
+      );
+      // Ce que la base n'a pas reste hors de la base : ni pâte d'amandes,
+      // ni pâté, ni spaghetti.
+      expect(
+        c('Pâte à pizza', 200, 'g', 520, 'pâte à pizza crue').horsBase,
+        isTrue,
+      );
+      expect(
+        c('Pâte de curry rouge', 15, 'ml', 15, 'pâte de curry').horsBase,
+        isTrue,
+      );
+      // Des tomates en conserve, pas « avec piments verts ».
+      expect(
+        c(
+          'Tomates concassées en conserve',
+          400,
+          'ml',
+          80,
+          'tomates conserve',
+        ).aliment!.nom,
+        isNot(contains('piments')),
+      );
+      expect(
+        c('Courge butternut', 300, 'g', 120, 'courge crue').aliment!.nom,
+        contains('musquée'),
+      );
+      // Le bouillon de POISSON, pas celui de boeuf « prêt à servir ».
+      expect(
+        c(
+          'Bouillon de poisson prêt à servir',
+          500,
+          'ml',
+          30,
+          'bouillon poisson prêt à servir',
+        ).aliment!.nom,
+        contains('poisson'),
+      );
+      // Un plat courant reste entier (l'estimation d'un repas).
+      expect(c('Poutine', 650, 'g', 1400, 'poutine').aliment!.nom, 'Poutine');
+    });
+
+    test('le balayage : les confusions corrigées ne reviennent pas', () {
+      String nom(String n, num q, String unite, num kcal, String f) =>
+          _c({
+            'nom': n,
+            'quantite': q,
+            'unite': unite,
+            'grammes': q,
+            'kcal': kcal,
+            'fcen': f,
+          }).aliment?.nom ??
+          'HORS BASE';
+      // Un mot entier, pas son début : du vin, pas du vinaigre.
+      expect(nom('Vin rouge', 150, 'ml', 125, 'vin rouge'), contains('vin'));
+      expect(
+        nom('Vin rouge', 150, 'ml', 125, 'vin rouge'),
+        isNot(contains('Vinaigre')),
+      );
+      // « Épices, … » : de la cannelle, pas une pomme cannelle.
+      expect(
+        nom('Cannelle', 5, 'ml', 6, 'cannelle moulue'),
+        'Épices, cannelle, moulue',
+      );
+      // Ce qu'un aliment contient n'est pas ce qu'il est.
+      expect(nom('Sauce soya', 30, 'ml', 20, 'sauce soya'), startsWith('Soya'));
+      // La partie de la plante, seulement si on la demande.
+      expect(
+        nom('Betteraves', 250, 'g', 108, 'betterave crue'),
+        'Betteraves, crues',
+      );
+      // « Sans peau », « non salé » : ce que la proposition ne veut pas.
+      expect(
+        nom('Hauts de cuisse', 600, 'g', 720, 'poulet cuisse sans peau crue'),
+        'Poulet à griller, haut de cuisse, viande, cru',
+      );
+      expect(
+        nom('Beurre non salé', 30, 'g', 215, 'beurre non salé'),
+        'Beurre, sans sel',
+      );
+      // Sec n'est pas cru : des raisins secs.
+      expect(
+        nom('Raisins secs', 40, 'g', 130, 'raisins secs'),
+        startsWith('Raisin sec'),
+      );
+      // « Écrémé » n'est pas « partiellement écrémé ».
+      expect(
+        nom('Lait écrémé', 250, 'ml', 90, 'lait écrémé'),
+        'Lait, liquide, écrémé, 0.1% M.G.',
+      );
+      // Les mots d'ici.
+      expect(
+        nom('Haricots verts', 250, 'g', 78, 'haricots verts crus'),
+        'Haricots italiens, jaunes ou verts, crus',
+      );
+      expect(nom('Chou vert', 500, 'g', 125, 'chou vert cru'), 'Chou, cru');
+      // Un produit reste ce produit : de la confiture, pas des fraises.
+      expect(
+        nom('Confiture de fraises', 20, 'g', 50, 'confiture fraises'),
+        startsWith('Confiseries, confitures'),
+      );
+      // Ce que la base n'a pas : hors de la base, pas un autre fromage.
+      expect(
+        nom('Mascarpone', 125, 'g', 540, 'fromage mascarpone'),
+        'HORS BASE',
+      );
+      // L'eau, la poudre à pâte : libres.
+      expect(_p({'nom': 'Poudre à pâte', 'quantite': 5}).libre, isTrue);
+      // Vus sur le vrai Groq : l'huile d'olive (l'IA l'estimait à 40 kcal
+      // les 15 ml), pas des anchois « avec huile d'olive ».
+      expect(
+        nom("Huile d'olive", 15, 'ml', 40, "huile d'olive"),
+        'Huile végétale, olive',
+      );
+      // Une marque que les mots-clés expliquent.
+      expect(nom('Pepsi', 355, 'ml', 150, 'boisson cola'), contains('cola'));
+      expect(
+        nom('Concentré de tomate', 30, 'ml', 30, 'concentré de tomate'),
+        contains('pâte'),
+      );
+      expect(
+        nom('Boeuf à braiser', 400, 'g', 800, 'boeuf à braiser cru'),
+        contains('ragout'),
+      );
+      expect(
+        nom('Tofu ferme', 400, 'g', 320, 'tofu ferme'),
+        isNot(contains('soyeux')),
+      );
+    });
+
+    test('le bilan : les verdicts calculés sur le téléphone', () {
+      final b = BilanSemaine(
+        debut: DateTime(2026, 9, 19),
+        fin: DateTime(2026, 9, 25),
+        joursNotes: 5,
+        moyenne: const Nutriments(
+          kcal: 1980,
+          proteines: 96,
+          fibres: 17,
+          sodium: 2900,
+        ),
+        kcalVisees: 2200,
+        proteinesVisees: 150,
+        verresMoyens: 5.4,
+        verresVises: 8,
+        seances: 3,
+        frequents: const [],
+        jetes: const [],
+      );
+      final u = invitesBilan(b, objectif: ObjectifPoids.perdre).last.contenu;
+      // Vu sur le vrai Groq : « tu as atteint tes objectifs de protéines »
+      // pour 96 g sur 150 — le verdict est donné, pas à deviner.
+      expect(u, contains("objectif 150 : 64 %, EN DESSOUS de l'objectif"));
+      expect(u, contains('objectif 2200 : 90 %, atteint'));
+      expect(u, contains('limite 2300 : 126 %, AU-DESSUS de la limite'));
+      expect(u, contains('ne les contredis jamais'));
     });
 
     test('libre, introuvable, sans quantité', () {
@@ -462,6 +746,21 @@ void main() {
   });
 
   group('les invites', () {
+    test(
+      'les étapes : détaillées pour une idée, telles quelles à l\'import',
+      () {
+        // Vu sur le vrai Groq : « une action par étape » donnait six lignes
+        // bâclées pour un thiéboudienne.
+        final idees = invitesIdees(const DemandeIdees()).last.contenu;
+        expect(idees, contains('de 6 à 12 étapes'));
+        expect(idees, contains('le signe que c\'est prêt'));
+        expect(idees, isNot(contains('une action par étape')));
+        final import = invitesImport('Pâté chinois : boeuf, maïs, patates.');
+        expect(import.last.contenu, isNot(contains('de 6 à 12 étapes')));
+        expect(import.last.contenu, contains('sans en ajouter'));
+      },
+    );
+
     test('les idées : la région et ses cuisines, le garde-manger, JSON', () {
       final m = invitesIdees(
         const DemandeIdees(
@@ -552,6 +851,83 @@ void main() {
     test('une réponse entourée de texte se lit quand même', () {
       expect(ServiceIa.decoderJson('Voici : {"a": 1} merci'), {'a': 1});
       expect(() => ServiceIa.decoderJson('rien'), throwsA(isA<ExceptionIa>()));
+    });
+
+    // Un faux Groq local : chaque appel reçoit la réponse suivante.
+    Future<(ServiceIa, List<int>, HttpServer)> faux(
+      List<(int, String, String?)> reponses,
+    ) async {
+      final serveur = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+      final codes = <int>[];
+      serveur.listen((r) async {
+        await utf8.decoder.bind(r).join();
+        final (code, contenu, apres) = reponses[codes.length];
+        codes.add(code);
+        r.response.statusCode = code;
+        if (apres != null) r.response.headers.set('retry-after', apres);
+        r.response.headers.contentType = ContentType.json;
+        r.response.write(
+          jsonEncode({
+            'choices': [
+              {
+                'message': {'content': contenu},
+              },
+            ],
+          }),
+        );
+        await r.response.close();
+      });
+      return (
+        ServiceIa(cle: 'k', adresse: 'http://127.0.0.1:${serveur.port}/'),
+        codes,
+        serveur,
+      );
+    }
+
+    Future<T> reel<T>(Future<T> Function() f) =>
+        HttpOverrides.runWithHttpOverrides(f, _ReseauReel());
+
+    test(
+      'quota à la minute : on attend ce que Groq demande, une fois',
+      () async {
+        final (s, codes, serveur) = await faux([
+          (429, '', '1'),
+          (429, '', '1'),
+          (200, '{"ok": true}', null),
+        ]);
+        addTearDown(() => serveur.close(force: true));
+        expect(await reel(() => s.json(const [MessageIa('user', 'JSON')])), {
+          'ok': true,
+        });
+        expect(codes, [429, 429, 200]);
+      },
+    );
+
+    test('quota plus long : l\'erreur le dit sans attendre', () async {
+      final (s, codes, serveur) = await faux([
+        (429, '', '3600'),
+        (429, '', '3600'),
+      ]);
+      addTearDown(() => serveur.close(force: true));
+      await expectLater(
+        reel(() => s.json(const [MessageIa('user', 'JSON')])),
+        throwsA(
+          isA<ExceptionIa>().having((e) => e.erreur, 'erreur', ErreurIa.quota),
+        ),
+      );
+      expect(codes, [429, 429]);
+    });
+
+    test('une réponse illisible est redemandée une fois', () async {
+      final (s, codes, serveur) = await faux([
+        (200, '{"recettes": [{"nom": "Mafé"', null),
+        (200, '{"recettes": []}', null),
+      ]);
+      addTearDown(() => serveur.close(force: true));
+      expect(await reel(() => s.json(const [MessageIa('user', 'JSON')])), {
+        'recettes': [],
+      });
+      expect(codes, [200, 200]);
     });
   });
 

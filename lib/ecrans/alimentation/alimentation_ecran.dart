@@ -8,7 +8,8 @@
 // remplit, toucher le dernier le vide). Au-dessus, le CONSEIL DU JOUR et
 // les sept derniers jours (toucher un jour passé l'affiche : on note après
 // coup). Un repas encore vide dit ce qui est PRÉVU (« Prévu : chili sin
-// carne »). Puis ce qui est À CONSOMMER BIENTÔT au garde-manger (et des
+// carne »). Sous l'eau, MON ASSIETTE (l'équilibre du jour selon le Guide
+// alimentaire canadien). Puis ce qui est À CONSOMMER BIENTÔT au garde-manger (et des
 // idées pour l'utiliser), l'ASSISTANT (l'IA : idées, semaine, écart,
 // bilan), mes recettes, ma semaine, la liste de courses, le garde-manger,
 // les objectifs et « Mes produits ». Le gourmand mange en haut à droite.
@@ -51,6 +52,7 @@ import 'courses/article_garde_manger_ecran.dart';
 import 'courses/courses_ecran.dart';
 import 'courses/garde_manger_ecran.dart';
 import 'courses/pieces_courses.dart';
+import 'assiette_ecran.dart';
 import 'ia/assistant_ecran.dart';
 import 'ia/idees_ecran.dart';
 import 'moment_ecran.dart';
@@ -96,6 +98,7 @@ class _AlimentationEcranState extends ConsumerState<AlimentationEcran> {
     final besoins = ref.watch(besoinsProvider(jour));
     final entrees = etat.entreesDu(jour);
     final total = totalDe(entrees);
+    final assiette = entrees.isEmpty ? null : assietteDuJournal(ref, entrees);
     final retour = tr.navAlimentation;
 
     Conseil? conseil;
@@ -156,6 +159,16 @@ class _AlimentationEcranState extends ConsumerState<AlimentationEcran> {
           recettes: recettes,
         ),
         _Hydratation(jour: jour, bus: etat.eauDu(jour), vises: besoins.verres),
+        if (assiette != null)
+          LigneReglage(
+            gauche: AssietteDessin(assiette: assiette, taille: 40),
+            libelle: tr.monAssiette,
+            detail: assiette.conseil.court(tr),
+            onTap: () => pousserEcran(
+              context,
+              AssietteEcran(jour: jour, retour: retour),
+            ),
+          ),
         if (bientot.isNotEmpty)
           Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -165,7 +178,7 @@ class _AlimentationEcranState extends ConsumerState<AlimentationEcran> {
                 LigneCourse(
                   filet: i > 0,
                   nom: a.nom,
-                  detail: a.emplacement.libelle(tr),
+                  detail: ouEstRange(a, courses.reglages, tr),
                   valeurWidget: Echeance(jours: joursRestants(a, maintenant)),
                   onTap: () => pousserEcran(
                     context,

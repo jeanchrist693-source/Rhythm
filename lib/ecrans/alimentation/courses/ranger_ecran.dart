@@ -237,11 +237,21 @@ class _Proposition extends StatelessWidget {
             const SizedBox(height: 12),
             ChoixEmplacement(
               valeur: a.emplacement,
+              lieu: a.lieuId,
               onChanged: (e) => onChanged(
                 a.copierAvec(
                   emplacement: e,
+                  lieuId: () => null,
                   peremption: () =>
                       peremptionProposee(g, e, jourDe(aujourdhui)),
+                ),
+              ),
+              onLieu: (l) => onChanged(
+                a.copierAvec(
+                  emplacement: l.genre,
+                  lieuId: () => l.id,
+                  peremption: () =>
+                      peremptionProposee(g, l.genre, jourDe(aujourdhui)),
                 ),
               ),
             ),

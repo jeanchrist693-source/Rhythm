@@ -4,7 +4,9 @@
 // - [Rayon] : les catégories préintégrées (la liste se trie par rayon, dans
 //   l'ordre du magasin ; le garde-manger se range par rayon) — chacune a
 //   son emplacement et son statut de taxe par défaut ;
-// - [Emplacement] : frigo, congélateur, armoire, comptoir ;
+// - [Emplacement] : frigo, congélateur, armoire, comptoir ; un [Lieu]
+//   AJOUTÉ (lot 5 : « Congélateur du sous-sol », « Cave ») porte un nom et
+//   suit les règles de son genre (l'un des quatre) ;
 // - [Quantite] : une valeur et son unité (« 2 kg », « 3 ») ;
 // - [ArticleListe] : une ligne de la liste de courses — ses quantités
 //   (fusionnées : « 2 + 150 g »), son rayon, d'où elle vient (« pour :
@@ -17,7 +19,7 @@
 //   portions) ;
 // - [Sortie] : un aliment fini ou jeté (le compteur de gaspillage) ;
 // - [ReglagesCourses] : budget du mois, magasins, ordre des rayons,
-//   rappels de péremption.
+//   rappels de péremption, lieux ajoutés.
 // Lecture TOLÉRANTE partout.
 
 import 'conservation.dart';
@@ -427,12 +429,20 @@ class ArticleGardeManger {
     this.magasin,
     this.essentiel = false,
     this.recetteId,
+    this.lieuId,
   });
 
   final String id;
   final String nom;
+
+  /// Le genre de l'endroit (ses règles de conservation) — celui du [lieuId]
+  /// s'il y en a un.
   final Emplacement emplacement;
   final Rayon rayon;
+
+  /// Le lieu ajouté où il est rangé (« Congélateur du sous-sol ») ; `null` :
+  /// l'[emplacement] lui-même.
+  final String? lieuId;
 
   /// Rangé le (acheté, ou ajouté).
   final DateTime entre;
@@ -463,6 +473,7 @@ class ArticleGardeManger {
     DateTime? Function()? ouvertLe,
     double? Function()? prix,
     bool? essentiel,
+    String? Function()? lieuId,
   }) => ArticleGardeManger(
     id: id,
     nom: nom ?? this.nom,
@@ -476,6 +487,7 @@ class ArticleGardeManger {
     magasin: magasin,
     essentiel: essentiel ?? this.essentiel,
     recetteId: recetteId,
+    lieuId: lieuId == null ? this.lieuId : lieuId(),
   );
 
   Map<String, dynamic> versJson() => {
@@ -491,6 +503,7 @@ class ArticleGardeManger {
     'magasin': ?magasin,
     if (essentiel) 'essentiel': true,
     'recette': ?recetteId,
+    'lieu': ?lieuId,
   };
 
   static ArticleGardeManger? depuisJson(Object? j) {
@@ -511,7 +524,33 @@ class ArticleGardeManger {
       magasin: j['magasin'] is String ? j['magasin'] as String : null,
       essentiel: j['essentiel'] == true,
       recetteId: j['recette'] is String ? j['recette'] as String : null,
+      lieuId: j['lieu'] is String ? j['lieu'] as String : null,
     );
+  }
+}
+
+/// Un emplacement AJOUTÉ : un nom (« Congélateur du sous-sol », « Cave »)
+/// et le [genre] dont il suit les règles de conservation.
+class Lieu {
+  const Lieu({required this.id, required this.nom, required this.genre});
+
+  final String id;
+  final String nom;
+  final Emplacement genre;
+
+  Map<String, dynamic> versJson() => {
+    'id': id,
+    'nom': nom,
+    'genre': genre.name,
+  };
+
+  static Lieu? depuisJson(Object? j) {
+    if (j is! Map) return null;
+    final id = j['id'], nom = j['nom'];
+    final genre = _enumeration(Emplacement.values, j['genre']);
+    if (id is! String || nom is! String || nom.trim().isEmpty) return null;
+    if (genre == null) return null;
+    return Lieu(id: id, nom: nom.trim(), genre: genre);
   }
 }
 
@@ -579,7 +618,19 @@ class ReglagesCourses {
     this.ordreRayons = Rayon.values,
     this.rappelsPeremption = true,
     this.heureRappel = 9 * 60,
+    this.lieux = const [],
   });
+
+  /// Les emplacements ajoutés, dans l'ordre où on les a ajoutés.
+  final List<Lieu> lieux;
+
+  Lieu? lieu(String? id) {
+    if (id == null) return null;
+    for (final l in lieux) {
+      if (l.id == id) return l;
+    }
+    return null;
+  }
 
   /// Le budget d'épicerie du mois ($) ; `null` : aucun.
   final double? budgetMois;
@@ -602,6 +653,7 @@ class ReglagesCourses {
     List<Rayon>? ordreRayons,
     bool? rappelsPeremption,
     int? heureRappel,
+    List<Lieu>? lieux,
   }) => ReglagesCourses(
     budgetMois: budgetMois == null ? this.budgetMois : budgetMois(),
     magasins: magasins ?? this.magasins,
@@ -609,6 +661,7 @@ class ReglagesCourses {
     ordreRayons: ordreRayons ?? this.ordreRayons,
     rappelsPeremption: rappelsPeremption ?? this.rappelsPeremption,
     heureRappel: heureRappel ?? this.heureRappel,
+    lieux: lieux ?? this.lieux,
   );
 
   Map<String, dynamic> versJson() => {
@@ -618,6 +671,7 @@ class ReglagesCourses {
     'rayons': [for (final r in ordreRayons) r.name],
     'rappels': rappelsPeremption,
     'heure': heureRappel,
+    if (lieux.isNotEmpty) 'lieux': [for (final l in lieux) l.versJson()],
   };
 
   static ReglagesCourses depuisJson(Object? j) {
@@ -646,6 +700,10 @@ class ReglagesCourses {
       heureRappel: heure is num && heure >= 0 && heure < 1440
           ? heure.toInt()
           : 9 * 60,
+      lieux: [
+        if (j['lieux'] is List)
+          for (final l in j['lieux'] as List) ?Lieu.depuisJson(l),
+      ],
     );
   }
 }

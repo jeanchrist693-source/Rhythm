@@ -1,7 +1,8 @@
 // lib/ecrans/alimentation/recettes/plan_ecran.dart
 //
 // MA SEMAINE — la planification sur 7 jours à partir d'aujourd'hui : les
-// jours en capsules (un point pêche quand un repas est prévu), puis les
+// jours en capsules (un point pêche quand un repas est prévu), puis le
+// TOTAL PRÉVU du jour choisi à côté des objectifs (déjà noté + prévu), les
 // quatre moments du jour choisi — chacun ses plats prévus (une recette, un
 // de mes produits, « autre chose »), « + » pour en ajouter ; toucher un plat
 // l'ouvre (cuisiner, noter, déplacer, retirer). Puis CETTE SEMAINE : la
@@ -33,9 +34,11 @@ import '../../../utils/dates.dart';
 import '../../../widgets/boutons.dart';
 import '../../../widgets/filets.dart';
 import '../../../widgets/formulaire.dart';
+import '../../../widgets/jauges.dart';
 import '../../../widgets/page_secondaire.dart';
 import '../../../widgets/pictos.dart';
 import '../../sports/pieces_sports.dart';
+import '../alimentation_ecran.dart' show couleurMacro;
 import '../ia/plan_ia_ecran.dart';
 import '../pieces_alimentation.dart';
 import 'ajout_liste_ecran.dart';
@@ -123,6 +126,7 @@ class _PlanEcranState extends ConsumerState<PlanEcran> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             TitreSection(jour == auj ? tr.aujourdhui : f.jourComplet(jour)),
+            _TotalDuJour(jour: jour, aujourdhui: jour == auj),
             for (final m in MomentRepas.values)
               _BlocMoment(
                 jour: jour,
@@ -247,6 +251,122 @@ class _PlanEcranState extends ConsumerState<PlanEcran> {
           ],
         ),
       ],
+    );
+  }
+}
+
+/// Le TOTAL PRÉVU du jour à côté des objectifs : les calories (le chiffre,
+/// la jauge), les trois macronutriments ; aujourd'hui, ce qui est déjà
+/// noté ; les repas prévus sans valeur (« autre chose »).
+class _TotalDuJour extends ConsumerWidget {
+  const _TotalDuJour({required this.jour, required this.aujourdhui});
+
+  final DateTime jour;
+  final bool aujourdhui;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tr = context.tr;
+    final f = context.formats;
+    final alimentation = ref.watch(alimentationProvider);
+    final besoins = ref.watch(besoinsProvider(jour));
+    final t = totalPrevuDu(
+      jour,
+      recettes: ref.watch(recettesProvider),
+      journal: alimentation.journal,
+      produits: alimentation.produits,
+    );
+    final n = t.nutriments;
+    final details = [
+      if (aujourdhui && t.note.kcal > 0)
+        tr.dontDejaNotees(f.kcalDe(t.note.kcal, tr)),
+      if (t.inconnus > 0) tr.repasSansValeur(t.inconnus),
+    ];
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text(f.entier(n.kcal.round()), style: RhythmTypo.titre(24)),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  tr.kcalPrevues,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: RhythmTypo.detail,
+                ),
+              ),
+              Text(
+                tr.prevuSur(f.kcalDe(besoins.kcal.toDouble(), tr)),
+                style: RhythmTypo.detail,
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Jauge(
+            progression: besoins.kcal <= 0 ? 0 : n.kcal / besoins.kcal,
+            couleur: RhythmCouleurs.peche,
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              for (final (i, m) in Macro.values.indexed) ...[
+                if (i > 0) const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        m.libelle(tr),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: RhythmTypo.texte(
+                          12,
+                          couleur: RhythmCouleurs.texte64,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text.rich(
+                        TextSpan(
+                          text: '${tr.grammes(valeurDe(n, m).round())} ',
+                          children: [
+                            TextSpan(
+                              text: tr.surGrammes(besoins.objectifDe(m)),
+                              style: const TextStyle(
+                                color: RhythmCouleurs.texte64,
+                              ),
+                            ),
+                          ],
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: RhythmTypo.texte(13),
+                      ),
+                      const SizedBox(height: 6),
+                      Jauge(
+                        hauteur: 4,
+                        progression: besoins.objectifDe(m) <= 0
+                            ? 0
+                            : valeurDe(n, m) / besoins.objectifDe(m),
+                        couleur: couleurMacro(m),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+          if (details.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text(details.join(' · '), style: RhythmTypo.petit),
+          ],
+        ],
+      ),
     );
   }
 }

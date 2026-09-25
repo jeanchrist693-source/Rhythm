@@ -189,10 +189,14 @@ class BoutonPicto extends StatelessWidget {
     required this.libelle,
     required this.onTap,
     this.couleur = RhythmCouleurs.texte,
+    this.plein = false,
   });
 
   final Picto picto;
   final Color couleur;
+
+  /// Le picto rempli (une recette favorite).
+  final bool plein;
 
   /// Pour le lecteur d'écran.
   final String libelle;
@@ -208,7 +212,9 @@ class BoutonPicto extends StatelessWidget {
       echelle: 0.92,
       child: SizedBox.square(
         dimension: 48,
-        child: Center(child: PictoRhythm(picto, taille: 22, couleur: couleur)),
+        child: Center(
+          child: PictoRhythm(picto, taille: 22, couleur: couleur, plein: plein),
+        ),
       ),
     ),
   );

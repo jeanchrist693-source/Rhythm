@@ -4860,4 +4860,273 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get iaRepereDeLIa => 'Repère de l\'IA : vérifie aussi l\'emballage.';
+
+  @override
+  String get monAssiette => 'Mon assiette';
+
+  @override
+  String get assietteLegumesFruits => 'Légumes et fruits';
+
+  @override
+  String get assietteProteines => 'Aliments protéinés';
+
+  @override
+  String get assietteGrains => 'Grains';
+
+  @override
+  String get assietteALimiter => 'À limiter';
+
+  @override
+  String get assietteNeutre => 'Ne compte pas';
+
+  @override
+  String get assietteNonReparti => 'Non réparti';
+
+  @override
+  String get assietteLegumesFruitsDetail => 'La moitié de l\'assiette.';
+
+  @override
+  String get assietteProteinesDetail => 'Un quart de l\'assiette.';
+
+  @override
+  String get assietteGrainsDetail =>
+      'Un quart de l\'assiette, en grains entiers de préférence.';
+
+  @override
+  String get assietteALimiterDetail =>
+      'Sucreries, grignotines, pâtisseries, jus, boissons sucrées ou alcoolisées, restauration rapide.';
+
+  @override
+  String get assietteNeutreDetail =>
+      'Matières grasses, sauces, épices, eau, café, thé, lait à boire : hors de l\'assiette.';
+
+  @override
+  String get assietteNonRepartiDetail =>
+      'Entrées rapides et plats composés : leur contenu n\'est pas connu. Noté avec la base ou une recette, un repas se répartit.';
+
+  @override
+  String assietteSur(String vise) {
+    return 'sur $vise';
+  }
+
+  @override
+  String get assietteGrainsEntiers => 'Grains entiers';
+
+  @override
+  String assietteDesGrains(String part) {
+    return '$part des grains';
+  }
+
+  @override
+  String assietteDeCeQuiEstMange(String part) {
+    return '$part de ce qui est mangé';
+  }
+
+  @override
+  String assietteNonRepartisNombre(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n aliments',
+      one: '1 aliment',
+      zero: 'aucun',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get assietteGrainEntier => 'grain entier';
+
+  @override
+  String get assietteRienDeNote =>
+      'Rien de noté ce jour-là : l\'assiette est vide.';
+
+  @override
+  String get assietteConseilVide =>
+      'Encore trop peu dans l\'assiette pour en juger.';
+
+  @override
+  String get assietteConseilLegumesFruits =>
+      'Il manque des légumes et des fruits : ils font la moitié de l\'assiette.';
+
+  @override
+  String get assietteConseilProteines =>
+      'Un peu plus d\'aliments protéinés : légumineuses, poisson, œufs, noix, yogourt, viande.';
+
+  @override
+  String get assietteConseilGrains =>
+      'Il manque des grains : un quart de l\'assiette, en grains entiers.';
+
+  @override
+  String get assietteConseilALimiter =>
+      'Beaucoup d\'aliments à limiter : l\'eau, les fruits et les noix les remplacent bien.';
+
+  @override
+  String get assietteConseilEntiers =>
+      'Des grains, mais peu d\'entiers : riz brun, pain de blé entier, gruau, quinoa.';
+
+  @override
+  String get assietteConseilEquilibree =>
+      'Une assiette équilibrée, comme le propose le Guide.';
+
+  @override
+  String get assietteCourtVide => 'Pas encore assez noté pour en juger';
+
+  @override
+  String get assietteCourtLegumesFruits => 'Plus de légumes et de fruits';
+
+  @override
+  String get assietteCourtProteines => 'Plus d\'aliments protéinés';
+
+  @override
+  String get assietteCourtGrains => 'Plus de grains entiers';
+
+  @override
+  String get assietteCourtALimiter => 'Moins d\'aliments à limiter';
+
+  @override
+  String get assietteCourtEntiers => 'Des grains plus souvent entiers';
+
+  @override
+  String get assietteCourtEquilibree => 'Équilibrée, selon le Guide';
+
+  @override
+  String get assietteSeptJours => 'Ces 7 jours';
+
+  @override
+  String assietteSeptJoursDetail(String lf, String p, String g) {
+    return 'Légumes et fruits $lf · protéinés $p · grains $g';
+  }
+
+  @override
+  String get assietteLeGuide => 'Le Guide alimentaire canadien';
+
+  @override
+  String get assietteGuide1 =>
+      'La moitié de l\'assiette : des légumes et des fruits, de toutes les couleurs.';
+
+  @override
+  String get assietteGuide2 =>
+      'Un quart : des aliments protéinés, plus souvent d\'origine végétale.';
+
+  @override
+  String get assietteGuide3 => 'Un quart : des aliments à grains entiers.';
+
+  @override
+  String get assietteGuide4 =>
+      'L\'eau pour boisson ; peu d\'aliments hautement transformés.';
+
+  @override
+  String get assietteEstimation =>
+      'Une estimation d\'après le poids des aliments notés (les grains et légumineuses secs d\'une recette comptent cuits). Guide alimentaire canadien, Santé Canada. Pas un avis médical.';
+
+  @override
+  String get kcalPrevues => 'kcal prévues';
+
+  @override
+  String prevuSur(String kcal) {
+    return 'sur $kcal';
+  }
+
+  @override
+  String dontDejaNotees(String kcal) {
+    return 'dont $kcal déjà notées';
+  }
+
+  @override
+  String repasSansValeur(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '+ $n repas sans valeur (autre chose)',
+      one: '+ 1 repas sans valeur (autre chose)',
+      zero: 'aucun repas sans valeur',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get triFavorites => 'Favorites';
+
+  @override
+  String get ajouterAuxFavorites => 'Ajouter aux favorites';
+
+  @override
+  String get retirerDesFavorites => 'Retirer des favorites';
+
+  @override
+  String get recetteFavorite => 'Ajoutée aux favorites.';
+
+  @override
+  String get recettePlusFavorite => 'Retirée des favorites.';
+
+  @override
+  String get etiquettesFacultatif => 'Étiquettes (facultatif)';
+
+  @override
+  String get indiceEtiquette => 'Écrire une autre étiquette';
+
+  @override
+  String get toutesLesEtiquettes => 'Toutes les étiquettes';
+
+  @override
+  String get mesEmplacements => 'Mes emplacements';
+
+  @override
+  String get mesEmplacementsDetail =>
+      'Un deuxième congélateur, une cave, le frigo du garage…';
+
+  @override
+  String get mesEmplacementsAide =>
+      'Le frigo, le congélateur, l\'armoire et le comptoir sont déjà là. Ajoute les tiens : chacun se garde comme l\'un des quatre (mêmes durées de conservation).';
+
+  @override
+  String get ajouterUnEmplacement => 'Ajouter un emplacement';
+
+  @override
+  String get nouvelEmplacement => 'Nouvel emplacement';
+
+  @override
+  String get modifierEmplacement => 'Modifier l\'emplacement';
+
+  @override
+  String get indiceEmplacement => 'Congélateur du sous-sol, cave…';
+
+  @override
+  String get seGardeCommeTitre => 'Se garde comme';
+
+  @override
+  String seGardeComme(String genre) {
+    return 'comme $genre';
+  }
+
+  @override
+  String seGardeCommeDetail(String genre) {
+    return 'Les durées de conservation et les dates proposées suivent celles du genre choisi ($genre).';
+  }
+
+  @override
+  String emplacementEnregistre(String nom) {
+    return '« $nom » enregistré.';
+  }
+
+  @override
+  String get retirerEmplacement => 'Retirer cet emplacement';
+
+  @override
+  String get toucherEncorePourRetirer => 'Toucher encore pour retirer';
+
+  @override
+  String retirerEmplacementDetail(String genre) {
+    return 'Ce qui y est rangé reste au garde-manger, dans « $genre ».';
+  }
+
+  @override
+  String emplacementRetire(String nom, String genre) {
+    return '« $nom » retiré : ses aliments sont dans « $genre ».';
+  }
+
+  @override
+  String get iaRemplacerCuisine =>
+      'Il en manque un ? L\'IA propose des remplaçants';
 }

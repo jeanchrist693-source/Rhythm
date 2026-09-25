@@ -41,7 +41,7 @@ Règles :
 1. Réponds UNIQUEMENT par un objet JSON valide, selon le schéma demandé, sans texte autour.
 2. N'écris jamais de calories ni de valeurs nutritives dans tes textes : l'application les calcule elle-même avec le Fichier canadien sur les éléments nutritifs (FCÉN). Tu donnes seulement une estimation dans les champs « kcal » prévus, qui servent à vérifier.
 3. Pas d'avis médical : ni diagnostic ni régime thérapeutique. Si une maladie, une grossesse, un médicament, une allergie grave ou un trouble alimentaire est évoqué, invite avec douceur à consulter une diététiste-nutritionniste ou un médecin.
-4. Ton chaleureux et simple, jamais culpabilisant ; tutoiement ; phrases courtes ; ni emoji ni Markdown.
+4. Ton chaleureux et simple, jamais culpabilisant ; tutoiement ; phrases courtes (sauf les étapes d'une recette, qui sont détaillées) ; ni emoji ni Markdown.
 5. Cuisine réaliste : des ingrédients faciles à trouver dans une épicerie du Québec, des unités métriques (g, ml), les températures en °C.
 6. ${francais ? 'Rédige les textes en français (d\'ici), avec des apostrophes droites.' : 'Write every text for the user in English (Canadian). The "fcen" keywords stay in French.'}''';
 
@@ -52,14 +52,24 @@ Chaque ingrédient : {"nom": "Oignon", "quantite": 1, "unite": "unite", "taille"
 - "taille" : seulement pour "unite" — "petit", "moyen", "gros", "gousse", "tranche", "feuille"…
 - "grammes" : le poids estimé de la quantité (toujours).
 - "kcal" : tes calories estimées pour cette quantité (elles servent seulement à vérifier).
-- "fcen" : 2 à 5 mots-clés EN FRANÇAIS pour trouver l'aliment dans le FCÉN — l'aliment générique, sans marque, puis son état tel qu'employé : « riz blanc cru », « poulet poitrine crue », « tomates conserve », « bouillon poulet prêt à servir », « pâtes alimentaires sèches », « haricots noirs conserve ».
+- "fcen" : 2 à 5 mots-clés EN FRANÇAIS pour trouver l'aliment dans le FCÉN — l'aliment générique, sans marque, puis son état tel qu'employé (le FCÉN dit « sec » pour les grains, les pâtes et les légumineuses crus) : « riz blanc grain long sec », « poulet poitrine crue », « tomates conserve », « bouillon poulet prêt à servir », « pâtes alimentaires sèches », « haricots noirs conserve ».
 - Sel, poivre, épices séchées, fines herbes en petite quantité, eau : {"nom": "Sel et poivre", "libre": true}.''';
 
 const String _schemaRecette = '''
 Chaque recette : {"nom": "…", "description": "une phrase qui donne envie", "region": "la cuisine d'origine (ex. Québécoise, Sénégalaise, Italienne)", "moments": ["dejeuner" | "diner" | "collation" | "souper"], "portions": 4, "preparation": 15, "cuisson": 30, "congele": true, "ingredients": [ … ], "etapes": ["…", "…"], "note": "un conseil facultatif (conservation, variante)"}
 - "diner" = le repas du midi, "souper" = celui du soir (usage québécois).
 - "preparation" et "cuisson" en minutes ; "congele" : vrai si les restes se congèlent bien.
-- "etapes" : une action par étape, sans numéro ; écris les durées en chiffres (« 10 minutes », « 1 h 30 ») — l'app en fait des minuteurs.''';
+- "etapes" : sans numéro ; écris les durées en chiffres (« 10 minutes », « 1 h 30 ») — l'app en fait des minuteurs.''';
+
+/// Les étapes d'une recette INVENTÉE (les idées) : vu sur le vrai Groq, « une
+/// action par étape » donnait six lignes bâclées pour un thiéboudienne.
+const String _etapesDetaillees = '''
+Les étapes, comme dans un bon livre de cuisine — la marche à suivre COMPLÈTE, qu'on peut suivre sans rien deviner :
+- de 6 à 12 étapes selon le plat (davantage pour un plat traditionnel élaboré), chacune d'une à trois phrases ;
+- la mise en place d'abord (laver, éplucher, couper : « en dés de 1 cm », « en fines lanières »), puis la cuisson dans l'ordre ;
+- chaque étape dit COMMENT : l'ustensile (grande casserole, poêle, plat allant au four), le feu (vif, moyen, doux) ou le four en °C, la durée en chiffres — de préférence une par étape —, et le signe que c'est prêt (doré, tendre à la fourchette, le liquide absorbé, la sauce nappe la cuillère) ;
+- garde les gestes qui font le plat et son authenticité (mariner, faire revenir, déglacer, mijoter à couvert, laisser reposer, rectifier l'assaisonnement) ;
+- la dernière étape : le service (avec quoi, comment dresser).''';
 
 /// Les jours de la semaine (lundi = 1).
 const _joursFr = [
@@ -195,6 +205,7 @@ List<MessageIa> invitesIdees(DemandeIdees d, {bool francais = true}) {
     ..writeln()
     ..writeln('Réponds en JSON : {"recettes": [ … 3 recettes … ]}')
     ..writeln(_schemaRecette)
+    ..writeln(_etapesDetaillees)
     ..writeln(_schemaIngredient);
   return _messages(francais, b.toString());
 }
@@ -232,7 +243,7 @@ Future<List<RecetteProposee>> idees(
 
 List<MessageIa> invitesImport(String texte, {bool francais = true}) =>
     _messages(francais, '''
-Voici une recette copiée d'un site, d'un courriel ou d'un livre. Structure-la SANS RIEN INVENTER : garde ses ingrédients, ses quantités et ses étapes ; convertis les unités impériales en métrique ; si le nombre de portions ou les temps manquent, estime-les raisonnablement ; si elle est dans une autre langue, traduis-la.
+Voici une recette copiée d'un site, d'un courriel ou d'un livre. Structure-la SANS RIEN INVENTER : garde ses ingrédients, ses quantités et ses étapes (toutes, avec leurs détails, dans l'ordre ; une étape par paragraphe ou par action du texte, sans en ajouter) ; convertis les unités impériales en métrique ; si le nombre de portions ou les temps manquent, estime-les raisonnablement ; si elle est dans une autre langue, traduis-la.
 Si le texte n'est pas une recette, réponds {"recette": null}.
 
 Réponds en JSON : {"recette": { … }}
@@ -279,6 +290,21 @@ class BilanIa {
   }
 }
 
+/// Où en est [valeur] par rapport à [cible], CALCULÉ ici (vu sur le vrai
+/// Groq : « tu as atteint tes objectifs de protéines » pour 96 g sur 150).
+String _parRapport(num valeur, num cible, {bool limite = false}) {
+  if (cible <= 0) return '';
+  final p = (valeur / cible * 100).round();
+  final verdict = limite
+      ? (p > 100 ? 'AU-DESSUS de la limite' : 'sous la limite')
+      : (p < 90
+            ? "EN DESSOUS de l'objectif"
+            : p > 110
+            ? "AU-DESSUS de l'objectif"
+            : 'atteint');
+  return ' : $p %, $verdict';
+}
+
 List<MessageIa> invitesBilan(
   BilanSemaine b, {
   required ObjectifPoids objectif,
@@ -290,27 +316,33 @@ List<MessageIa> invitesBilan(
     ..writeln(
       'Voici la semaine alimentaire (7 jours, aujourd\'hui compris), '
       'CALCULÉE par l\'application. Commente ces chiffres sans les recalculer '
-      'ni en inventer d\'autres.',
+      'ni en inventer d\'autres ; les verdicts (atteint, EN DESSOUS, '
+      'AU-DESSUS) sont calculés aussi : ne les contredis jamais.',
     )
     ..writeln('- Journées notées : ${b.joursNotes} sur 7.')
     ..writeln(
       '- Par journée notée : ${m.kcal.round()} kcal '
-      '(objectif ${b.kcalVisees}), protéines ${m.proteines.round()} g '
-      '(objectif ${b.proteinesVisees}), glucides ${m.glucides.round()} g, '
-      'lipides ${m.lipides.round()} g.',
+      '(objectif ${b.kcalVisees}${_parRapport(m.kcal, b.kcalVisees)}), '
+      'protéines ${m.proteines.round()} g (objectif ${b.proteinesVisees}'
+      '${_parRapport(m.proteines, b.proteinesVisees)}), glucides '
+      '${m.glucides.round()} g, lipides ${m.lipides.round()} g.',
     )
     ..writeln(
       b.microsConnus
           ? '- Fibres ${m.fibres.round()} g (repère '
-                '${kFibresVisees.round()}), sodium ${m.sodium.round()} mg '
-                '(limite ${kSodiumLimite.round()}), sucres '
-                '${m.sucres.round()} g, gras saturés ${m.satures.round()} g.'
+                '${kFibresVisees.round()}'
+                '${_parRapport(m.fibres, kFibresVisees)}), sodium '
+                '${m.sodium.round()} mg (limite ${kSodiumLimite.round()}'
+                '${_parRapport(m.sodium, kSodiumLimite, limite: true)}), '
+                'sucres ${m.sucres.round()} g, gras saturés '
+                '${m.satures.round()} g.'
           : "- Fibres, sodium et sucres : inconnus (beaucoup d'entrées "
                 "rapides) — n'en parle pas.",
     )
     ..writeln(
       '- Eau : ${_nombre(b.verresMoyens)} verres par jour '
-      '(objectif ${b.verresVises}).',
+      '(objectif ${b.verresVises}'
+      '${_parRapport(b.verresMoyens, b.verresVises)}).',
     )
     ..writeln('- Séances de sport : ${b.seances}.')
     ..writeln(
@@ -520,8 +552,8 @@ List<MessageIa> invitesPlan(DemandePlan d, {bool francais = true}) {
   t
     ..writeln()
     ..writeln(
-      'Règles : les RESTES d\'abord (dans les 2 ou 3 jours) ; varie (pas la '
-      'même recette deux jours de suite, sauf des restes) ; une recette qui '
+      'Règles : les RESTES d\'abord (dans les 2 ou 3 jours), pour autant de '
+      'repas que leurs portions en donnent ; varie (pas la même recette deux jours de suite, sauf des restes) ; une recette qui '
       'donne beaucoup de portions peut revenir plus tard dans la semaine '
       '(cuisine en lot) ; respecte les moments des recettes ; les recettes '
       'rapides les soirs de semaine ; privilégie celles qui utilisent ce qui '
@@ -735,7 +767,7 @@ Future<List<OptionEcart>> comblerEcart(
 
 List<MessageIa> invitesEstimation(String repas, {bool francais = true}) =>
     _messages(francais, '''
-Décompose ce repas en aliments simples, avec des quantités réalistes pour UNE personne (portion habituelle au Québec si rien n'est précisé). Un plat composé (pizza, poutine, pâté chinois) se décompose en ses ingrédients principaux.
+Décompose ce repas en aliments, avec des quantités réalistes pour UNE personne (portion habituelle au Québec si rien n'est précisé). Un plat courant qu'on achète ou commande tel quel (poutine, pizza, pad thaï, sushi, lasagne, spaghetti sauce à la viande, chow mein) reste UN aliment, le plat entier et son poids (fcen : « poutine », « pizza fromage pepperoni ») ; un repas fait maison (pâté chinois, ragoût, soupe maison), un hamburger, un hot-dog, un sandwich ou un plat moins courant se décompose en ses éléments principaux (pain, viande, fromage, garnitures).
 Si ce n'est pas un repas, réponds {"aliments": []}.
 
 Réponds en JSON : {"titre": "le repas en quelques mots", "aliments": [ … ]}
@@ -850,9 +882,9 @@ List<MessageIa> invitesConservation(
   francais,
   '''
 Comment conserver « ${nom.trim()} » (rayon : ${rayon.name}) à la maison ? Suis les repères prudents du Thermoguide du MAPAQ (frigo à 4 °C, congélateur à −18 °C).
-Durées en JOURS, [la plus courte, la plus longue], ou null si l'aliment ne se garde pas là. "ambiant" = à l'armoire ou sur le comptoir. "ouvert" = une fois l'emballage ouvert (au frigo, sauf mention).
+Durées en JOURS, [la plus courte, la plus longue], ou null si l'aliment ne se garde pas là ; propres à CET aliment (un produit fermenté, en conserve ou séché se garde bien plus longtemps qu'un aliment frais). "ambiant" = à l'armoire ou sur le comptoir. "ouvert" = une fois l'emballage ouvert (au frigo, sauf mention).
 
-Réponds en JSON : {"ideal": "frigo" | "congelateur" | "armoire" | "comptoir", "frigo": [3, 5], "congelateur": [60, 90], "ambiant": null, "ouvert": null, "conseil": "où et comment le garder, en une ou deux phrases"}''',
+Réponds en JSON : {"ideal": "frigo" | "congelateur" | "armoire" | "comptoir", "frigo": [min, max] ou null, "congelateur": [min, max] ou null, "ambiant": [min, max] ou null, "ouvert": [min, max] ou null, "conseil": "où et comment le garder, en une ou deux phrases"}''',
 );
 
 /// Le repère lu (durées bornées à deux ans, jamais à rebours) ; `null`

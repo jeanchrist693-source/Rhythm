@@ -28,6 +28,7 @@ import 'package:rhythm/modele/etat_habitudes.dart';
 import 'package:rhythm/modele/etat_sante.dart';
 import 'package:rhythm/modele/modeles.dart';
 import 'package:rhythm/systeme/rappels_recettes.dart';
+import 'package:rhythm/utils/dates.dart';
 
 /// Jeudi 24 septembre 2026, 8 h.
 final DateTime _auj = DateTime(2026, 9, 24, 8);
@@ -332,6 +333,90 @@ void main() {
       // L'huile se sort, elle ne se prépare pas.
       expect(partages.any((p) => p.$1.startsWith('Huile')), isFalse);
     });
+
+    test('le total prévu d\'un jour : noté + prévu, autre chose à part', () {
+      final chili = _recette('chili', 'Chili', [_base('Haricots', 400)]);
+      final jour = jourDe(_auj);
+      final etat = EtatRecettes(
+        recettes: [chili],
+        plan: [
+          RepasPrevu(
+            id: 'p1',
+            jour: jour,
+            moment: MomentRepas.diner,
+            recetteId: 'chili',
+            portions: 2,
+          ),
+          RepasPrevu(
+            id: 'p2',
+            jour: jour,
+            moment: MomentRepas.souper,
+            recetteId: 'chili',
+          ),
+          RepasPrevu(
+            id: 'p3',
+            jour: jour,
+            moment: MomentRepas.collation,
+            produitId: 'barre',
+          ),
+          RepasPrevu(
+            id: 'p4',
+            jour: jour,
+            moment: MomentRepas.souper,
+            libre: 'Chez des amis',
+          ),
+        ],
+      );
+      const barre = Produit(
+        id: 'barre',
+        nom: 'Barre',
+        portion: '1 barre',
+        parPortion: Nutriments(kcal: 230, proteines: 20),
+      );
+      // Le dîner est déjà noté (une entrée de sa recette) : il n'est compté
+      // qu'une fois.
+      final dejeuner = EntreeJournal(
+        id: 'e1',
+        jour: jour,
+        moment: MomentRepas.dejeuner,
+        nom: 'Gruau',
+        source: SourceEntree.rapide,
+        nutriments: const Nutriments(kcal: 300),
+        ajoutee: _auj,
+      );
+      final diner = EntreeJournal(
+        id: 'e2',
+        jour: jour,
+        moment: MomentRepas.diner,
+        nom: 'Chili',
+        source: SourceEntree.recette,
+        recetteId: 'chili',
+        portions: 2,
+        nutriments: const Nutriments(kcal: 50, proteines: 5),
+        ajoutee: _auj,
+      );
+      final t = totalPrevuDu(
+        jour,
+        recettes: etat,
+        journal: [dejeuner, diner],
+        produits: const [barre],
+      );
+      // Noté 350 ; le souper prévu (1 portion : 25 kcal), la barre (230).
+      expect(t.note.kcal, 350);
+      expect(t.nutriments.kcal, 350 + 25 + 230);
+      expect(t.nutriments.proteines, 5 + 2.5 + 20);
+      expect(t.inconnus, 1);
+      // Un autre jour : rien.
+      expect(
+        totalPrevuDu(
+          plusJours(jour, 1),
+          recettes: etat,
+          journal: const [],
+          produits: const [barre],
+        ).vide,
+        isTrue,
+      );
+    });
   });
 
   group('le garde-manger après la cuisine', () {
@@ -518,6 +603,50 @@ void main() {
       );
     });
 
+    test('favorites et étiquettes : tri, filtre, recherche, JSON', () {
+      final demo = GraineRecettes.demonstration(_auj).recettes;
+      // Les favorites d'abord (le chili et le bol), puis les récentes.
+      final tri = trierRecettes(demo, TriRecettes.favorites);
+      expect(tri.take(2).map((r) => r.id).toSet(), {
+        'depart-chili',
+        'depart-bol-poulet',
+      });
+      expect(tri[2].id, trierRecettes(demo, TriRecettes.recentes)[0].id);
+
+      // Les étiquettes du livre : les plus portées d'abord.
+      final etiquettes = etiquettesDuLivre(demo);
+      expect(etiquettes.first, 'Protéinée');
+      expect(etiquettes, containsAll(['Rapide', 'Végé', 'Pour le lot']));
+      final vege = demo.where((r) => aEtiquette(r, 'vege')).map((r) => r.id);
+      expect(vege, contains('depart-chili'));
+      expect(vege, isNot(contains('depart-bol-poulet')));
+      expect(recetteRepond(demo.first, 'rapide'), isTrue);
+
+      // Propres : sans vides, sans doublons (casse, accents), sans espaces.
+      expect(etiquettesPropres(['  Végé ', 'vege', '', 'Pour  le lot']), [
+        'Végé',
+        'Pour le lot',
+      ]);
+
+      // Le JSON : absentes = ni favorite ni étiquettes ; lues tolérantes.
+      final r = Recette.depuisJson({
+        'id': 'r',
+        'nom': 'Soupe',
+        'favorite': true,
+        'etiquettes': ['Réconfort', 3, 'réconfort', ' Hiver '],
+      })!;
+      expect(r.favorite, isTrue);
+      expect(r.etiquettes, ['Réconfort', 'Hiver']);
+      final relue = Recette.depuisJson(r.versJson())!;
+      expect(relue.favorite, isTrue);
+      expect(relue.etiquettes, r.etiquettes);
+      final nue = Recette.depuisJson({'id': 'n', 'nom': 'Nue'})!;
+      expect(nue.favorite, isFalse);
+      expect(nue.etiquettes, isEmpty);
+      expect(nue.versJson().containsKey('favorite'), isFalse);
+      expect(nue.versJson().containsKey('etiquettes'), isFalse);
+    });
+
     test('les recettes de départ : des valeurs du FCÉN plausibles', () {
       for (final r in GraineRecettes.depart(_auj)) {
         final p = r.parPortion;
@@ -551,6 +680,21 @@ void main() {
       // Le souper d'aujourd'hui reste « À planifier » (la maquette).
       expect(e.prevusLe(_auj, MomentRepas.souper), isEmpty);
       expect(e.recette('depart-chili')!.cuisinee, hasLength(2));
+    });
+
+    test('au cœur, puis plus : enregistré au dépôt', () {
+      final depot = Depot.memoire();
+      addTearDown(depot.fermer);
+      final c = conteneur(depot);
+      final n = c.read(recettesProvider.notifier);
+      n.ajouterRecettesDeDepart();
+      expect(n.basculerFavorite('depart-saumon'), isTrue);
+      expect(c.read(recettesProvider).recette('depart-saumon')!.favorite, true);
+      final relu = EtatRecettes.depuisDocument(depot.lire()!);
+      expect(relu.recette('depart-saumon')!.favorite, isTrue);
+      expect(relu.recette('depart-saumon')!.etiquettes, ['Protéinée']);
+      expect(n.basculerFavorite('depart-saumon'), isFalse);
+      expect(n.basculerFavorite('inconnue'), isFalse);
     });
 
     test('cuisiner : journal, restes, garde-manger décompté', () {

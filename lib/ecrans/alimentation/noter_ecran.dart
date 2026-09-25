@@ -255,7 +255,11 @@ class _NoterEcranState extends ConsumerState<NoterEcran>
                     nom: r.nom,
                     detail: [
                       f.portions(portionsEnRestes(gardeManger, r.id), tr),
-                      articles.first.emplacement.libelle(tr),
+                      ouEstRange(
+                        articles.first,
+                        ref.watch(coursesProvider).reglages,
+                        tr,
+                      ),
                       if (jours != null) f.echeance(jours, tr),
                     ].join(' · '),
                     onTap: () => _ouvrir(

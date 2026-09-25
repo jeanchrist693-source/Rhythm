@@ -253,20 +253,25 @@ class CoursesNotifier extends Notifier<EtatCourses> {
     );
   }
 
-  /// Déplacé (au congélateur, décongelé au frigo…) : la date suit.
-  void deplacer(String id, Emplacement ou) {
+  /// Déplacé (au congélateur, décongelé au frigo…) : la date suit — sauf
+  /// d'un lieu à un autre du même genre (du frigo au frigo du garage).
+  /// [lieu] : un lieu ajouté (son genre est [ou]).
+  void deplacer(String id, Emplacement ou, {String? lieu}) {
     final a = state.enReserve(id);
-    if (a == null || a.emplacement == ou) return;
+    if (a == null || (a.emplacement == ou && a.lieuId == lieu)) return;
     final le = jourDe(_maintenant);
     modifierRange(
       a.copierAvec(
         emplacement: ou,
-        peremption: () => peremptionApresDeplacement(
-          a,
-          ou,
-          le,
-          apprises: state.conservations,
-        ),
+        lieuId: () => lieu,
+        peremption: () => a.emplacement == ou
+            ? a.peremption
+            : peremptionApresDeplacement(
+                a,
+                ou,
+                le,
+                apprises: state.conservations,
+              ),
       ),
     );
   }
@@ -353,6 +358,60 @@ class CoursesNotifier extends Notifier<EtatCourses> {
 
   void modifierReglages(ReglagesCourses r) =>
       _muter(state.copierAvec(reglages: r));
+
+  // ── Les lieux ajoutés ─────────────────────────────────────────────────────
+
+  /// Ajoute [l], ou le remplace. Son genre change : ce qui y est rangé le
+  /// suit (et sa date, comme un déplacement).
+  void enregistrerLieu(Lieu l) {
+    final r = state.reglages;
+    final existe = r.lieux.any((x) => x.id == l.id);
+    final le = jourDe(_maintenant);
+    _muter(
+      state.copierAvec(
+        reglages: r.copierAvec(
+          lieux: existe
+              ? [for (final x in r.lieux) x.id == l.id ? l : x]
+              : [...r.lieux, l],
+        ),
+        gardeManger: [
+          for (final a in state.gardeManger)
+            if (a.lieuId == l.id && a.emplacement != l.genre)
+              a.copierAvec(
+                emplacement: l.genre,
+                peremption: () => peremptionApresDeplacement(
+                  a,
+                  l.genre,
+                  le,
+                  apprises: state.conservations,
+                ),
+              )
+            else
+              a,
+        ],
+      ),
+    );
+  }
+
+  /// Retire le lieu [id] : ce qui y était rangé reste dans son genre (le
+  /// congélateur du sous-sol devient « Congélateur »).
+  void supprimerLieu(String id) {
+    final r = state.reglages;
+    _muter(
+      state.copierAvec(
+        reglages: r.copierAvec(
+          lieux: [
+            for (final l in r.lieux)
+              if (l.id != id) l,
+          ],
+        ),
+        gardeManger: [
+          for (final a in state.gardeManger)
+            a.lieuId == id ? a.copierAvec(lieuId: () => null) : a,
+        ],
+      ),
+    );
+  }
 }
 
 /// L'origine d'un article revenu seul sur la liste.

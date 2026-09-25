@@ -6,10 +6,12 @@
 // moins le garde-manger), « Planifier », « Noter au journal » ; les
 // ingrédients (en menthe, ce qu'on a déjà), les étapes (minuteurs
 // soulignés), la note ; ses restes au garde-manger, combien de fois elle a
-// été cuisinée. Le crayon la modifie. « Remplacer un ingrédient » demande
-// des remplaçants à l'IA (palier 4).
+// été cuisinée. Le crayon la modifie ; le CŒUR la met parmi les favorites
+// (lot 5), ses étiquettes sous ce qu'elle apporte. « Remplacer un
+// ingrédient » demande des remplaçants à l'IA (palier 4).
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../l10n/libelles_alimentation.dart';
@@ -32,6 +34,7 @@ import '../../../widgets/filets.dart';
 import '../../../widgets/formulaire.dart';
 import '../../../widgets/page_secondaire.dart';
 import '../../../widgets/pictos.dart';
+import '../../../widgets/toast.dart';
 import '../courses/pieces_courses.dart';
 import '../ia/substitution_ecran.dart';
 import '../pieces_alimentation.dart';
@@ -85,6 +88,22 @@ class _RecetteEcranState extends ConsumerState<RecetteEcran> {
       retour: widget.retour,
       actions: [
         BoutonPicto(
+          picto: Picto.coeur,
+          libelle: r.favorite ? tr.retirerDesFavorites : tr.ajouterAuxFavorites,
+          couleur: r.favorite ? RhythmCouleurs.peche : RhythmCouleurs.texte,
+          plein: r.favorite,
+          onTap: () {
+            final favorite = ref
+                .read(recettesProvider.notifier)
+                .basculerFavorite(r.id);
+            HapticFeedback.selectionClick();
+            montrerToast(
+              context,
+              favorite ? tr.recetteFavorite : tr.recettePlusFavorite,
+            );
+          },
+        ),
+        BoutonPicto(
           picto: Picto.crayon,
           libelle: tr.modifierRecette,
           onTap: () => pousserEcran(
@@ -124,6 +143,13 @@ class _RecetteEcranState extends ConsumerState<RecetteEcran> {
               ].join(' · '),
               style: RhythmTypo.petit,
             ),
+            if (r.etiquettes.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              Text(
+                r.etiquettes.join(' · '),
+                style: RhythmTypo.texte(13, couleur: RhythmCouleurs.peche),
+              ),
+            ],
           ],
         ),
         Column(
@@ -190,7 +216,7 @@ class _RecetteEcranState extends ConsumerState<RecetteEcran> {
             tr.restesAuGardeManger(
               f.portions(enRestes, tr),
               [
-                restes.first.emplacement.libelle(tr),
+                ouEstRange(restes.first, courses.reglages, tr),
                 if (restes.first.peremption != null)
                   f.echeance(
                     joursEntre(jourDe(auj), restes.first.peremption!),

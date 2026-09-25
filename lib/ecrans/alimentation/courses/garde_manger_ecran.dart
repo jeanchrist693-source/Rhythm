@@ -2,7 +2,7 @@
 //
 // LE GARDE-MANGER : combien d'aliments, combien à consommer bientôt, ce qui
 // a été jeté ce mois-ci ; filtré par emplacement (frigo, congélateur,
-// armoire, comptoir) ; trié par DATE (le plus urgent d'abord) ou par
+// armoire, comptoir, et les lieux ajoutés — « Mes emplacements ») ; trié par DATE (le plus urgent d'abord) ou par
 // RAYON. Chaque ligne dit où, combien, ouvert ou non, et son échéance en
 // couleur. « + Ajouter » range un aliment à la main.
 
@@ -23,7 +23,10 @@ import '../../../widgets/boutons.dart';
 import '../../../widgets/formulaire.dart';
 import '../../../widgets/page_secondaire.dart';
 import '../../../widgets/pictos.dart';
+import '../../../widgets/filets.dart';
+import '../../sports/pieces_sports.dart';
 import 'article_garde_manger_ecran.dart';
+import 'lieux_ecran.dart';
 import 'pieces_courses.dart';
 
 enum _Tri { date, rayon }
@@ -38,7 +41,8 @@ class GardeMangerEcran extends ConsumerStatefulWidget {
 }
 
 class _GardeMangerEcranState extends ConsumerState<GardeMangerEcran> {
-  Emplacement? _ou;
+  /// `null` : tout ; un [Emplacement] ; ou l'id d'un lieu ajouté.
+  Object? _ou;
   _Tri _tri = _Tri.date;
 
   @override
@@ -50,9 +54,20 @@ class _GardeMangerEcranState extends ConsumerState<GardeMangerEcran> {
     final tous = etat.gardeManger;
     final bientot = aConsommerBientot(tous, auj);
     final jete = gaspillageDuMois(etat.sorties, auj);
+    final reglages = etat.reglages;
+    // Un lieu retiré entre-temps : le filtre s'efface.
+    final ou = _ou is String && reglages.lieu(_ou as String) == null
+        ? null
+        : _ou;
+    bool dedans(ArticleGardeManger a) => switch (ou) {
+      null => true,
+      final Emplacement e =>
+        a.emplacement == e && reglages.lieu(a.lieuId) == null,
+      _ => a.lieuId == ou,
+    };
     final visibles = [
       for (final a in tous)
-        if (_ou == null || a.emplacement == _ou) a,
+        if (dedans(a)) a,
     ];
     final titre = tr.gardeManger;
 
@@ -60,7 +75,7 @@ class _GardeMangerEcranState extends ConsumerState<GardeMangerEcran> {
       filet: filet,
       nom: a.nom,
       detail: [
-        a.emplacement.libelle(tr),
+        ouEstRange(a, reglages, tr),
         if (a.quantite != null)
           a.restes
               ? f.portions(a.quantite!.valeur, tr)
@@ -146,12 +161,13 @@ class _GardeMangerEcranState extends ConsumerState<GardeMangerEcran> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            PucesChoix<Emplacement?>(
+            PucesChoix<Object?>(
               options: [
                 (null, tr.tout),
                 for (final e in Emplacement.values) (e, e.libelle(tr)),
+                for (final l in reglages.lieux) (l.id, l.nom),
               ],
-              valeur: _ou,
+              valeur: ou,
               onChanged: (e) => setState(() => _ou = e),
             ),
             const SizedBox(height: 10),
@@ -165,6 +181,23 @@ class _GardeMangerEcranState extends ConsumerState<GardeMangerEcran> {
         if (visibles.isEmpty && tous.isNotEmpty)
           Text(tr.rienIci, style: RhythmTypo.detail),
         ...liste,
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Filet(),
+            LigneReglage(
+              gauche: const PictoCercle(
+                Picto.frigo,
+                couleur: RhythmCouleurs.peche,
+              ),
+              libelle: tr.mesEmplacements,
+              detail: reglages.lieux.isEmpty
+                  ? tr.mesEmplacementsDetail
+                  : [for (final l in reglages.lieux) l.nom].join(', '),
+              onTap: () => pousserEcran(context, LieuxEcran(retour: titre)),
+            ),
+          ],
+        ),
         if (tous.isNotEmpty)
           Text(
             tr.gardeMangerAide,

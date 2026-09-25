@@ -90,6 +90,15 @@ class RecettesNotifier extends Notifier<EtatRecettes> {
     );
   }
 
+  /// Met [id] au cœur (ou l'en retire) ; `true` si elle est maintenant
+  /// favorite.
+  bool basculerFavorite(String id) {
+    final r = state.recette(id);
+    if (r == null) return false;
+    enregistrer(r.copierAvec(favorite: !r.favorite));
+    return !r.favorite;
+  }
+
   /// Supprime [id] et ses repas prévus à venir (les passés restent : ils
   /// ne comptent plus nulle part).
   void supprimer(String id) {
@@ -386,6 +395,7 @@ abstract final class GraineRecettes {
     Recette(
       id: 'depart-gruau',
       nom: "Gruau aux bleuets et à l'érable",
+      etiquettes: ['Rapide', 'Végé'],
       creee: creee,
       moments: const {MomentRepas.dejeuner},
       portions: 2,
@@ -436,6 +446,7 @@ abstract final class GraineRecettes {
     Recette(
       id: 'depart-omelette',
       nom: 'Omelette aux épinards',
+      etiquettes: ['Rapide', 'Protéinée', 'Végé'],
       creee: creee,
       moments: const {MomentRepas.dejeuner, MomentRepas.diner},
       portions: 1,
@@ -479,6 +490,7 @@ abstract final class GraineRecettes {
     Recette(
       id: 'depart-bol-poulet',
       nom: 'Bol poulet, riz et légumes',
+      etiquettes: ['Pour les lunchs', 'Protéinée'],
       creee: creee,
       moments: const {MomentRepas.diner, MomentRepas.souper},
       portions: 4,
@@ -547,6 +559,7 @@ abstract final class GraineRecettes {
     Recette(
       id: 'depart-chili',
       nom: 'Chili sin carne',
+      etiquettes: ['Végé', 'Pour le lot', 'Économique'],
       creee: creee,
       moments: const {MomentRepas.diner, MomentRepas.souper},
       portions: 4,
@@ -622,6 +635,7 @@ abstract final class GraineRecettes {
     Recette(
       id: 'depart-pate-chinois',
       nom: 'Pâté chinois',
+      etiquettes: ['Réconfort', 'Pour le lot'],
       creee: creee,
       moments: const {MomentRepas.souper},
       portions: 6,
@@ -694,6 +708,7 @@ abstract final class GraineRecettes {
     Recette(
       id: 'depart-saumon',
       nom: 'Saumon et patates douces',
+      etiquettes: ['Protéinée'],
       creee: creee,
       moments: const {MomentRepas.souper},
       portions: 2,
@@ -747,6 +762,7 @@ abstract final class GraineRecettes {
     Recette(
       id: 'depart-smoothie',
       nom: 'Smoothie protéiné',
+      etiquettes: ['Rapide', 'Protéinée'],
       creee: creee,
       moments: const {MomentRepas.collation, MomentRepas.dejeuner},
       portions: 1,
@@ -793,6 +809,7 @@ abstract final class GraineRecettes {
     Recette(
       id: 'depart-riz-colle',
       nom: 'Riz collé aux pois',
+      etiquettes: ['Économique'],
       creee: creee,
       moments: const {MomentRepas.diner, MomentRepas.souper},
       portions: 6,
@@ -854,7 +871,7 @@ abstract final class GraineRecettes {
   ];
 
   /// La démonstration (tests, captures) : les recettes de départ, déjà
-  /// cuisinées, et une semaine prévue à partir de demain (le souper
+  /// cuisinées (le chili et le bol au cœur), et une semaine prévue à partir de demain (le souper
   /// d'aujourd'hui reste « À planifier », comme dans la maquette).
   static EtatRecettes demonstration(DateTime aujourdhui) {
     final auj = jourDe(aujourdhui);
@@ -867,6 +884,7 @@ abstract final class GraineRecettes {
       'depart-pate-chinois': [20],
       'depart-smoothie': [6],
     };
+    const favorites = {'depart-chili', 'depart-bol-poulet'};
     final recettes = [
       for (final r in depart(creee))
         r.copierAvec(
@@ -874,6 +892,7 @@ abstract final class GraineRecettes {
             for (final j in cuisinees[r.id] ?? const <int>[])
               plusJours(auj, -j),
           ],
+          favorite: favorites.contains(r.id),
         ),
     ];
     var n = 0;

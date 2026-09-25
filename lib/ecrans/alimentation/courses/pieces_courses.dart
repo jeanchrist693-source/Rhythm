@@ -6,16 +6,19 @@
 //   détail, une valeur à droite) ;
 // - [Echeance] : « demain » en pêche, « aujourd'hui » en corail ;
 // - [ChoixDate] : une date en jours à partir d'aujourd'hui, − / + ;
-// - [ChoixEmplacement] : frigo, congélateur, armoire, comptoir ;
+// - [ChoixEmplacement] : frigo, congélateur, armoire, comptoir — et les
+//   lieux ajoutés (« Cave »), en capsules dessous ;
 // - [BarreCaisse] : le total à la caisse, posé en bas de l'écran du
 //   magasin (noir, un filet au-dessus — pas de verre).
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../l10n/libelles_courses.dart';
 import '../../../l10n/traductions.dart';
 import '../../../modele/alimentation/courses.dart';
+import '../../../modele/alimentation/etat_courses.dart';
 import '../../../modele/alimentation/taxes.dart';
 import '../../../theme/rhythm_couleurs.dart';
 import '../../../theme/rhythm_mesures.dart';
@@ -225,19 +228,58 @@ class ChoixDate extends StatelessWidget {
 }
 
 /// Frigo, congélateur, armoire, comptoir : quatre capsules de même largeur,
-/// sur une ligne (comme les jours d'une habitude).
-class ChoixEmplacement extends StatelessWidget {
+/// sur une ligne (comme les jours d'une habitude) ; dessous, les LIEUX
+/// AJOUTÉS (« Congélateur du sous-sol »), si [onLieu] les accepte. Un lieu
+/// choisi ([lieu]) éteint les quatre.
+class ChoixEmplacement extends ConsumerWidget {
   const ChoixEmplacement({
     super.key,
     required this.valeur,
     required this.onChanged,
+    this.lieu,
+    this.onLieu,
   });
 
   final Emplacement valeur;
   final ValueChanged<Emplacement> onChanged;
 
+  /// Le lieu ajouté choisi ; `null` : [valeur] elle-même.
+  final String? lieu;
+  final ValueChanged<Lieu>? onLieu;
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final lieux = onLieu == null
+        ? const <Lieu>[]
+        : ref.watch(coursesProvider.select((e) => e.reglages.lieux));
+    final choisi = lieux.any((l) => l.id == lieu) ? lieu : null;
+    final quatre = _quatre(context, choisi == null ? valeur : null);
+    if (lieux.isEmpty) return quatre;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        quatre,
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final l in lieux)
+              Puce(
+                libelle: l.nom,
+                choisie: l.id == choisi,
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  onLieu!(l);
+                },
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _quatre(BuildContext context, Emplacement? valeur) {
     final tr = context.tr;
     return Row(
       children: [

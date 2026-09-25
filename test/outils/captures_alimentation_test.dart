@@ -57,6 +57,7 @@ Future<void> _defiler(WidgetTester tester, double dy) async {
 void main() {
   _capturesAchats();
   _capturesRecettes();
+  _capturesLot5();
   testWidgets("captures de l'alimentation", (tester) async {
     if (_dossier.isEmpty) {
       markTestSkipped('Exécuter avec --dart-define=CAPTURES=<dossier>');
@@ -452,5 +453,114 @@ void _capturesRecettes() {
     await _capturer(tester, 'c27_liste_semaine');
     await _defiler(tester, 900);
     await _capturer(tester, 'c28_liste_semaine_bas');
+  });
+}
+
+/// Le lot 5 : mon assiette, ma semaine (le total du jour), les recettes
+/// favorites et leurs étiquettes, les emplacements ajoutés, remplacer en
+/// mode cuisine.
+void _capturesLot5() {
+  testWidgets('captures du lot 5', (tester) async {
+    if (_dossier.isEmpty) {
+      markTestSkipped('Exécuter avec --dart-define=CAPTURES=<dossier>');
+      return;
+    }
+    await initializeDateFormatting();
+    await chargerPolices();
+    tester.view.physicalSize = const Size(384, 832) * 2;
+    tester.view.devicePixelRatio = 2;
+    addTearDown(tester.view.reset);
+    tester.platformDispatcher.localesTestValue = const [Locale('fr', 'CA')];
+    addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+    final base = BaseAliments.analyser(
+      File('assets/donnees/fcen.txt').readAsStringSync(),
+    );
+    final soir = DateTime(2026, 9, 24, 17, 30);
+    SceneOuverture.reinitialiser();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          aujourdhuiProvider.overrideWithValue(soir),
+          horlogeProvider.overrideWithValue(() => soir),
+          baseAlimentsProvider.overrideWith((ref) async => base),
+        ],
+        child: const RhythmApp(),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 1600));
+
+    Future<void> ouvrir(Finder f) async {
+      await tester.ensureVisible(f);
+      await tester.pump();
+      await tester.tap(f);
+      await _laisser(tester);
+    }
+
+    Future<void> fermer() => ouvrir(
+      find
+          .byWidgetPredicate((w) => w is PictoRhythm && w.picto == Picto.retour)
+          .first,
+    );
+
+    await tester.tap(
+      find
+          .byWidgetPredicate(
+            (w) => w is PictoRhythm && w.picto == Picto.couverts,
+          )
+          .last,
+    );
+    await _laisser(tester);
+
+    // Mon assiette.
+    await tester.ensureVisible(find.text('Mon assiette'));
+    await _laisser(tester);
+    await _capturer(tester, 'l01_onglet_assiette');
+    await ouvrir(find.text('Mon assiette'));
+    await _capturer(tester, 'l02_assiette');
+    await _defiler(tester, 700);
+    await _capturer(tester, 'l03_assiette_2');
+    await _defiler(tester, 700);
+    await _capturer(tester, 'l04_assiette_3');
+    await _defiler(tester, 900);
+    await _capturer(tester, 'l05_assiette_4');
+    await fermer();
+
+    // Ma semaine : le total prévu du jour (demain).
+    await ouvrir(find.text('Ma semaine'));
+    await ouvrir(find.text('${DateTime(2026, 9, 25).day}'));
+    await _capturer(tester, 'l06_semaine_total');
+    await fermer();
+
+    // Le livre : favorites, étiquettes.
+    await ouvrir(find.text('Mes recettes'));
+    await ouvrir(find.text('Favorites'));
+    await _capturer(tester, 'l07_livre');
+    await ouvrir(find.text('Chili sin carne'));
+    await _capturer(tester, 'l08_fiche');
+    await ouvrir(find.text('Cuisiner'));
+    await _capturer(tester, 'l09_cuisine');
+    await fermer();
+    await ouvrir(find.bySemanticsLabel('Modifier la recette'));
+    await tester.ensureVisible(find.byKey(const ValueKey('champEtiquette')));
+    await _laisser(tester);
+    await _capturer(tester, 'l10_formulaire_etiquettes');
+    await fermer();
+    await fermer();
+    await fermer();
+
+    // Le garde-manger, mes emplacements.
+    await ouvrir(find.text('Garde-manger'));
+    await tester.ensureVisible(find.text('Mes emplacements'));
+    await _laisser(tester);
+    await _capturer(tester, 'l11_garde_manger');
+    await ouvrir(find.text('Mes emplacements'));
+    await ouvrir(find.text('Ajouter un emplacement'));
+    await ouvrir(find.text('Congélateur du sous-sol'));
+    await _capturer(tester, 'l12_lieu');
+    await ouvrir(find.text('Enregistrer'));
+    await _capturer(tester, 'l13_lieux');
+    await fermer();
+    await ouvrir(find.text('Congélateur du sous-sol').first);
+    await _capturer(tester, 'l14_garde_manger_filtre');
   });
 }

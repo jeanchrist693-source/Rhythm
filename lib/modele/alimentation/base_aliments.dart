@@ -297,11 +297,19 @@ class BaseAliments {
   }
 
   /// La note d'un aliment pour les mots [q] ; `null` s'il ne répond pas
-  /// (chaque mot doit commencer un mot du nom).
-  static double? note(AlimentBase a, List<String> q, int frequence) {
+  /// (chaque mot doit commencer un mot du nom — ou, avec [egal], être ce
+  /// mot : la correspondance de l'IA, où « vin » n'est pas « vinaigre »).
+  static double? note(
+    AlimentBase a,
+    List<String> q,
+    int frequence, {
+    bool Function(String mot, String cherche)? egal,
+  }) {
     var s = 0.0;
     for (final (i, m) in q.indexed) {
-      final j = a.mots.indexWhere((w) => w.startsWith(m));
+      final j = a.mots.indexWhere(
+        (w) => egal == null ? w.startsWith(m) : egal(w, m),
+      );
       if (j < 0) return null;
       if (i == 0 && j == a._debut) s += 50;
       if (j < 3) s += 6;

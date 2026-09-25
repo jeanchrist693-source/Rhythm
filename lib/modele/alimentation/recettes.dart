@@ -9,7 +9,8 @@
 //   à la fois), ce qu'elle donne (portions), ses ingrédients, ses étapes
 //   (les minuteurs y sont repérés : `calculs_recettes.dart`), ses temps, sa
 //   région (la cuisine d'où elle vient), si elle se congèle, les jours où
-//   elle a été cuisinée ;
+//   elle a été cuisinée ; FAVORITE ou non, ses ÉTIQUETTES (« Rapide »,
+//   « Pour les lunchs » : les siennes, lot 5) ;
 // - [RepasPrevu] : un repas de la PLANIFICATION — une recette, un de mes
 //   produits (une collation achetée) ou « autre chose » (« Souper chez
 //   maman »), un jour, un moment, des portions ;
@@ -21,6 +22,7 @@
 
 import '../../utils/dates.dart';
 import '../modeles.dart';
+import 'base_aliments.dart' show simplifier;
 import 'courses.dart';
 import 'nutriments.dart';
 
@@ -342,6 +344,8 @@ class Recette {
     this.note,
     this.seCongele = false,
     this.cuisinee = const [],
+    this.favorite = false,
+    this.etiquettes = const [],
   });
 
   final String id;
@@ -371,6 +375,13 @@ class Recette {
   /// Les jours où elle a été cuisinée, du plus ancien au plus récent.
   final List<DateTime> cuisinee;
 
+  /// Au cœur : elle passe devant (tri « Favorites »).
+  final bool favorite;
+
+  /// Ses étiquettes, dans l'ordre où on les a mises (« Rapide »,
+  /// « Pour les lunchs ») : pour filtrer le livre.
+  final List<String> etiquettes;
+
   /// Ce que toute la recette apporte.
   Nutriments get total =>
       Nutriments.somme(ingredients.map((i) => i.nutriments));
@@ -399,6 +410,8 @@ class Recette {
     String? Function()? note,
     bool? seCongele,
     List<DateTime>? cuisinee,
+    bool? favorite,
+    List<String>? etiquettes,
   }) => Recette(
     id: id,
     nom: nom ?? this.nom,
@@ -413,6 +426,8 @@ class Recette {
     note: note == null ? this.note : note(),
     seCongele: seCongele ?? this.seCongele,
     cuisinee: cuisinee ?? this.cuisinee,
+    favorite: favorite ?? this.favorite,
+    etiquettes: etiquettes ?? this.etiquettes,
   );
 
   Map<String, dynamic> versJson() => {
@@ -433,6 +448,8 @@ class Recette {
     'note': ?note,
     if (seCongele) 'congele': true,
     if (cuisinee.isNotEmpty) 'cuisinee': [for (final d in cuisinee) cleJour(d)],
+    if (favorite) 'favorite': true,
+    if (etiquettes.isNotEmpty) 'etiquettes': etiquettes,
   };
 
   static Recette? depuisJson(Object? j) {
@@ -477,9 +494,42 @@ class Recette {
           for (final c in j['cuisinee'] as List)
             if (c is num) jourDeCle(c.toInt()),
       ]..sort(),
+      favorite: j['favorite'] == true,
+      etiquettes: etiquettesPropres([
+        if (j['etiquettes'] is List)
+          for (final e in j['etiquettes'] as List)
+            if (e is String) e,
+      ]),
     );
   }
 }
+
+/// Des étiquettes PROPRES : sans espaces autour, sans vides, sans doublons
+/// (à la casse et aux accents près : la première écrite reste), au plus 40
+/// caractères chacune.
+List<String> etiquettesPropres(Iterable<String> etiquettes) {
+  final vues = <String>{};
+  return [
+    for (final e in etiquettes)
+      if (e.trim().replaceAll(RegExp(r'\s+'), ' ') case final t
+          when t.isNotEmpty && t.length <= 40 && vues.add(simplifier(t).trim()))
+        t,
+  ];
+}
+
+/// Des étiquettes à proposer (le livre ajoute les siennes).
+const List<String> kEtiquettesProposees = [
+  'Rapide',
+  'Végé',
+  'Protéinée',
+  'Pour les lunchs',
+  'Pour le lot',
+  'Économique',
+  'Réconfort',
+  'Pour recevoir',
+  'Sans gluten',
+  'Sans lactose',
+];
 
 // ═══ La planification ═══════════════════════════════════════════════════════
 
@@ -557,8 +607,16 @@ class RepasPrevu {
 
 // ═══ Les réglages ═══════════════════════════════════════════════════════════
 
-/// Le tri du livre de recettes.
-enum TriRecettes { recentes, alphabetique, proteines, calories, rapides }
+/// Le tri du livre de recettes (« favorites » : les favorites d'abord, puis
+/// les récentes).
+enum TriRecettes {
+  recentes,
+  favorites,
+  alphabetique,
+  proteines,
+  calories,
+  rapides,
+}
 
 class ReglagesRecettes {
   const ReglagesRecettes({

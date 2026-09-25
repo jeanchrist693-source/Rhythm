@@ -5,6 +5,11 @@
 // cascade gpt-oss-120b → gpt-oss-20b (quotas séparés), deux essais par
 // modèle avec pause sur surcharge, réponse forcée en JSON. Les erreurs sont
 // typées (`ErreurIa`) et traduites par l'écran (`pieces_ia.dart`).
+// Éprouvé sur le vrai Groq (`test/outils/ia_reelle_test.dart`) : le palier
+// gratuit limite chaque modèle à 8 000 JETONS PAR MINUTE — une demande
+// d'idées en prend 5 000 à 6 000 : deux de suite passent au modèle de
+// secours, une troisième attend ce que Groq demande (quelques secondes) ;
+// une réponse illisible (rare) est redemandée une fois.
 // `ServiceIa.instance` se remplace dans les tests (aucun réseau).
 //
 // Ce qui part : la demande de l'écran, jamais le nom de l'utilisateur, son
@@ -34,10 +39,13 @@ enum ErreurIa {
 }
 
 class ExceptionIa implements Exception {
-  const ExceptionIa(this.erreur, [this.code]);
+  const ExceptionIa(this.erreur, [this.code, this.attente]);
 
   final ErreurIa erreur;
   final int? code;
+
+  /// Quota : le délai que Groq demande avant de réessayer (`retry-after`).
+  final Duration? attente;
 
   @override
   String toString() =>
@@ -61,12 +69,18 @@ enum Effort { bas, moyen }
 class _Transitoire implements Exception {}
 
 class ServiceIa {
-  ServiceIa({this.cle = kCleGroq});
+  ServiceIa({this.cle = kCleGroq, this.adresse = _kBase});
 
   /// Le service en usage ; remplacé par un faux dans les tests.
   static ServiceIa instance = ServiceIa();
 
   final String cle;
+
+  /// L'adresse de l'API (un serveur local dans les tests du service).
+  final String adresse;
+
+  /// Au-delà, on n'attend pas la fin d'un quota : l'erreur le dit.
+  static const attenteMax = Duration(seconds: 20);
 
   /// Réponse JSON décodée (le mode `json_object` de l'API exige le mot
   /// « JSON » dans les messages : les invites l'écrivent).
@@ -76,13 +90,20 @@ class ServiceIa {
     double temperature = 0.4,
     int maxTokens = 4096,
   }) async {
-    final texte = await _generer(
-      messages,
-      effort: effort,
-      temperature: temperature,
-      maxTokens: maxTokens,
-    );
-    return decoderJson(texte);
+    // Une réponse illisible (rare : JSON mal fermé) est redemandée une fois.
+    for (var essai = 1; ; essai++) {
+      final texte = await _generer(
+        messages,
+        effort: effort,
+        temperature: temperature,
+        maxTokens: maxTokens,
+      );
+      try {
+        return decoderJson(texte);
+      } on ExceptionIa {
+        if (essai == 2) rethrow;
+      }
+    }
   }
 
   /// Tolère du texte parasite autour de l'objet.
@@ -112,26 +133,38 @@ class ServiceIa {
   }) async {
     if (cle.isEmpty) throw const ExceptionIa(ErreurIa.sansCle);
     ExceptionIa? quota;
-    for (final modele in const [_kModele, _kModeleSecours]) {
-      for (var essai = 1; essai <= 2; essai++) {
-        try {
-          return await _tenter(
-            messages,
-            modele,
-            effort: effort,
-            temperature: temperature,
-            maxTokens: maxTokens,
-          );
-        } on ExceptionIa catch (e) {
-          if (e.erreur == ErreurIa.quota) {
-            quota = e;
-            break; // inutile d'insister sur ce modèle → suivant
+    for (var tour = 1; tour <= 2; tour++) {
+      quota = null;
+      Duration? attente;
+      for (final modele in const [_kModele, _kModeleSecours]) {
+        for (var essai = 1; essai <= 2; essai++) {
+          try {
+            return await _tenter(
+              messages,
+              modele,
+              effort: effort,
+              temperature: temperature,
+              maxTokens: maxTokens,
+            );
+          } on ExceptionIa catch (e) {
+            if (e.erreur == ErreurIa.quota) {
+              quota = e;
+              final a = e.attente;
+              if (a != null && (attente == null || a < attente)) attente = a;
+              break; // inutile d'insister sur ce modèle → suivant
+            }
+            rethrow;
+          } on _Transitoire {
+            if (essai == 2) break; // modèle surchargé → modèle suivant
+            await Future<void>.delayed(Duration(milliseconds: 600 * essai));
           }
-          rethrow;
-        } on _Transitoire {
-          if (essai == 2) break; // modèle surchargé → modèle suivant
-          await Future<void>.delayed(Duration(milliseconds: 600 * essai));
         }
+      }
+      // Les deux modèles au bout de leur quota À LA MINUTE : Groq dit quand
+      // reprendre ; si c'est court, on attend, une fois.
+      if (quota == null || attente == null || attente > attenteMax) break;
+      if (tour == 1) {
+        await Future<void>.delayed(attente + const Duration(milliseconds: 250));
       }
     }
     throw quota ?? const ExceptionIa(ErreurIa.surcharge);
@@ -158,7 +191,7 @@ class ServiceIa {
     HttpClient? client;
     try {
       client = HttpClient()..connectionTimeout = const Duration(seconds: 30);
-      final req = await client.postUrl(Uri.parse(_kBase));
+      final req = await client.postUrl(Uri.parse(adresse));
       req.headers.contentType = ContentType.json;
       req.headers.set('Authorization', 'Bearer $cle');
       req.add(utf8.encode(corps));
@@ -166,7 +199,14 @@ class ServiceIa {
       final texte = await resp.transform(utf8.decoder).join();
       if (resp.statusCode != 200) {
         if (resp.statusCode == 429) {
-          throw const ExceptionIa(ErreurIa.quota, 429);
+          final s = double.tryParse(resp.headers.value('retry-after') ?? '');
+          throw ExceptionIa(
+            ErreurIa.quota,
+            429,
+            s == null || !s.isFinite || s < 0
+                ? null
+                : Duration(milliseconds: (s * 1000).round()),
+          );
         }
         if (const [500, 502, 503, 504].contains(resp.statusCode)) {
           throw _Transitoire();

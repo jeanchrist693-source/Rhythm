@@ -4836,4 +4836,271 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get iaRepereDeLIa => 'AI guidance: check the packaging too.';
+
+  @override
+  String get monAssiette => 'My plate';
+
+  @override
+  String get assietteLegumesFruits => 'Vegetables and fruits';
+
+  @override
+  String get assietteProteines => 'Protein foods';
+
+  @override
+  String get assietteGrains => 'Grains';
+
+  @override
+  String get assietteALimiter => 'To limit';
+
+  @override
+  String get assietteNeutre => 'Not counted';
+
+  @override
+  String get assietteNonReparti => 'Not sorted';
+
+  @override
+  String get assietteLegumesFruitsDetail => 'Half the plate.';
+
+  @override
+  String get assietteProteinesDetail => 'A quarter of the plate.';
+
+  @override
+  String get assietteGrainsDetail =>
+      'A quarter of the plate, whole grains preferably.';
+
+  @override
+  String get assietteALimiterDetail =>
+      'Sweets, snacks, pastries, juice, sugary or alcoholic drinks, fast food.';
+
+  @override
+  String get assietteNeutreDetail =>
+      'Fats, sauces, spices, water, coffee, tea, milk to drink: off the plate.';
+
+  @override
+  String get assietteNonRepartiDetail =>
+      'Quick entries and mixed dishes: what they contain is unknown. Logged from the food base or a recipe, a meal gets sorted.';
+
+  @override
+  String assietteSur(String vise) {
+    return 'of $vise';
+  }
+
+  @override
+  String get assietteGrainsEntiers => 'Whole grains';
+
+  @override
+  String assietteDesGrains(String part) {
+    return '$part of grains';
+  }
+
+  @override
+  String assietteDeCeQuiEstMange(String part) {
+    return '$part of what\'s eaten';
+  }
+
+  @override
+  String assietteNonRepartisNombre(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n foods',
+      one: '1 food',
+      zero: 'none',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get assietteGrainEntier => 'whole grain';
+
+  @override
+  String get assietteRienDeNote =>
+      'Nothing logged that day: the plate is empty.';
+
+  @override
+  String get assietteConseilVide => 'Not enough on the plate yet to judge.';
+
+  @override
+  String get assietteConseilLegumesFruits =>
+      'Vegetables and fruits are missing: they make up half the plate.';
+
+  @override
+  String get assietteConseilProteines =>
+      'A little more protein foods: legumes, fish, eggs, nuts, yogurt, meat.';
+
+  @override
+  String get assietteConseilGrains =>
+      'Grains are missing: a quarter of the plate, whole grain.';
+
+  @override
+  String get assietteConseilALimiter =>
+      'Lots of foods to limit: water, fruit and nuts replace them well.';
+
+  @override
+  String get assietteConseilEntiers =>
+      'Grains, but few whole ones: brown rice, whole wheat bread, oatmeal, quinoa.';
+
+  @override
+  String get assietteConseilEquilibree =>
+      'A balanced plate, as the Guide suggests.';
+
+  @override
+  String get assietteCourtVide => 'Not enough logged yet to judge';
+
+  @override
+  String get assietteCourtLegumesFruits => 'More vegetables and fruits';
+
+  @override
+  String get assietteCourtProteines => 'More protein foods';
+
+  @override
+  String get assietteCourtGrains => 'More whole grains';
+
+  @override
+  String get assietteCourtALimiter => 'Fewer foods to limit';
+
+  @override
+  String get assietteCourtEntiers => 'Whole grains more often';
+
+  @override
+  String get assietteCourtEquilibree => 'Balanced, per the Guide';
+
+  @override
+  String get assietteSeptJours => 'These 7 days';
+
+  @override
+  String assietteSeptJoursDetail(String lf, String p, String g) {
+    return 'Vegetables and fruits $lf · protein $p · grains $g';
+  }
+
+  @override
+  String get assietteLeGuide => 'Canada\'s Food Guide';
+
+  @override
+  String get assietteGuide1 =>
+      'Half the plate: vegetables and fruits, of every colour.';
+
+  @override
+  String get assietteGuide2 =>
+      'A quarter: protein foods, more often from plants.';
+
+  @override
+  String get assietteGuide3 => 'A quarter: whole grain foods.';
+
+  @override
+  String get assietteGuide4 =>
+      'Water as the drink of choice; few highly processed foods.';
+
+  @override
+  String get assietteEstimation =>
+      'An estimate based on the weight of logged foods (dry grains and legumes in a recipe count as cooked). Canada\'s Food Guide, Health Canada. Not medical advice.';
+
+  @override
+  String get kcalPrevues => 'kcal planned';
+
+  @override
+  String prevuSur(String kcal) {
+    return 'of $kcal';
+  }
+
+  @override
+  String dontDejaNotees(String kcal) {
+    return 'including $kcal already logged';
+  }
+
+  @override
+  String repasSansValeur(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '+ $n meals without values (something else)',
+      one: '+ 1 meal without values (something else)',
+      zero: 'no meal without values',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get triFavorites => 'Favourites';
+
+  @override
+  String get ajouterAuxFavorites => 'Add to favourites';
+
+  @override
+  String get retirerDesFavorites => 'Remove from favourites';
+
+  @override
+  String get recetteFavorite => 'Added to favourites.';
+
+  @override
+  String get recettePlusFavorite => 'Removed from favourites.';
+
+  @override
+  String get etiquettesFacultatif => 'Tags (optional)';
+
+  @override
+  String get indiceEtiquette => 'Write another tag';
+
+  @override
+  String get toutesLesEtiquettes => 'All tags';
+
+  @override
+  String get mesEmplacements => 'My storage places';
+
+  @override
+  String get mesEmplacementsDetail =>
+      'A second freezer, a cellar, the garage fridge…';
+
+  @override
+  String get mesEmplacementsAide =>
+      'The fridge, freezer, cupboard and counter are already there. Add your own: each one keeps food like one of the four (same storage times).';
+
+  @override
+  String get ajouterUnEmplacement => 'Add a storage place';
+
+  @override
+  String get nouvelEmplacement => 'New storage place';
+
+  @override
+  String get modifierEmplacement => 'Edit storage place';
+
+  @override
+  String get indiceEmplacement => 'Basement freezer, cellar…';
+
+  @override
+  String get seGardeCommeTitre => 'Keeps food like';
+
+  @override
+  String seGardeComme(String genre) {
+    return 'like $genre';
+  }
+
+  @override
+  String seGardeCommeDetail(String genre) {
+    return 'Storage times and suggested dates follow the chosen kind ($genre).';
+  }
+
+  @override
+  String emplacementEnregistre(String nom) {
+    return '“$nom” saved.';
+  }
+
+  @override
+  String get retirerEmplacement => 'Remove this storage place';
+
+  @override
+  String get toucherEncorePourRetirer => 'Tap again to remove';
+
+  @override
+  String retirerEmplacementDetail(String genre) {
+    return 'What\'s stored there stays in the pantry, under “$genre”.';
+  }
+
+  @override
+  String emplacementRetire(String nom, String genre) {
+    return '“$nom” removed: its foods are under “$genre”.';
+  }
+
+  @override
+  String get iaRemplacerCuisine => 'Missing one? AI suggests substitutes';
 }

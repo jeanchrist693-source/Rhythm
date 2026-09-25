@@ -406,6 +406,68 @@ void main() {
       return c;
     }
 
+    test('les emplacements ajoutés : ranger, déplacer, changer, retirer', () {
+      final depot = Depot.memoire();
+      addTearDown(depot.fermer);
+      final c = conteneur(depot);
+      final n = c.read(coursesProvider.notifier);
+      const sousSol = Lieu(
+        id: 'ss',
+        nom: 'Congélateur du sous-sol',
+        genre: Emplacement.congelateur,
+      );
+      n.enregistrerLieu(sousSol);
+      n.ranger([
+        ArticleGardeManger(
+          id: 'boeuf',
+          nom: 'Bœuf haché',
+          emplacement: Emplacement.congelateur,
+          lieuId: 'ss',
+          rayon: Rayon.viandes,
+          entre: _auj,
+          peremption: DateTime(2026, 12, 24),
+        ),
+      ]);
+      String? lieu() => c.read(coursesProvider).enReserve('boeuf')!.lieuId;
+      DateTime? date() =>
+          c.read(coursesProvider).enReserve('boeuf')!.peremption;
+
+      // Relu du dépôt : le lieu et l'aliment qui y est rangé.
+      final relu = EtatCourses.depuisDocument(depot.lire()!);
+      expect(relu.reglages.lieu('ss')!.nom, 'Congélateur du sous-sol');
+      expect(relu.enReserve('boeuf')!.lieuId, 'ss');
+
+      // Du congélateur du sous-sol au congélateur : même genre, même date.
+      n.deplacer('boeuf', Emplacement.congelateur);
+      expect(lieu(), isNull);
+      expect(date(), DateTime(2026, 12, 24));
+      n.deplacer('boeuf', Emplacement.congelateur, lieu: 'ss');
+      expect(lieu(), 'ss');
+
+      // Le lieu devient un frigo : ce qui y est rangé suit (décongelé).
+      n.enregistrerLieu(
+        const Lieu(
+          id: 'ss',
+          nom: 'Frigo du sous-sol',
+          genre: Emplacement.frigo,
+        ),
+      );
+      final a = c.read(coursesProvider).enReserve('boeuf')!;
+      expect(a.emplacement, Emplacement.frigo);
+      expect(a.peremption!.isBefore(DateTime(2026, 10)), isTrue);
+
+      // Retiré : l'aliment reste, dans le genre.
+      n.supprimerLieu('ss');
+      expect(c.read(coursesProvider).reglages.lieux, isEmpty);
+      expect(lieu(), isNull);
+      expect(
+        c.read(coursesProvider).enReserve('boeuf')!.emplacement,
+        Emplacement.frigo,
+      );
+      // Lecture tolérante : un lieu sans genre est sauté.
+      expect(Lieu.depuisJson({'id': 'x', 'nom': 'Cave'}), isNull);
+    });
+
     test('au magasin → terminer → ranger → le garde-manger', () {
       final depot = Depot.memoire();
       addTearDown(depot.fermer);
