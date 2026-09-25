@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Les quatre capsules du logo de Rhythm, pour la barre d'état (Android la
+     teinte ; seul l'alpha compte). Géométrie de lib/widgets/logo_rhythm.dart
+     dans un carré de 24. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M2.700,8.040A1.560,1.560 0 0,1 5.820,8.040L5.820,15.960A1.560,1.560 0 0,1 2.700,15.960Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M7.860,4.200A1.560,1.560 0 0,1 10.980,4.200L10.980,19.800A1.560,1.560 0 0,1 7.860,19.800Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M13.020,6.360A1.560,1.560 0 0,1 16.140,6.360L16.140,17.640A1.560,1.560 0 0,1 13.020,17.640Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M18.180,9.480A1.560,1.560 0 0,1 21.300,9.480L21.300,14.520A1.560,1.560 0 0,1 18.180,14.520Z" />
+</vector>

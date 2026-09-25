@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Le noir OLED de Rhythm : démarrage, fenêtre, fond de l'icône. -->
+    <color name="noir">#000000</color>
+	<color name="ic_launcher_background">#000000</color>
+</resources>

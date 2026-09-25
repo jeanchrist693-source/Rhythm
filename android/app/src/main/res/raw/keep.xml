@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- R8 retire les ressources qu'aucun code ne cite : l'icône des
+     notifications n'est nommée qu'en texte (« ic_notification », côté
+     Dart). Sans elle, les notifications échouent en silence. -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@drawable/ic_notification" />

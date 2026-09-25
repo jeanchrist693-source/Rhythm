@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sauvegarde automatique (Android 11 et avant) : la base SQLite de Rhythm
+     (app_flutter/rhythm/). Rien d'autre. -->
+<full-backup-content>
+    <include domain="root" path="app_flutter/rhythm/"/>
+</full-backup-content>

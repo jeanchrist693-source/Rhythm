@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Android 12+ : le système impose son splash et ignore windowBackground.
+         Noir OLED, SANS icône (transparente) : le zoom de l'icône de l'app
+         s'y fond, puis Flutter compose le logo en mesure
+         (lib/widgets/scene_ouverture.dart).
+         ⚠️ Ce fichier existe en values-v31 ET values-night-v31 : sur un
+         téléphone en mode sombre, « night » l'emporte sur « v31 », et
+         values-night seul n'a pas ces attributs (piège vécu sur Flow). -->
+    <style name="LaunchTheme" parent="@android:style/Theme.Black.NoTitleBar">
+        <item name="android:windowBackground">@drawable/launch_background</item>
+        <item name="android:windowSplashScreenBackground">@color/noir</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@android:color/transparent</item>
+    </style>
+    <style name="NormalTheme" parent="@android:style/Theme.Black.NoTitleBar">
+        <item name="android:windowBackground">@color/noir</item>
+    </style>
+</resources>
