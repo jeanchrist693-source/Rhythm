@@ -13,6 +13,9 @@ export '../../modele/sports/muscles.dart' show Muscle;
 /// Le sol.
 const double kSol = 0.92;
 
+/// Les marches d'un escalier : hauteur, profondeur.
+const double kMarcheHaut = 0.055, kMarcheProf = 0.105;
+
 /// Ce qui reste en place d'une pose à l'autre : la hanche (par défaut),
 /// les PIEDS (mouvements debout : la hanche recule, les pieds restent
 /// plantés) ou les MAINS (suspendu à une barre).
@@ -27,6 +30,7 @@ class Accessoires {
     this.goblet = false,
     this.bandeGenoux = false,
     this.haltereUne = false,
+    this.haltereTravers = false,
     this.barre = false,
     this.barreDos = false,
     this.kettlebell = false,
@@ -39,11 +43,39 @@ class Accessoires {
     this.elastiqueZ,
     this.marche,
     this.corde = false,
+    this.cordeDouble = false,
     this.tapis = false,
     this.ballon = false,
     this.velo = false,
     this.mur,
+    this.bandeTraction = false,
+    this.plateau = false,
+    this.escalier,
+    this.pente,
+    this.veloFixe = false,
+    this.sac = false,
   });
+
+  /// Le vélo est un vélo D'INTÉRIEUR : un socle et un volant d'inertie au
+  /// lieu des deux roues.
+  final bool veloFixe;
+
+  /// Un sac à dos (randonnée).
+  final bool sac;
+
+  /// Un sol EN PENTE (la montée vers l'avant, par unité d'abscisse) : le
+  /// sol passe par (0,47 ; [kSol]).
+  final double? pente;
+
+  /// Un élastique d'assistance noué à la barre fixe, le genou proche dedans.
+  final bool bandeTraction;
+
+  /// La barre fixe est le BORD D'UNE TABLE (tirage sous une table).
+  final bool plateau;
+
+  /// Un ESCALIER qui défile (on monte sur place) : le nez de la marche 0 au
+  /// début du cycle ; il descend de deux marches par cycle.
+  final Offset? escalier;
 
   /// Un mur vertical à cette abscisse.
   final double? mur;
@@ -54,9 +86,12 @@ class Accessoires {
   /// Un haltère dans chaque main ; [haltereUne] : dans la main proche.
   final bool halteres, haltereUne;
 
-  /// Un haltère tenu debout contre la poitrine, à deux mains (squat
-  /// goblet).
+  /// UN haltère tenu à deux mains jointes, qui pend sous les paumes (squat
+  /// goblet, extension au-dessus de la tête, pull-over, bûcheron).
   final bool goblet;
+
+  /// UN haltère en travers, une main sur chaque bout (hip thrust).
+  final bool haltereTravers;
 
   /// Une mini-bande élastique autour des jambes, sous les genoux.
   final bool bandeGenoux;
@@ -96,8 +131,8 @@ class Accessoires {
   /// Une marche / une chaise : le rectangle de son dessus jusqu'au sol.
   final Rect? marche;
 
-  /// Une corde à sauter.
-  final bool corde;
+  /// Une corde à sauter ; [cordeDouble] : elle passe deux fois par saut.
+  final bool corde, cordeDouble;
 
   /// Un tapis au sol.
   final bool tapis;
@@ -111,6 +146,7 @@ class Accessoires {
     bool halteres = false,
     bool goblet = false,
     bool haltereUne = false,
+    bool haltereTravers = false,
     bool barre = false,
     bool barreDos = false,
     bool kettlebell = false,
@@ -120,6 +156,7 @@ class Accessoires {
     goblet: goblet,
     bandeGenoux: bandeGenoux,
     haltereUne: haltereUne,
+    haltereTravers: haltereTravers,
     barre: barre,
     barreDos: barreDos,
     kettlebell: kettlebell,
@@ -132,15 +169,23 @@ class Accessoires {
     elastiqueZ: elastiqueZ,
     marche: marche,
     corde: corde,
+    cordeDouble: cordeDouble,
     tapis: tapis,
     ballon: ballon,
     velo: velo,
     mur: mur,
+    bandeTraction: bandeTraction,
+    plateau: plateau,
+    escalier: escalier,
+    pente: pente,
+    veloFixe: veloFixe,
+    sac: sac,
   );
 
   bool get tientUneCharge =>
       halteres ||
       haltereUne ||
+      haltereTravers ||
       goblet ||
       barre ||
       barreDos ||

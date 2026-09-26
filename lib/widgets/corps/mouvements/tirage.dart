@@ -270,13 +270,14 @@ final Map<String, AnimCorps> _tirage3 = {
     accessoires: const Accessoires(barreFixe: _barreHaute),
   ),
   'releve_genoux_suspendu': _serie(
+    // Suspendu, genoux à peine fléchis : les pointes ne touchent pas le sol.
     _suspendu3(0.49, 0.251, barre: _barreTresHaute).copier(
       cuisseP: 94,
       cuisseL: 94,
-      jambeP: 104,
-      jambeL: 104,
-      piedP: 60,
-      piedL: 60,
+      jambeP: 118,
+      jambeL: 118,
+      piedP: 44,
+      piedL: 44,
     ),
     _suspendu3(0.5, 0.251, barre: _barreTresHaute, tronc: -99).copier(
       cuisseP: -24,
@@ -327,8 +328,8 @@ final Map<String, AnimCorps> _tirage3 = {
   ),
   // ══ ROWINGS ════════════════════════════════════════════════════════════
   'rowing_penche': _serie(
-    _mainsEn(_penchePlat, 0.575, 0.73, 0.12, const V3(-1, -0.5, 0.3)),
-    _mainsEn(_penchePlat, 0.47, 0.585, 0.14, const V3(-1, -0.5, 0.3)),
+    _mainsEn(_penchePlat, 0.575, 0.73, 0.155, const V3(-1, -0.5, 0.3)),
+    _mainsEn(_penchePlat, 0.47, 0.585, 0.16, const V3(-1, -0.5, 0.3)),
     ab: 0.8,
     ba: 1.3,
     tenueA: 0.25,
@@ -447,18 +448,20 @@ final Map<String, AnimCorps> _tirage3 = {
   // ══ HANCHES ════════════════════════════════════════════════════════════
   'swing_kettlebell': _suite([
     Cle(
-      _brasDirects(_largeur(_pose, z: 0.1), -2, -9, -2, -12),
+      _joindreMains(_brasDirects(_largeur(_pose, z: 0.1), -2, -9, -2, -12)),
       duree: 0.5,
       courbe: Courbe.explosive,
       tenue: 0.1,
     ),
     Cle(
-      _brasDirects(
-        _largeur(_pose, z: 0.1).copier(x: 0.36, y: 0.56, tronc: -34, dos: 2),
-        114,
-        -5,
-        116,
-        -7,
+      _joindreMains(
+        _brasDirects(
+          _largeur(_pose, z: 0.1).copier(x: 0.36, y: 0.56, tronc: -34, dos: 2),
+          114,
+          -5,
+          116,
+          -7,
+        ),
       ),
       duree: 0.55,
       courbe: Courbe.lancee,
@@ -467,24 +470,26 @@ final Map<String, AnimCorps> _tirage3 = {
   ], accessoires: const Accessoires(kettlebell: true)),
   'swing_haltere': _suite([
     Cle(
-      _brasDirects(_largeur(_pose, z: 0.1), -2, -9, -2, -12),
+      _joindreMains(_brasDirects(_largeur(_pose, z: 0.1), -2, -9, -2, -12)),
       duree: 0.5,
       courbe: Courbe.explosive,
       tenue: 0.1,
     ),
     Cle(
-      _brasDirects(
-        _largeur(_pose, z: 0.1).copier(x: 0.36, y: 0.56, tronc: -34, dos: 2),
-        114,
-        -5,
-        116,
-        -7,
+      _joindreMains(
+        _brasDirects(
+          _largeur(_pose, z: 0.1).copier(x: 0.36, y: 0.56, tronc: -34, dos: 2),
+          114,
+          -5,
+          116,
+          -7,
+        ),
       ),
       duree: 0.55,
       courbe: Courbe.lancee,
       tenue: 0.05,
     ),
-  ], accessoires: const Accessoires(haltereUne: true)),
+  ], accessoires: const Accessoires(goblet: true)),
   'swing_une_main': _suite([
     Cle(
       _brasDirects(
@@ -500,11 +505,11 @@ final Map<String, AnimCorps> _tirage3 = {
     ),
     Cle(
       _brasDirects(
-        _largeur(_pose, z: 0.1).copier(x: 0.36, y: 0.56, tronc: -34, dos: 2),
+        _largeur(_pose, z: 0.12).copier(x: 0.36, y: 0.56, tronc: -34, dos: 2),
         114,
-        -3,
+        -13,
         116,
-        -5,
+        -16,
       ).copier(brasL: 150, avantBrasL: 120, ecartBrasL: 20),
       duree: 0.55,
       courbe: Courbe.lancee,
@@ -533,7 +538,7 @@ final Map<String, AnimCorps> _tirage3 = {
     accessoires: const Accessoires(halteres: true),
   ),
   'curl_barre': _serie(
-    _curl(_pieds(_pose, 0.47, z: 0.06), 88, ecart: 13),
+    _barreDevantJambes(_curl(_pieds(_pose, 0.47, z: 0.06), 88, ecart: 13)),
     _curl(_pieds(_pose, 0.47, z: 0.06), -56, ecart: 13),
     ab: 0.9,
     ba: 1.4,
@@ -562,14 +567,16 @@ final Map<String, AnimCorps> _tirage3 = {
     courbeAB: Courbe.explosive,
     accessoires: const Accessoires(haltereUne: true, banc: _bancBasAssise),
   ),
+  // Paumes vers le HAUT (elles regardaient le sol) : la main s'enroule vers
+  // le haut, vivement, et redescend lentement.
   'curl_poignet': _serie(
-    _poignets(-42),
-    _poignets(34),
-    ab: 0.6,
-    ba: 0.9,
-    tenueA: 0.15,
-    tenueB: 0.3,
-    courbeAB: Courbe.explosive,
+    _poignets(-42).copier(pronationP: 180, pronationL: 180),
+    _poignets(34).copier(pronationP: 180, pronationL: 180),
+    ab: 1.0,
+    ba: 0.6,
+    tenueA: 0.3,
+    tenueB: 0.15,
+    courbeBA: Courbe.explosive,
     accessoires: const Accessoires(halteres: true, banc: _bancBasAssise),
   ),
   'marche_fermier': _allure(

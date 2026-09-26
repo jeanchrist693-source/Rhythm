@@ -17,7 +17,7 @@ import 'dart:ui';
 
 import '../../modele/sports/muscles.dart';
 import '../../theme/rhythm_couleurs.dart';
-import 'corps_humain.dart' show Accessoires;
+import 'corps_humain.dart' show Accessoires, kMarcheHaut, kMarcheProf;
 import 'geometrie3.dart';
 import 'peau3.dart';
 import 'squelette3.dart';
@@ -118,6 +118,8 @@ class PeintreCorps3 {
     _c = c;
     _sol(acc);
     _mobilier(acc);
+    final escalier = acc.escalier;
+    if (escalier != null) _escalier(escalier);
     // Le corps : ses triangles, triés.
     final tampon = Tampon3();
     Peau3(
@@ -285,9 +287,10 @@ class PeintreCorps3 {
       _c.drawLine(_e(coins[3]), _e(coins[2]), filet);
       return;
     }
+    final pente = acc.pente ?? 0;
     _c.drawLine(
-      Offset(0.05 * cote, kSol * cote),
-      Offset(0.95 * cote, kSol * cote),
+      Offset(0.05 * cote, (kSol - pente * (0.05 - 0.47)) * cote),
+      Offset(0.95 * cote, (kSol - pente * (0.95 - 0.47)) * cote),
       filet,
     );
   }
@@ -399,7 +402,32 @@ class PeintreCorps3 {
       }
     }
     final fixe = acc.barreFixe;
-    if (fixe != null) {
+    if (fixe != null && acc.plateau) {
+      // Une table : le plateau part du bord (où sont les mains) vers la
+      // tête ; quatre pieds.
+      for (final x in [fixe.dx - 0.28, fixe.dx - 0.01]) {
+        for (final z in [-0.27, 0.27]) {
+          _boite(
+            x - 0.01,
+            x + 0.01,
+            fixe.dy,
+            kSol,
+            z - 0.01,
+            z + 0.01,
+            _meuble,
+          );
+        }
+      }
+      _boite(
+        fixe.dx - 0.3,
+        fixe.dx + 0.008,
+        fixe.dy - 0.014,
+        fixe.dy + 0.016,
+        -0.3,
+        0.3,
+        _meubleClair,
+      );
+    } else if (fixe != null) {
       final montant = Paint()
         ..color = _meuble
         ..strokeWidth = cote * 0.016
@@ -420,10 +448,28 @@ class PeintreCorps3 {
           ..strokeCap = StrokeCap.round,
       );
     }
-    if (acc.velo) _velo();
+    if (acc.velo) _velo(fixe: acc.veloFixe);
   }
 
-  void _velo() {
+  /// L'escalier qui défile : chaque marche, une boîte du dessus de sa
+  /// marche jusqu'au sol, coupée aux bords de l'image.
+  void _escalier(Offset nez) {
+    final o = 2 * phase;
+    for (var k = -6; k <= 7; k++) {
+      final dessus = nez.dy - kMarcheHaut * (k - o);
+      if (dessus >= kSol - 0.002) continue;
+      var xa = nez.dx + kMarcheProf * (k - o);
+      var xb = xa + kMarcheProf;
+      if (xb < 0.1 || xa > 0.82) continue;
+      xa = math.max(xa, 0.1);
+      xb = math.min(xb, 0.82);
+      _boite(xa, xb, dessus, kSol, -0.17, 0.17, _meuble);
+    }
+  }
+
+  /// Le vélo, de profil ; [fixe] : un vélo d'intérieur — un socle posé au
+  /// sol et un volant d'inertie plein à l'avant, pas de roues.
+  void _velo({bool fixe = false}) {
     final trait = Paint()
       ..color = _metalSombre
       ..style = PaintingStyle.stroke
@@ -434,6 +480,10 @@ class PeintreCorps3 {
     const arriere = V3(0.26, kSol - r, 0), avant = V3(0.78, kSol - r, 0);
     const pedalier = V3(0.47, kSol - r, 0);
     const selle = V3(0.42, 0.55, 0), guidon = V3(0.7, 0.5, 0);
+    if (fixe) {
+      _veloFixe(pedalier, selle, guidon);
+      return;
+    }
     for (final roue in [arriere, avant]) {
       final pts = [
         for (var i = 0; i < 32; i++)
@@ -476,6 +526,56 @@ class PeintreCorps3 {
     );
   }
 
+  void _veloFixe(V3 pedalier, V3 selle, V3 guidon) {
+    // Le socle : deux pieds posés en travers, reliés par une poutre.
+    for (final x in [0.3, 0.72]) {
+      _boite(x - 0.03, x + 0.03, kSol - 0.02, kSol, -0.13, 0.13, _meuble);
+    }
+    _boite(0.3, 0.72, kSol - 0.045, kSol - 0.02, -0.018, 0.018, _meuble);
+    final trait = Paint()
+      ..color = _metal
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = cote * 0.013
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    Offset e(V3 p) => _e(p);
+    const volant = V3(0.66, kSol - 0.11, 0);
+    // Le volant d'inertie : un disque plein, à l'avant.
+    _disque(volant, V3.proche, 0.085, 0.03, _metalSombre);
+    final cadre = Path()
+      ..moveTo(
+        e(const V3(0.34, kSol - 0.045, 0)).dx,
+        e(const V3(0.34, kSol - 0.045, 0)).dy,
+      )
+      ..lineTo(e(selle).dx, e(selle).dy)
+      ..moveTo(e(pedalier).dx, e(pedalier).dy)
+      ..lineTo(e(volant).dx, e(volant).dy)
+      ..moveTo(
+        e(const V3(0.66, kSol - 0.045, 0)).dx,
+        e(const V3(0.66, kSol - 0.045, 0)).dy,
+      )
+      ..lineTo(e(guidon).dx, e(guidon).dy)
+      ..moveTo(e(pedalier).dx, e(pedalier).dy)
+      ..lineTo(
+        e(V3.lerp(selle, const V3(0.34, kSol - 0.045, 0), 0.5)).dx,
+        e(V3.lerp(selle, const V3(0.34, kSol - 0.045, 0), 0.5)).dy,
+      );
+    _c.drawPath(cadre, trait);
+    _c.drawLine(
+      e(guidon + const V3(0, 0, 0.08)),
+      e(guidon - const V3(0, 0, 0.08)),
+      trait,
+    );
+    _c.drawLine(
+      e(selle - const V3(0.035, 0, 0)),
+      e(selle + const V3(0.035, 0, 0)),
+      Paint()
+        ..color = _metal
+        ..strokeWidth = cote * 0.02
+        ..strokeCap = StrokeCap.round,
+    );
+  }
+
   // ═══ Le matériel tenu ═════════════════════════════════════════════════════
 
   void _materielTenu(
@@ -483,87 +583,158 @@ class PeintreCorps3 {
     Accessoires acc,
     void Function(double, void Function()) piece,
   ) {
-    // Le matériel est tenu DANS LE POING (le repère de chaque main).
-    final mainP = repereMain(s, true, acc), mainL = repereMain(s, false, acc);
-    if (acc.halteres || acc.haltereUne) {
-      for (final m in acc.halteres ? [mainP, mainL] : [mainP]) {
-        _haltere(m.poignee, m.axePoignee, piece);
+    for (final c in chargesTenues(s, acc)) {
+      switch (c) {
+        case HaltereTenu(:final centre, :final axe):
+          _haltere(centre, axe, piece);
+        case BarreTenue(:final centre, :final axe):
+          _barre(centre, axe, piece);
+        case KettlebellTenue(:final prise, :final bas, :final axePoignee):
+          final boule = c.boule;
+          piece(_z(boule) - 0.004, () {
+            final pts = _ellipsoide(
+              boule,
+              V3.avant * 0.038,
+              V3.proche * 0.038,
+              V3.bas * 0.036,
+            );
+            _solide(
+              pts,
+              _metalSombre,
+              boule - V3.bas * 0.03,
+              boule + V3.bas * 0.03,
+            );
+            final p0 = _e(boule - axePoignee * 0.024 - bas * 0.02);
+            final p1 = _e(prise - bas * 0.01);
+            final p2 = _e(boule + axePoignee * 0.024 - bas * 0.02);
+            _c.drawPath(
+              Path()
+                ..moveTo(p0.dx, p0.dy)
+                ..quadraticBezierTo(p1.dx, p1.dy, p2.dx, p2.dy),
+              Paint()
+                ..color = _metalSombre
+                ..style = PaintingStyle.stroke
+                ..strokeWidth = cote * 0.011,
+            );
+          });
+        case BallonTenu(:final centre):
+          piece(_z(centre), () {
+            final pts = _ellipsoide(
+              centre,
+              V3.avant * 0.05,
+              V3.proche * 0.05,
+              V3.bas * 0.05,
+            );
+            _solide(
+              pts,
+              const Color(0xFF6E6E78),
+              centre - V3.bas * 0.05,
+              centre + V3.bas * 0.05,
+            );
+          });
       }
     }
-    if (acc.goblet) {
-      final centre =
-          V3.lerp(s.brasP.extremite, s.brasL.extremite, 0.5) +
-          s.dirTronc * 0.012;
-      _haltere(centre, s.dirTronc, piece);
+    final fixe = acc.barreFixe;
+    if (acc.bandeTraction && fixe != null) {
+      // L'élastique d'assistance : noué à la barre, il descend en boucle
+      // sous le genou proche — devant le corps, trié parmi ses triangles.
+      final genou = s.jambeP.milieu + V3.bas * 0.02;
+      final trait = Paint()
+        ..color = RhythmCouleurs.menthe.withValues(alpha: 0.9)
+        ..strokeWidth = cote * 0.008
+        ..strokeCap = StrokeCap.round;
+      for (final dz in [-0.022, 0.022]) {
+        final a = V3(fixe.dx, fixe.dy + 0.006, dz), b = genou + V3.proche * dz;
+        const n = 12;
+        for (var i = 0; i < n; i++) {
+          final u = V3.lerp(a, b, i / n), v = V3.lerp(a, b, (i + 1) / n);
+          piece(_z(V3.lerp(u, v, 0.5)), () => _c.drawLine(_e(u), _e(v), trait));
+        }
+      }
     }
-    if (acc.barre) {
-      final centre = V3.lerp(mainP.poignee, mainL.poignee, 0.5);
-      var axe = mainP.poignee - mainL.poignee;
-      axe = axe.norme < 0.08 ? s.lateralEpaules : axe.unite;
-      _barre(centre, axe, piece);
+    if (acc.sac) _sac(s, piece);
+    final e = acc.elastique;
+    if (e != null) {
+      _elastique(
+        s,
+        acc,
+        e,
+        repereMain(s, true, acc),
+        repereMain(s, false, acc),
+        piece,
+      );
     }
-    if (acc.barreDos) {
-      final centre =
-          V3.lerp(s.brasP.racine, s.brasL.racine, 0.5) -
-          s.avantEpaules * 0.055 +
-          s.dirTronc * 0.014;
-      _barre(centre, s.lateralEpaules, piece);
-    }
-    final ensemble =
-        acc.kettlebell && (s.brasP.extremite - s.brasL.extremite).norme < 0.1;
-    for (final m in [
-      if (acc.kettlebell || acc.kettlebells) mainP,
-      if (acc.kettlebells) mainL,
+  }
+
+  /// L'ÉLASTIQUE, d'une attache à chaque poignée, en tronçons triés parmi
+  /// les triangles du corps (il passe derrière la tête, sous le bras). Au
+  /// sol, sous les pieds : une seule attache. Accroché plus haut (porte,
+  /// poteau) : une attache par main, en face d'elle ; derrière le corps,
+  /// hors des épaules — il longe le corps au lieu de le traverser.
+  void _elastique(
+    Squelette3 s,
+    Accessoires acc,
+    Offset e,
+    RepereMain mainP,
+    RepereMain mainL,
+    void Function(double, void Function()) piece,
+  ) {
+    final auSol = e.dy > kSol - 0.12;
+    final trait = Paint()
+      ..color = RhythmCouleurs.menthe.withValues(alpha: 0.9)
+      ..strokeWidth = cote * 0.007
+      ..strokeCap = StrokeCap.round;
+    for (final (b, m, sens) in [
+      (s.brasP, mainP, 1.0),
+      (s.brasL, mainL, -1.0),
     ]) {
-      final prise = ensemble
-          ? V3.lerp(mainP.poignee, mainL.poignee, 0.5)
-          : m.poignee;
-      final bas = m.axe;
-      final boule = prise + bas * 0.05;
-      piece(_z(boule) - 0.004, () {
-        final pts = _ellipsoide(
-          boule,
-          V3.avant * 0.038,
-          V3.proche * 0.038,
-          V3.bas * 0.036,
-        );
-        _solide(
-          pts,
-          _metalSombre,
-          boule - V3.bas * 0.03,
-          boule + V3.bas * 0.03,
-        );
-        final l = m.axePoignee;
-        final p0 = _e(boule - l * 0.024 - bas * 0.02);
-        final p1 = _e(prise - bas * 0.01);
-        final p2 = _e(boule + l * 0.024 - bas * 0.02);
-        _c.drawPath(
-          Path()
-            ..moveTo(p0.dx, p0.dy)
-            ..quadraticBezierTo(p1.dx, p1.dy, p2.dx, p2.dy),
-          Paint()
-            ..color = _metalSombre
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = cote * 0.011,
-        );
-      });
+      final main = m.poignee;
+      var z = acc.elastiqueZ ?? (auSol ? 0.0 : main.z);
+      final epaule = b.racine;
+      final derriere = (V3(e.dx, e.dy, epaule.z) - epaule).dot(s.avantEpaules);
+      if (acc.elastiqueZ == null && !auSol && derriere < 0) {
+        final hors = epaule.z + sens * 0.045;
+        z = sens > 0 ? math.max(z, hors) : math.min(z, hors);
+      }
+      final ancre = V3(e.dx, e.dy, z);
+      const n = 10;
+      for (var i = 0; i < n; i++) {
+        final u = V3.lerp(ancre, main, i / n);
+        final v = V3.lerp(ancre, main, (i + 1) / n);
+        piece(_z(V3.lerp(u, v, 0.5)), () => _c.drawLine(_e(u), _e(v), trait));
+      }
     }
-    if (acc.ballon) {
-      final centre = V3.lerp(s.brasP.extremite, s.brasL.extremite, 0.5);
-      piece(_z(centre), () {
-        final pts = _ellipsoide(
-          centre,
-          V3.avant * 0.05,
-          V3.proche * 0.05,
-          V3.bas * 0.05,
-        );
-        _solide(
-          pts,
-          const Color(0xFF6E6E78),
-          centre - V3.bas * 0.05,
-          centre + V3.bas * 0.05,
-        );
-      });
+  }
+
+  /// Le SAC À DOS : un volume arrondi collé au haut du dos, entre les
+  /// omoplates, et ses bretelles sur les épaules.
+  void _sac(Squelette3 s, void Function(double, void Function()) piece) {
+    final centre = V3.lerp(s.bassin, s.cou, 0.62) - s.avantEpaules * 0.078;
+    final pts = _ellipsoide(
+      centre,
+      s.dirTronc * 0.085,
+      s.lateralEpaules * 0.06,
+      s.avantEpaules * 0.036,
+    );
+    piece(_z(centre), () {
+      _solide(
+        pts,
+        const Color(0xFF4A5A6E),
+        centre - s.dirTronc * 0.085,
+        centre + s.dirTronc * 0.085,
+      );
+    });
+    final bretelle = Paint()
+      ..color = const Color(0xFF3A4757)
+      ..strokeWidth = cote * 0.009
+      ..strokeCap = StrokeCap.round;
+    for (final b in [s.brasP, s.brasL]) {
+      final a = b.racine - s.avantEpaules * 0.02 + s.dirTronc * 0.02;
+      final c = b.racine + s.avantEpaules * 0.035 - s.dirTronc * 0.075;
+      piece(
+        _z(V3.lerp(a, c, 0.5)) + 0.01,
+        () => _c.drawLine(_e(a), _e(c), bretelle),
+      );
     }
   }
 
@@ -576,33 +747,44 @@ class PeintreCorps3 {
       final plateau = centre + axe * (0.046 * sens);
       piece(_z(plateau), () => _disque(plateau, axe, 0.028, 0.02, _metal));
     }
-    piece(_z(centre) - 0.002, () {
-      _c.drawLine(
-        _e(centre + axe * 0.046),
-        _e(centre - axe * 0.046),
-        Paint()
-          ..color = _metalSombre
-          ..strokeWidth = cote * 0.012
-          ..strokeCap = StrokeCap.round,
-      );
-    });
-  }
-
-  void _barre(V3 centre, V3 axe, void Function(double, void Function()) piece) {
-    // La barre, en deux moitiés (chacune trie avec son côté), et ses disques.
-    for (final sens in [1.0, -1.0]) {
-      final bout = centre + axe * (0.3 * sens);
-      final milieu = centre + axe * (0.15 * sens);
-      piece(_z(milieu) - 0.001, () {
+    // La poignée, en trois tronçons triés chacun à sa profondeur (le poing
+    // la recouvre, pas le bras qui passe derrière).
+    for (var i = 0; i < 3; i++) {
+      final u = centre + axe * (0.046 * (2 * i / 3 - 1));
+      final v = centre + axe * (0.046 * (2 * (i + 1) / 3 - 1));
+      piece(_z(V3.lerp(u, v, 0.5)) - 0.002, () {
         _c.drawLine(
-          _e(centre),
-          _e(bout),
+          _e(u),
+          _e(v),
           Paint()
-            ..color = _metal
-            ..strokeWidth = cote * 0.01
+            ..color = _metalSombre
+            ..strokeWidth = cote * 0.012
             ..strokeCap = StrokeCap.round,
         );
       });
+    }
+  }
+
+  void _barre(V3 centre, V3 axe, void Function(double, void Function()) piece) {
+    // La barre, en tronçons triés chacun à sa profondeur (une barre qui
+    // passe devant les cuisses ou la poitrine n'y entre pas), et ses
+    // disques.
+    const n = 8;
+    for (final sens in [1.0, -1.0]) {
+      for (var i = 0; i < n; i++) {
+        final u = centre + axe * (0.3 * sens * i / n);
+        final v = centre + axe * (0.3 * sens * (i + 1) / n);
+        piece(_z(V3.lerp(u, v, 0.5)) - 0.001, () {
+          _c.drawLine(
+            _e(u),
+            _e(v),
+            Paint()
+              ..color = _metal
+              ..strokeWidth = cote * 0.01
+              ..strokeCap = StrokeCap.round,
+          );
+        });
+      }
       final disque = centre + axe * (0.235 * sens);
       piece(_z(disque), () => _disque(disque, axe, 0.072, 0.03, _metalSombre));
     }
@@ -663,21 +845,6 @@ class PeintreCorps3 {
       ..color = RhythmCouleurs.menthe.withValues(alpha: 0.9)
       ..strokeWidth = cote * 0.007
       ..strokeCap = StrokeCap.round;
-    final e = acc.elastique;
-    if (e != null) {
-      // Au sol, sous les pieds : un seul point. Accroché plus haut (porte,
-      // poteau) : une attache par main, pour que l'élastique longe le corps
-      // au lieu de le traverser.
-      final auSol = e.dy > kSol - 0.12;
-      for (final b in [s.brasP, s.brasL]) {
-        final ancre = V3(
-          e.dx,
-          e.dy,
-          acc.elastiqueZ ?? (auSol ? 0 : b.extremite.z),
-        );
-        _c.drawLine(_e(ancre), _e(b.extremite), elastique);
-      }
-    }
     if (acc.bandeMains) {
       _c.drawLine(
         _e(s.brasP.extremite),
@@ -701,7 +868,7 @@ class PeintreCorps3 {
       final axe = (a - b).unite;
       final milieu = V3.lerp(a, b, 0.5);
       final rayon = (kSol + 0.01 - milieu.y).abs();
-      final ang = 2 * math.pi * phase;
+      final ang = 2 * math.pi * phase * (acc.cordeDouble ? 2 : 1);
       final bas = V3.bas.tourne(axe, ang).sansComposante(axe).unite;
       final pts = <Offset>[];
       for (var i = 0; i <= 24; i++) {
@@ -719,4 +886,128 @@ class PeintreCorps3 {
       );
     }
   }
+}
+
+// ═══ La géométrie du matériel tenu ═════════════════════════════════════════
+//
+// Partagée par le peintre et par le contrôle du matériel qui entre dans le
+// corps (`test/outils/collisions_corps_test.dart`).
+
+/// Une charge tenue.
+sealed class Charge {
+  const Charge();
+}
+
+/// Un haltère : son centre et l'axe de sa poignée (plateaux à ±
+/// [demiHaltere], de rayon [rayonPlateau]).
+class HaltereTenu extends Charge {
+  const HaltereTenu(this.centre, this.axe);
+  final V3 centre, axe;
+}
+
+/// Une barre : son centre et son axe (± [demiBarre], disques de rayon
+/// [rayonDisque] à ± [placeDisque]).
+class BarreTenue extends Charge {
+  const BarreTenue(this.centre, this.axe);
+  final V3 centre, axe;
+}
+
+/// Une kettlebell : la poignée, la direction de la boule, l'axe de la
+/// poignée.
+class KettlebellTenue extends Charge {
+  const KettlebellTenue(this.prise, this.bas, this.axePoignee);
+  final V3 prise, bas, axePoignee;
+
+  /// Le centre de la boule (de rayon [rayonBoule]).
+  V3 get boule => prise + bas * 0.05;
+}
+
+/// Un médecine-ball tenu à deux mains.
+class BallonTenu extends Charge {
+  const BallonTenu(this.centre);
+  final V3 centre;
+}
+
+const double demiHaltere = 0.046, rayonPlateau = 0.028;
+const double demiBarre = 0.3, placeDisque = 0.235, rayonDisque = 0.072;
+const double rayonBoule = 0.037, rayonBallon = 0.05;
+
+/// De combien la main est levée plus haut que le poignet (0 : doigts à
+/// l'horizontale ou vers le bas, 1 : vers le haut) — une charge tenue pend
+/// alors sous la main au lieu de prolonger le bras.
+double _levee(V3 axe) {
+  final u = ((-axe.dot(V3.bas) + 0.15) / 0.6).clamp(0.0, 1.0);
+  return u * u * (3 - 2 * u);
+}
+
+/// Les charges que tient le corps [s] : chacune DANS LE POING (le repère
+/// de chaque main).
+List<Charge> chargesTenues(Squelette3 s, Accessoires acc) {
+  final r = <Charge>[];
+  final mainP = repereMain(s, true, acc), mainL = repereMain(s, false, acc);
+  if (acc.halteres || acc.haltereUne) {
+    for (final m in acc.halteres ? [mainP, mainL] : [mainP]) {
+      r.add(HaltereTenu(m.poignee, m.axePoignee));
+    }
+  }
+  if (acc.goblet) {
+    // UN haltère tenu à deux mains jointes, par le plateau du haut : il
+    // PEND sous les paumes (goblet, au-dessus de la tête, entre les
+    // jambes) ; bras tendus devant (swing), il file dans leur
+    // prolongement.
+    var axe = mainP.axe + mainL.axe;
+    axe = axe.norme < 1e-3 ? V3.bas : axe.unite;
+    final d = V3.lerp(axe, V3.bas, _levee(axe)).unite;
+    r.add(
+      HaltereTenu(V3.lerp(mainP.poignee, mainL.poignee, 0.5) + d * 0.036, d),
+    );
+  }
+  if (acc.haltereTravers) {
+    // UN haltère en travers, une main sur chaque bout (sur les hanches).
+    final a = mainP.poignee, b = mainL.poignee;
+    final axe = (a - b).norme < 1e-3 ? s.lateralBassin : (a - b).unite;
+    r.add(HaltereTenu(V3.lerp(a, b, 0.5), axe));
+  }
+  if (acc.barre) {
+    final centre = V3.lerp(mainP.poignee, mainL.poignee, 0.5);
+    var axe = mainP.poignee - mainL.poignee;
+    axe = axe.norme < 0.08 ? s.lateralEpaules : axe.unite;
+    r.add(BarreTenue(centre, axe));
+  }
+  if (acc.barreDos) {
+    final centre =
+        V3.lerp(s.brasP.racine, s.brasL.racine, 0.5) -
+        s.avantEpaules * 0.055 +
+        s.dirTronc * 0.014;
+    r.add(BarreTenue(centre, s.lateralEpaules));
+  }
+  final ensemble =
+      acc.kettlebell && (s.brasP.extremite - s.brasL.extremite).norme < 0.1;
+  for (final (m, sens) in [
+    if (acc.kettlebell || acc.kettlebells) (mainP, 1.0),
+    if (acc.kettlebells) (mainL, -1.0),
+  ]) {
+    final prise = ensemble
+        ? V3.lerp(mainP.poignee, mainL.poignee, 0.5)
+        : m.poignee;
+    // La boule pend dans le prolongement du bras (bras le long du corps,
+    // swing). La main levée plus haut que le poignet : tenue à deux mains
+    // par les cornes, elle pend sous les mains ; d'une main (rack,
+    // développé), elle repose sur le DEHORS de l'avant-bras, sous la
+    // poignée — jamais dans l'épaule.
+    final leve = _levee(m.axe);
+    final repos = ensemble
+        ? (V3.bas * 0.8 + s.avantEpaules * 0.6).unite
+        : (s.lateralEpaules * (0.85 * sens) -
+                  s.avantEpaules * 0.25 -
+                  m.axe * 0.6)
+              .unite;
+    r.add(
+      KettlebellTenue(prise, V3.lerp(m.axe, repos, leve).unite, m.axePoignee),
+    );
+  }
+  if (acc.ballon) {
+    r.add(BallonTenu(V3.lerp(s.brasP.extremite, s.brasL.extremite, 0.5)));
+  }
+  return r;
 }

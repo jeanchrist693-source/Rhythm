@@ -29,7 +29,8 @@ téléphone, § 6), **l'ALIMENTATION est en cours, palier par palier**
 (§ 3 quater : paliers 1 à 4 livrés — le socle, les achats, les
 recettes, l'IA — puis les lots 5 et 6, les finitions du plan, à tester :
 le plan de l'Alimentation est COMPLET). Biblique affiche encore les données de la
-maquette (`lib/modele/graine.dart`), posées sur les vraies dates.
+maquette (`lib/modele/graine.dart`), posées sur les vraies dates ; son plan
+est écrit (§ 3 quinquies), la session LOCALE s'en charge.
 
 ---
 
@@ -358,25 +359,98 @@ baguettes de bonhommes, ça ne le fait pas. »
     grand, `ZOOM=tete|visage|haut|mains|epaule|coude|genou|bassin|pieds`,
     `INSTANT` en pour mille, `LACETS`, `DEBOGAGE=true` — une couleur par
     partie : ce qui manque ou s'entrelace se voit), `inspection_corps_test`
-    (`INSPECTER=1` : les 208 mouvements image par image — pointes, plis
+    (`INSPECTER=1` : les 243 mouvements image par image — pointes, plis
     retournés, étirements, les pires cas et l'articulation la plus proche ;
     comparer AVANT / APRÈS une retouche), `perf_corps_test`
     (`PERF=true` : ≈ 8 à 9 ms une grande figure, ≈ 2 ms une miniature, en
-    JIT).
+    JIT — mesuré ≈ 11 ms le 26 sept. dans le conteneur cloud, AVANT comme
+    APRÈS l'audit : c'est la machine).
+  - Juger le MATÉRIEL et les COLLISIONS (audit du 26 sept. 2026) :
+    `corps_test` accepte `EXERCICES=id,id|tous|charges` (chaque exercice
+    AVEC SON matériel, `animationDe`) ; `portrait_corps_test` accepte un id
+    d'exercice ; `collisions_corps_test` (`COLLISIONS=1`) mesure pour les
+    254 exercices, 32 instants chacun, de combien le matériel tenu entre
+    dans le corps et le corps en lui-même (tronc elliptique, tête,
+    capsules) — les pires d'abord, avec l'instant ; `grille_corps_test`
+    (`PAIRES=id@‰,id@‰`) rend ces instants côte à côte. Le contrôle chiffré
+    TROUVE, l'œil JUGE : un bras qui frôle la cuisse en bas d'un swing est
+    normal, une barre DANS les cuisses non.
   - `figure_exercice.dart` : IMAGES CLÉS (`Cle` : durée, COURBE — on
     descend en contrôlant, on remonte vivement —, tenue) ; `_relier` fait
     GLISSER un membre d'une clé tenue par une cible à une clé libre (sans
     lui, le membre sautait à mi-chemin). `animationDe` adapte la charge au
     matériel de l'exercice ; `cadreDe` cadre sur ce que le corps occupe
     VU PAR SA CAMÉRA (hauteur et largeur).
-  - **208 mouvements**, une famille par fichier (`mouvements/` : jambes,
-    poussee, tirage, tronc, cardio, mobilite, variantes ; outils communs :
+  - **243 mouvements**, une famille par fichier (`mouvements/` : jambes,
+    poussee, tirage, tronc, cardio, mobilite, variantes, DISTINCTS ; outils communs :
     `_pose`, `_pieds`, `_serie` (le tempo d'une répétition), `_suite`,
     `_gaine` (corps gainé des pointes aux épaules), `_pompe`, `_allure`
     (marche, course, montées de genoux… : de vraies foulées, le sol qui
     défile, bras opposés), `_mainsNuque`, `_mainsTempes`). 67 exercices
     du catalogue ont reçu leur mouvement DÉDIÉ (pompe archer, dips jambes
     tendues, planches latérales, Pallof, squat cosaque…).
+  - **L'audit du 26 sept. 2026** (l'utilisateur : « l'haltère rentre dans
+    le corps, les mains ne le tiennent pas bien ; fente aux haltères et
+    fente marchée aux haltères, on ne voit aucune différence ; la chenille,
+    son corps rentre dedans — passe tous les exercices au peigne fin ») :
+    les 254 exercices rendus avec leur matériel, les 243 mouvements revus
+    image par image.
+    - DISTINCTS (`mouvements/distincts.dart`, 36 mouvements) : plus aucun
+      exercice ne partage l'animation d'un autre, sauf quand SEUL le
+      matériel change (haltère / kettlebell, chaise / banc, poids du corps
+      / chargé — 10 cas). Fente AVANT (le pas vers l'avant), CROISÉE (de
+      face, la jambe passe derrière), MARCHÉES (le sol défile, on ne
+      revient jamais pieds joints — avec ou sans haltères), à la pause ;
+      squat PAUSE (3 s en bas) et TEMPO (3 s pour descendre), pompes
+      tempo ; curl MARTEAU, ZOTTMAN, 21 ; rowing en SUPINATION, extension
+      des poignets (paumes en bas — la flexion, paumes en haut, était à
+      l'envers), ARNOLD, élévation UN BRAS (l'autre main à la hanche),
+      tirage menton refait (les coudes montaient au-dessus de la tête) ;
+      squat une jambe SUR CHAISE, mollets UNE jambe, corde DOUBLE (la
+      corde passe deux fois pendant le saut), footing, étirement des
+      adducteurs (tenu) ; squat AVANT (barre sur l'avant des épaules,
+      coudes devant), thruster (haltères aux épaules) et à la kettlebell,
+      soulevés et curl à la kettlebell À DEUX MAINS, hip thrust à
+      l'haltère (en travers des hanches) et à la barre, shrug à la barre ;
+      tirage sous une TABLE (plateau), traction avec l'ÉLASTIQUE
+      d'assistance, montée d'ESCALIERS (l'escalier défile), vélo
+      d'INTÉRIEUR (socle, volant d'inertie), RANDONNÉE (sac au dos),
+      marche en CÔTE (le sol monte, `Accessoires.pente`).
+    - La PRONATION de l'avant-bras (`Pose3.pronationP/L`, degrés : 0 la
+      prise naturelle, 90 marteau, 180 retournée) tourne la main autour de
+      son axe ; et bras le long du corps coude plié, la paume suit le PLI DU
+      COUDE (`repereMain` : elle se retournait vers l'avant en haut d'un
+      curl).
+    - Le MATÉRIEL (`chargesTenues`, `peintre3.dart`, partagé par le
+      peintre et le contrôle) : `goblet` = UN haltère à mains JOINTES qui
+      PEND sous les paumes (il flottait) — goblet, extension au-dessus de
+      la tête, pull-over, bûcheron, russian twist, dead bug, swing ;
+      `haltereTravers` (une main à chaque bout) ; une kettlebell à deux
+      mains pend sous elles, d'une main (rack, développé) elle repose sur
+      le DEHORS de l'avant-bras (elle entrait dans l'épaule) ; la barre, la
+      poignée d'haltère et l'élastique sont peints en TRONÇONS, chacun à
+      sa profondeur (un seul z pour une pièce longue la faisait passer
+      dans le corps ou devant tout) ; l'élastique accroché derrière le
+      corps passe hors des épaules. `_joindreMains` mène les deux mains au
+      milieu (charge à deux mains) en gardant la direction des coudes ;
+      `_barreDevantJambes` pose la barre contre l'avant des cuisses /
+      tibias (elle passait dedans : soulevés, curl, shrug) ;
+      `_mainsBarreDos` tient la barre du squat un peu plus large que les
+      épaules.
+    - Les POSES REPLIÉES : chenille et flexion avant moins pliées (le
+      tronc passait dans les cuisses), pince assise (mains au sol,
+      buste moins bas), burpees (mains entre les genoux ouverts), sauts
+      groupés, patineur, torsion assise, toucher de talons (les mains vont
+      aux talons — elles restaient aux tempes), étirement des triceps et
+      flexion latérale (le bras passe PAR LE CÔTÉ au lieu de traverser la
+      tête), fente basse avec rotation, pigeon (la jambe de devant à plat,
+      elle passait sous le sol), torsion couchée (genoux pliés posés l'un
+      sur l'autre), relevé de genoux suspendu (les pointes touchaient le
+      sol), planche latérale hanche (la descente se voit).
+    - Restent (jugés normaux à l'œil) : un avant-bras qui frôle la cuisse
+      en bas d'un swing ou d'un burpee, les bras croisés du relevé de
+      buste contre les genoux, l'haltère du hip thrust dans le pli des
+      hanches.
   - Juger une pose = la RENDRE : `test/outils/corps_test.dart`
     (`MOUVEMENTS=id,id`, `INSTANTS=8`, `TAILLE=180` ; cadré comme dans
     l'app). Muscle, l'énumération, vit dans le MODÈLE
@@ -1008,6 +1082,38 @@ le sollicite — le reste de l'app ne sort jamais du téléphone.
   conservation appris, lus avec l'état des courses). Les réponses de l'IA
   ne sont pas gardées : une recette l'est une fois AJOUTÉE au livre.
 
+## 3 quinquies. Biblique — le plan (demandé le 25 sept. 2026, à faire EN LOCAL)
+
+Demande de l'utilisateur, en reprenant les idées de Flow : « une étude
+biblique par verset ou par chapitre avec une IA, une Bible intégrée
+complète (Ancien et Nouveau Testament, Louis Segond), la possibilité de
+marquer des versets et de les étudier plus tard ». **Méthode** :
+reproduire TOTALEMENT le modèle de Flow (`C:\Users\Gardien\Applications\flow`,
+`lib/features/bible/` — il n'est pas sur GitHub : seule la session LOCALE
+peut le lire), puis y apporter les modifications (design de Rhythm : noir
+OLED, filets, lavande `#D9C8FF`, pas de cartes ni de lueurs, pages
+secondaires plutôt que feuilles). **C'est la session locale qui s'en
+charge** (le cloud n'a pas Flow). Les lots, dans l'ordre, chacun testé sur
+le téléphone avant le suivant (comme l'Alimentation) :
+
+1. **La Bible intégrée** : Louis Segond 1910 (domaine public), les 66
+   livres, HORS LIGNE (un fichier d'actifs, comme le FCÉN) ; le lecteur
+   (livre → chapitre → versets), « Continuer » là où l'on s'était arrêté,
+   recherche ; le verset du jour et le plan de lecture de la maquette
+   branchés sur la vraie Bible.
+2. **Marquer des versets** : toucher / maintenir un verset → le marquer
+   (surligné, note), « À étudier plus tard » ; la liste des versets
+   marqués ; « Partager ».
+3. **L'étude avec l'IA** (Groq, le service de l'Alimentation,
+   `lib/ia/service_ia.dart`) : étude d'un VERSET ou d'un CHAPITRE
+   (contexte, sens, liens avec d'autres passages, application) ; depuis
+   un verset marqué « à étudier » ; le texte biblique cité vient TOUJOURS
+   du fichier LSG embarqué, jamais de l'IA.
+4. **Prière et méditation** : brancher les boutons « Bientôt disponible »
+   de la maquette (Prière, Méditation).
+
+Chaque lot ajoute SES tables au dépôt (`modele/depot.dart`).
+
 ## 3. Architecture
 
 ```
@@ -1084,8 +1190,8 @@ lib/
                           grille — _Tube —, rendu, tronc, membres, tete,
                           extremites, mains), corps_humain (kSol,
                           Ancre, Accessoires), animations_corps
-                          (Mouvements.tous) + mouvements/ (les 208, par
-                          famille), figure_exercice (Cle, AnimCorps,
+                          (Mouvements.tous) + mouvements/ (les 243, par
+                          famille, et distincts), figure_exercice (Cle, AnimCorps,
                           FigureExercice, animationDe, cadreDe), silhouette
   systeme/                (en plus) rappels_sport, ecran_allume
   l10n/libelles_sport.dart  énumérations → libellés, FormatsSport (kg, km,
@@ -1135,8 +1241,12 @@ test/outils/corps_test.dart  planches des mouvements (16 par PNG) et
                           [MOUVEMENTS=id,id] [INSTANTS=8] [TAILLE=180]
 test/outils/portrait_corps_test.dart  un mouvement en grand, gros plans
                           (ZOOM), angles (LACETS), DEBOGAGE par partie
-test/outils/inspection_corps_test.dart  les déformations des 208
+test/outils/inspection_corps_test.dart  les déformations des 243
                           mouvements (INSPECTER=1)
+test/outils/collisions_corps_test.dart  le matériel dans le corps, le corps
+                          en lui-même, pour les 254 exercices (COLLISIONS=1)
+test/outils/grille_corps_test.dart  des exercices à leur instant, côte à côte
+                          (CAPTURES, PAIRES=id@‰,id@‰)
 test/outils/perf_corps_test.dart  le temps de peindre (PERF=true)
 test/fumee_test.dart      dates, semaine de sport, parcours des cinq
                           onglets à 384 et 360 dp, habitude cochée →
@@ -1459,6 +1569,20 @@ lancer aussi DEPUIS L'ICÔNE.
   tests du service) passe par `HttpOverrides.runWithHttpOverrides` avec
   un `HttpOverrides` nu, ou met `HttpOverrides.global = null`.
 
+- ⛔ Corps 3D : `copier(sansCibles: true, piedCibleP: …)` PERD la cible
+  (`sansCibles` l'emporte) — la jambe du pigeon tombait sous le sol.
+  Poser les cibles dans un SECOND `copier`.
+- Corps 3D : le coude se place PERPENDICULAIREMENT à l'axe épaule → main.
+  Une main loin devant l'épaule ne peut pas avoir son coude devant (le
+  squat avant croisait les bras) : rapprocher la main (sur l'avant de
+  l'épaule, un peu plus haut) ou changer le pôle.
+- Peintre 3D : une pièce de matériel n'a qu'UNE profondeur parmi les
+  triangles du corps — une pièce longue (barre, élastique, poignée) se
+  coupe en tronçons, sinon elle passe dans le corps ou devant tout.
+- Les planches (`corps_test`) montrent les MOUVEMENTS avec leur matériel
+  par défaut ; l'utilisateur voit les EXERCICES (`animationDe` change la
+  charge) — juger avec `EXERCICES=charges`.
+
 ## 6. Prochaines étapes (à valider avec l'utilisateur)
 
 - **Pas encore vérifié sur le téléphone** : la scène d'ouverture filmée,
@@ -1475,11 +1599,11 @@ lancer aussi DEPUIS L'ICÔNE.
   les taxes (une fois `main` à jour). À vérifier aussi : un minuteur
   du mode cuisine quand l'app passe derrière (notification inexacte), le
   rappel de décongélation.
-- Faire vivre Biblique (lecteur, plan, prière, méditation) ; brancher les
-  boutons « Bientôt disponible » (Partager, Continuer, Prière, Méditation).
-  Chaque module ajoutera SES tables au dépôt.
+- Faire vivre Biblique : le plan en quatre lots (§ 3 quinquies), EN LOCAL
+  (reproduire le modèle de Flow, puis l'adapter).
 - Corps 3D, à juger sur le téléphone : la fluidité des figures animées
-  (fiche, séance) et le rendu des 208 mouvements ; l'utilisateur dira
+  (fiche, séance) et le rendu des 243 mouvements (audit du 26 sept. : à
+  REVOIR sur le téléphone, surtout les nouveaux) ; l'utilisateur dira
   lesquels restent peu naturels. Connu, en très gros plan seulement : une
   fine limite à la base du cou (le col du tronc, un peu plus large que le
   cou, prend la lumière autrement — retoucher la forme des trapèzes), une
@@ -1500,7 +1624,19 @@ lancer aussi DEPUIS L'ICÔNE.
 
 ---
 
-**Dernière mise à jour** : 25 septembre 2026 (suite 11) — **Alimentation,
+**Dernière mise à jour** : 26 septembre 2026 (suite 12) — **Sports,
+l'audit de tous les exercices** (§ 3 ter) : sur retour de l'utilisateur
+(haltère dans le corps, mains qui tiennent mal, fente et fente marchée
+identiques, chenille qui rentre en elle-même). Les 254 exercices rendus
+avec leur matériel, les 243 mouvements revus image par image ; 36
+mouvements distincts (plus aucun exercice ne partage l'animation d'un
+autre, sauf changement de matériel) ; pronation de l'avant-bras ; le
+matériel tenu refait (haltère à deux mains, kettlebell, barre devant les
+jambes, élastique et barre peints en tronçons) ; une vingtaine de poses
+repliées ou traversantes corrigées ; deux outils (`collisions_corps_test`,
+`grille_corps_test`). Et le PLAN BIBLIQUE noté (§ 3 quinquies) pour la
+session locale. 225 tests ; analyse vide ; APK pas construit ici.
+— 25 septembre 2026 (suite 11) — **Alimentation,
 lot 6 : le scan et le barème en ligne** (§ 3 quater) — le plan de
 l'Alimentation est complet : scanner un code-barres (caméra, clé contrôlée,
 Open Food Facts → formulaire pré-rempli ; retrouvé sans réseau ; créé à la

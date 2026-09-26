@@ -63,19 +63,24 @@ Pose3 _brasPendus(Pose3 p, {double ecart = 11}) => p.copier(
   ecartAvantBrasL: ecart - 3,
 );
 
-/// Une barre posée sur le haut du dos : les mains la tiennent, larges, les
-/// coudes sous la barre.
+/// Une barre posée sur le haut du dos : les mains la tiennent, un peu plus
+/// larges que les épaules (elles la tenaient au ras des disques), les
+/// coudes sous la barre, vers l'arrière.
 Pose3 _mainsBarreDos(Pose3 p, double tronc) {
-  final penche = tronc + 90;
+  final s = Squelette3.de(p);
+  // Le centre de la barre, comme le peintre la pose (`chargesTenues`).
+  final c =
+      V3.lerp(s.brasP.racine, s.brasL.racine, 0.5) -
+      s.avantEpaules * 0.055 +
+      s.dirTronc * 0.014;
+  final mP = c + s.lateralEpaules * 0.16 - s.avantEpaules * 0.012;
+  final mL = c - s.lateralEpaules * 0.16 - s.avantEpaules * 0.012;
+  final coude = (-s.avantEpaules * 0.7 - s.dirTronc).unite;
   return p.copier(
-    brasP: 118 + penche * 0.6,
-    brasL: 118 + penche * 0.6,
-    ecartBrasP: 52,
-    ecartBrasL: 52,
-    avantBrasP: -118 + penche,
-    avantBrasL: -118 + penche,
-    ecartAvantBrasP: 18,
-    ecartAvantBrasL: 18,
+    mainP: Cible(mP.x, mP.y, mP.z),
+    mainL: Cible(mL.x, mL.y, mL.z),
+    coudeP: V3(coude.x, coude.y, 0.4),
+    coudeL: V3(coude.x, coude.y, -0.4),
   );
 }
 
@@ -141,7 +146,7 @@ final Map<String, AnimCorps> _jambes3 = {
   ),
   'squat_halteres': _serie(
     _brasPendus(_largeur(_pose)),
-    _brasPendus(_basSquat(_largeur(_pose), tronc: -54)),
+    _brasPendus(_basSquat(_largeur(_pose), tronc: -54), ecart: 19),
     ab: 1.6,
     ba: 1.0,
     tenueA: 0.5,
@@ -176,8 +181,11 @@ final Map<String, AnimCorps> _jambes3 = {
     camera: Camera3.face,
   ),
   'squat_sumo_charge': _serie(
-    _mainsCharge(_sumo(_pose)),
-    _mainsCharge(_sumo(_pose).copier(y: 0.66, tronc: -80)),
+    _joindreMains(_mainsCharge(_sumo(_pose)), avance: 0.07),
+    _joindreMains(
+      _mainsCharge(_sumo(_pose).copier(y: 0.66, tronc: -80)),
+      avance: 0.05,
+    ),
     ab: 1.5,
     ba: 1.0,
     tenueA: 0.45,
@@ -278,28 +286,6 @@ final Map<String, AnimCorps> _jambes3 = {
     tenueB: 0.3,
     accessoires: const Accessoires(marche: _chaise),
   ),
-  'thruster': _suite([
-    Cle(_goblet(_largeur(_pose), -90).copier(), duree: 0.7, tenue: 0.2),
-    Cle(
-      _goblet(_largeur(_pose).copier(x: 0.35, y: 0.7, tronc: -60, dos: 2), -60),
-      duree: 1.1,
-    ),
-    Cle(
-      _largeur(_pose).copier(
-        brasP: -92,
-        brasL: -92,
-        avantBrasP: -92,
-        avantBrasL: -92,
-        ecartBrasP: 16,
-        ecartBrasL: 16,
-        ecartAvantBrasP: 12,
-        ecartAvantBrasL: 12,
-      ),
-      duree: 0.75,
-      courbe: Courbe.explosive,
-      tenue: 0.25,
-    ),
-  ], accessoires: const Accessoires(halteres: true)),
   // ══ FENTES ═════════════════════════════════════════════════════════════
   'fente': _fenteArriere(),
   'fente_halteres': _fenteArriere(
@@ -507,21 +493,19 @@ final Map<String, AnimCorps> _jambes3 = {
     tenueA: 0.3,
     tenueB: 0.7,
     courbeAB: Courbe.explosive,
-    accessoires: const Accessoires(
-      barre: true,
-      banc: Rect.fromLTRB(0.02, 0.65, 0.3, 0.685),
-    ),
+    // Au poids du corps ; chargé : `hip_thrust_haltere`, `hip_thrust_barre`.
+    accessoires: const Accessoires(banc: Rect.fromLTRB(0.02, 0.65, 0.3, 0.685)),
   ),
   // ══ CHARNIÈRE DE HANCHE ════════════════════════════════════════════════
   'souleve_roumain': _serie(
-    _brasPendus(_pieds(_pose, 0.47, z: 0.06), ecart: 6),
+    _brasPendus(_pieds(_pose, 0.47, z: 0.06), ecart: 12),
     _brasPendus(
       _pieds(
         _pose,
         0.47,
         z: 0.06,
       ).copier(x: 0.35, y: 0.515, tronc: -14, dos: 2, tete: -24),
-      ecart: 6,
+      ecart: 10,
     ),
     ab: 1.8,
     ba: 1.2,
@@ -530,14 +514,16 @@ final Map<String, AnimCorps> _jambes3 = {
     accessoires: const Accessoires(halteres: true),
   ),
   'souleve_roumain_barre': _serie(
-    _brasPendus(_pieds(_pose, 0.47, z: 0.06), ecart: 13),
-    _brasPendus(
-      _pieds(
-        _pose,
-        0.47,
-        z: 0.06,
-      ).copier(x: 0.35, y: 0.515, tronc: -14, dos: 2, tete: -24),
-      ecart: 13,
+    _barreDevantJambes(_brasPendus(_pieds(_pose, 0.47, z: 0.06), ecart: 13)),
+    _barreDevantJambes(
+      _brasPendus(
+        _pieds(
+          _pose,
+          0.47,
+          z: 0.06,
+        ).copier(x: 0.35, y: 0.515, tronc: -14, dos: 2, tete: -24),
+        ecart: 13,
+      ),
     ),
     ab: 1.8,
     ba: 1.2,
@@ -551,13 +537,13 @@ final Map<String, AnimCorps> _jambes3 = {
         _pose,
         0.5,
       ).copier(x: 0.5, piedCibleL: const Cible(0.46, yCheville - 0.03)),
-      ecart: 6,
+      ecart: 12,
     ),
     _brasPendus(
       _pieds(_pose, 0.5)
           .copier(x: 0.39, y: 0.505, tronc: -6, tete: -16, piedCibleL: null)
           .copier(piedCibleL: const Cible(0.02, 0.5)),
-      ecart: 6,
+      ecart: 10,
     ).copier(piedL: 90),
     ab: 1.8,
     ba: 1.3,
@@ -566,23 +552,66 @@ final Map<String, AnimCorps> _jambes3 = {
     accessoires: const Accessoires(halteres: true),
   ),
   'souleve_terre': _serie(
-    _deadlift(bas: true, yMains: kSol - 0.06, z: 0.12),
-    _deadlift(bas: false, yMains: 0.575, z: 0.12),
+    _deadlift(bas: true, yMains: kSol - 0.06, z: 0.155),
+    _deadlift(bas: false, yMains: 0.575, z: 0.155),
     ab: 1.2,
     ba: 1.5,
     tenueA: 0.35,
     tenueB: 0.45,
     accessoires: const Accessoires(halteres: true),
   ),
-  'souleve_terre_barre': _serie(
-    _deadlift(bas: true, yMains: kSol - 0.076, z: 0.11),
-    _deadlift(bas: false, yMains: 0.575, z: 0.11),
-    ab: 1.2,
-    ba: 1.5,
-    tenueA: 0.35,
-    tenueB: 0.45,
-    accessoires: const Accessoires(barre: true),
-  ),
+  // La barre monte à la verticale, contre les tibias puis les cuisses (les
+  // genoux reculent pour la laisser passer) — elle passait dedans.
+  'souleve_terre_barre': _suite([
+    Cle(
+      _barreDevantJambes(
+        _deadlift(bas: true, yMains: kSol - 0.076, z: 0.13),
+        y: kSol - 0.076,
+        z: 0.13,
+      ),
+      duree: 0.8,
+      tenue: 0.35,
+    ),
+    Cle(
+      _barreDevantJambes(
+        _deadlift(bas: true, yMains: 0.7, z: 0.13).copier(
+          x: 0.4,
+          y: 0.575,
+          tronc: -50,
+          tete: -46,
+          genouP: const V3(0.4, -0.3, 0.2),
+          genouL: const V3(0.4, -0.3, -0.2),
+        ),
+        y: 0.705,
+        z: 0.13,
+      ),
+      duree: 0.6,
+    ),
+    Cle(
+      _barreDevantJambes(
+        _deadlift(bas: false, yMains: 0.575, z: 0.13),
+        z: 0.13,
+      ),
+      duree: 0.6,
+      courbe: Courbe.explosive,
+      tenue: 0.45,
+    ),
+    Cle(
+      _barreDevantJambes(
+        _deadlift(bas: true, yMains: 0.7, z: 0.13).copier(
+          x: 0.4,
+          y: 0.575,
+          tronc: -50,
+          tete: -46,
+          genouP: const V3(0.4, -0.3, 0.2),
+          genouL: const V3(0.4, -0.3, -0.2),
+        ),
+        y: 0.705,
+        z: 0.13,
+      ),
+      duree: 0.8,
+    ),
+  ], accessoires: const Accessoires(barre: true)),
   'good_morning': _serie(
     _mainsNuque(_pieds(_pose, 0.47, z: 0.06)),
     _mainsNuque(
@@ -764,20 +793,29 @@ AnimCorps _fenteArriere({
 }
 
 /// La fente : un pied devant (tibia vertical), l'autre derrière sur la
-/// pointe ; en bas, le genou arrière frôle le sol.
-Pose3 _fente({required bool avantP, required bool bas}) {
-  const xAvant = 0.56, xArriere = 0.2;
+/// pointe ; en bas, le genou arrière frôle le sol. Le pied de devant en
+/// [xAvant], celui de derrière en [xArriere] (à [zArriere] du milieu :
+/// croisé derrière l'autre dans une fente croisée).
+Pose3 _fente({
+  required bool avantP,
+  required bool bas,
+  double xAvant = 0.56,
+  double xArriere = 0.2,
+  double? zArriere,
+}) {
   final p = _pose.copier(
-    x: bas ? 0.385 : 0.4,
+    x: xArriere + (bas ? 0.185 : 0.2),
     y: bas ? 0.675 : 0.53,
     tronc: bas ? -84 : -87,
     piedCibleP: Cible(
       avantP ? xAvant : xArriere,
       avantP ? yCheville : kSol - 0.075,
+      avantP ? null : zArriere,
     ),
     piedCibleL: Cible(
       avantP ? xArriere : xAvant,
       avantP ? kSol - 0.075 : yCheville,
+      avantP ? zArriere : null,
     ),
     piedP: avantP ? 0 : 62,
     piedL: avantP ? 62 : 0,

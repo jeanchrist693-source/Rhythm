@@ -98,6 +98,25 @@ Pose3 _mainsNuque(Pose3 p, {double ouverture = 1}) {
   );
 }
 
+/// Les deux mains JOINTES (une charge tenue à deux mains) : chaque main est
+/// menée au milieu des deux, à [ecart] de lui de chaque côté, avancée de
+/// [avance] devant les épaules.
+/// Les coudes gardent leur direction (un coude pointé vers le haut ne
+/// retombe pas).
+Pose3 _joindreMains(Pose3 p, {double ecart = 0.026, double avance = 0}) {
+  final s = Squelette3.de(p);
+  final m =
+      V3.lerp(s.brasP.extremite, s.brasL.extremite, 0.5) +
+      s.avantEpaules * avance;
+  V3 pli(Membre3 b) => b.milieu - V3.lerp(b.racine, b.extremite, 0.5);
+  return p.copier(
+    mainP: Cible(m.x, m.y, m.z + ecart),
+    mainL: Cible(m.x, m.y, m.z - ecart),
+    coudeP: p.coudeP ?? pli(s.brasP),
+    coudeL: p.coudeL ?? pli(s.brasL),
+  );
+}
+
 /// La direction (en degrés) de [a] vers [b], dans le plan sagittal.
 double _angle(double ax, double ay, double bx, double by) =>
     math.atan2(by - ay, bx - ax) * 180 / math.pi;

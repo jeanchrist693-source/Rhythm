@@ -323,7 +323,7 @@ AnimCorps animationDe(ExerciceSport e) => _parExercice.putIfAbsent(e.id, () {
   if (barre && !a.barre && !a.barreDos) {
     return base.avec(a.avecCharge(barre: true));
   }
-  if (hal && !a.halteres && !a.haltereUne && !a.goblet) {
+  if (hal && !a.halteres && !a.haltereUne && !a.goblet && !a.haltereTravers) {
     return base.avec(a.avecCharge(halteres: true));
   }
   if (!kb && !barre && !hal) return base.avec(a.avecCharge());

@@ -7,7 +7,8 @@
 //
 //   flutter test --dart-define=CAPTURES=<dossier> test/outils/portrait_corps_test.dart
 //
-// [MOUVEMENTS] (ids, « squat » par défaut), [INSTANT] (0..1, 0 par défaut —
+// [MOUVEMENTS] (ids, « squat » par défaut ; l'id d'un EXERCICE du catalogue
+// qui n'est pas un mouvement le rend avec son matériel), [INSTANT] (0..1, 0 par défaut —
 // en pour mille : 500 = 0,5), [TAILLE] (900 px), [LACETS] (angles de caméra
 // séparés par des virgules ; sinon celui du mouvement), [ZOOM] (tete, haut,
 // mains, pieds ou corps).
@@ -18,6 +19,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show RenderRepaintBoundary;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:rhythm/modele/sports/catalogue.dart';
 import 'package:rhythm/widgets/corps/animations_corps.dart';
 import 'package:rhythm/widgets/corps/corps_humain.dart';
 import 'package:rhythm/widgets/corps/figure_exercice.dart';
@@ -110,7 +112,7 @@ void main() {
     const taille = 0.0 + int.fromEnvironment('TAILLE', defaultValue: 900);
     const instant = int.fromEnvironment('INSTANT', defaultValue: 0) / 1000;
     for (final id in ids) {
-      final anim = Mouvements.de(id)!;
+      final anim = Mouvements.de(id) ?? animationDe(Catalogue.de(id)!);
       final cameras = _lacets.isEmpty
           ? [anim.camera]
           : [

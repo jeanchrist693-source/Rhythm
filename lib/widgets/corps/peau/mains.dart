@@ -75,7 +75,18 @@ RepereMain repereMain(Squelette3 s, bool proche, Accessoires acc) {
   a = a.norme < 1e-6 ? dAvant : a.unite;
   // Le côté du pli de l'avant-bras (celui du biceps, de la paume en
   // supination).
-  final flexion = _Membres._avantBras(s, dAvant);
+  var flexion = _Membres._avantBras(s, dAvant);
+  // Bras le long du corps, coude plié (curl, rack) : la paume suit le PLI
+  // DU COUDE, tournée vers l'épaule — sans quoi elle se retournait vers
+  // l'avant dès que l'avant-bras passait l'horizontale (un curl inversé).
+  final pli = (b.racine - b.milieu).sansComposante(dAvant);
+  final colle = _lisse(0.8, 0.95, (b.milieu - b.racine).unite.dot(-s.dirTronc));
+  final suivi = colle * _lisse(0.12, 0.3, pli.norme / lBras);
+  if (suivi > 0 && pli.norme > 1e-4) {
+    final c = pli.unite;
+    final angle = math.atan2(flexion.cross(c).dot(dAvant), flexion.dot(c));
+    flexion = flexion.tourne(dAvant, angle * suivi).unite;
+  }
   // Bras pendant le long du corps : la paume regarde la cuisse.
   final pendant = _lisse(0.45, 0.85, -a.dot(s.dirTronc));
   final dedans = -s.lateralEpaules * cote;
@@ -83,6 +94,7 @@ RepereMain repereMain(Squelette3 s, bool proche, Accessoires acc) {
   var prise = 0.3;
   final tient =
       acc.halteres ||
+      acc.haltereTravers ||
       acc.kettlebells ||
       acc.barre ||
       acc.barreDos ||
@@ -106,6 +118,9 @@ RepereMain repereMain(Squelette3 s, bool proche, Accessoires acc) {
   }
   p = p.sansComposante(a);
   p = p.norme < 1e-3 ? flexion.sansComposante(a).unite : p.unite;
+  // L'avant-bras tourné sur lui-même (curl marteau, Zottman, Arnold).
+  final pronation = proche ? s.pronationP : s.pronationL;
+  if (pronation != 0) p = p.tourne(a, rad(pronation) * cote).unite;
   return RepereMain(w, a, p, p.cross(a).unite * cote, prise);
 }
 

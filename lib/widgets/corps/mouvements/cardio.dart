@@ -33,17 +33,19 @@ Pose3 _jack(double z, double bras, {double air = 0, double flexion = 0}) =>
     );
 
 /// Accroupi, les mains posées au sol devant les pieds (burpee).
-final Pose3 _accroupiMains = _pieds(_pose, 0.47, z: 0.07).copier(
+final Pose3 _accroupiMains = _pieds(_pose, 0.47, z: 0.09).copier(
   x: 0.38,
   y: 0.69,
   tronc: -30,
   tete: -20,
-  mainP: const Cible(0.6, yPaume, 0.1),
-  mainL: const Cible(0.6, yPaume, -0.1),
-  coudeP: const V3(-0.5, 0, 1),
-  coudeL: const V3(-0.5, 0, -1),
-  genouP: const V3(1, -0.3, 0.3),
-  genouL: const V3(1, -0.3, -0.3),
+  // Les mains entre les genoux, qui s'ouvrent : les bras ne traversent
+  // plus les cuisses.
+  mainP: const Cible(0.6, yPaume, 0.05),
+  mainL: const Cible(0.6, yPaume, -0.05),
+  coudeP: const V3(-0.5, 0, 0.4),
+  coudeL: const V3(-0.5, 0, -0.4),
+  genouP: const V3(1, -0.3, 0.75),
+  genouL: const V3(1, -0.3, -0.75),
 );
 
 /// La planche du burpee (mains en 0,6, pieds sautés derrière).
@@ -165,10 +167,27 @@ Pose3 _patineur({required bool proche, bool air = false}) {
     genouL: const V3(1, 0, -0.2),
     brasP: proche ? 150 : 40,
     brasL: proche ? 40 : 150,
-    ecartBrasP: proche ? 10 : -20,
-    ecartBrasL: proche ? -20 : 10,
+    ecartBrasP: proche ? 24 : -20,
+    ecartBrasL: proche ? -20 : 24,
     avantBrasP: proche ? 140 : 20,
     avantBrasL: proche ? 20 : 140,
+  );
+}
+
+/// La pente de la marche en côte (≈ 10 %).
+const double _penteCote = 0.1;
+
+/// Les pieds de [p] posés sur un sol de pente [pente] (qui passe par
+/// x = 0,47 au niveau du sol), la pointe relevée d'autant.
+Pose3 _surLaPente(Pose3 p, double pente) {
+  final angle = math.atan(pente) * 180 / math.pi;
+  Cible? sur(Cible? c) =>
+      c == null ? null : Cible(c.x, c.y - pente * (c.x - 0.47), c.z);
+  return p.copier(
+    piedCibleP: sur(p.piedCibleP),
+    piedCibleL: sur(p.piedCibleL),
+    piedP: p.piedP - angle,
+    piedL: p.piedL - angle,
   );
 }
 
@@ -254,9 +273,16 @@ final Map<String, AnimCorps> _cardio3 = {
   ], camera: Camera3.face),
   'saut_groupe': _suite([
     Cle(
-      _brasDevant(
-        _largeur(_pose).copier(x: 0.4, y: 0.6, tronc: -60),
-      ).copier(brasP: 130, brasL: 130, avantBrasP: 120, avantBrasL: 120),
+      _brasDevant(_largeur(_pose).copier(x: 0.4, y: 0.6, tronc: -60)).copier(
+        brasP: 130,
+        brasL: 130,
+        avantBrasP: 120,
+        avantBrasL: 120,
+        ecartBrasP: 20,
+        ecartBrasL: 20,
+        ecartAvantBrasP: 14,
+        ecartAvantBrasL: 14,
+      ),
       duree: 0.45,
       tenue: 0.15,
     ),
@@ -274,10 +300,15 @@ final Map<String, AnimCorps> _cardio3 = {
         jambeL: 96,
         piedP: 60,
         piedL: 60,
-        brasP: 40,
-        brasL: 40,
-        avantBrasP: -20,
-        avantBrasL: -20,
+        // Les bras devant, hors des genoux ramenés.
+        brasP: 16,
+        brasL: 16,
+        avantBrasP: -14,
+        avantBrasL: -14,
+        ecartBrasP: 26,
+        ecartBrasL: 26,
+        ecartAvantBrasP: 12,
+        ecartAvantBrasL: 12,
       ),
       duree: 0.32,
       courbe: Courbe.explosive,
@@ -348,10 +379,15 @@ final Map<String, AnimCorps> _cardio3 = {
         jambeL: 96,
         piedP: 60,
         piedL: 60,
-        brasP: 40,
-        brasL: 40,
-        avantBrasP: -20,
-        avantBrasL: -20,
+        // Les bras devant, hors des genoux ramenés.
+        brasP: 16,
+        brasL: 16,
+        avantBrasP: -14,
+        avantBrasL: -14,
+        ecartBrasP: 26,
+        ecartBrasL: 26,
+        ecartAvantBrasP: 12,
+        ecartAvantBrasL: 12,
       ),
       duree: 0.38,
       courbe: Courbe.explosive,
@@ -399,10 +435,11 @@ final Map<String, AnimCorps> _cardio3 = {
     // On se plie, les mains au sol devant les pieds.
     Cle(
       _pieds(_pose, 0.3).copier(
-        x: 0.24,
+        x: 0.22,
         y: 0.5,
-        tronc: 70,
-        tete: 80,
+        tronc: 52,
+        tete: 66,
+        dos: 6,
         mainP: const Cible(0.46, yPaume, 0.09),
         mainL: const Cible(0.46, yPaume, -0.09),
       ),
@@ -451,10 +488,11 @@ final Map<String, AnimCorps> _cardio3 = {
     ),
     Cle(
       _pieds(_pose, 0.3).copier(
-        x: 0.24,
+        x: 0.22,
         y: 0.5,
-        tronc: 70,
-        tete: 80,
+        tronc: 52,
+        tete: 66,
+        dos: 6,
         mainP: const Cible(0.46, yPaume, 0.09),
         mainL: const Cible(0.46, yPaume, -0.09),
       ),
@@ -552,6 +590,8 @@ final Map<String, AnimCorps> _cardio3 = {
     tronc: -85,
     yHanche: hDebout + 0.004,
   ),
+  // Sur un sol qui MONTE (il était plat) : chaque pied se pose sur la
+  // pente, pointe relevée ; le buste penché vers l'avant.
   'marche_cote': _allure(
     duree: 1.2,
     pas: 0.11,
@@ -559,6 +599,8 @@ final Map<String, AnimCorps> _cardio3 = {
     bras: 24,
     coude: 30,
     yHanche: hDebout + 0.008,
+    retouche: (p, u) => _surLaPente(p, _penteCote),
+    accessoires: const Accessoires(pente: _penteCote),
   ),
   'velo': _suite([
     for (var i = 0; i < 12; i++)

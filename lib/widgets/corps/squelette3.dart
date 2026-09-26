@@ -89,6 +89,8 @@ class Pose3 {
     this.haussement = 0,
     this.poignetP = 0,
     this.poignetL = 0,
+    this.pronationP = 0,
+    this.pronationL = 0,
     this.brasP = 90,
     this.ecartBrasP = 7,
     this.avantBrasP = 84,
@@ -157,6 +159,12 @@ class Pose3 {
   /// La main pliée au poignet (> 0 : vers la paume).
   final double poignetP, poignetL;
 
+  /// L'avant-bras TOURNÉ sur lui-même, en degrés (> 0 : pronation — la
+  /// paume passe de vers le haut à face à face, puis vers le bas ; bras
+  /// pendant, de face à la cuisse à vers l'arrière). 0 : la prise
+  /// naturelle du mouvement.
+  final double pronationP, pronationL;
+
   // ── Bras ──────────────────────────────────────────────────────────────────
   final double brasP, ecartBrasP, avantBrasP, ecartAvantBrasP;
   final double brasL, ecartBrasL, avantBrasL, ecartAvantBrasL;
@@ -193,6 +201,8 @@ class Pose3 {
     double? haussement,
     double? poignetP,
     double? poignetL,
+    double? pronationP,
+    double? pronationL,
     double? brasP,
     double? ecartBrasP,
     double? avantBrasP,
@@ -240,6 +250,8 @@ class Pose3 {
     haussement: haussement ?? this.haussement,
     poignetP: poignetP ?? this.poignetP,
     poignetL: poignetL ?? this.poignetL,
+    pronationP: pronationP ?? this.pronationP,
+    pronationL: pronationL ?? this.pronationL,
     brasP: brasP ?? this.brasP,
     ecartBrasP: ecartBrasP ?? this.ecartBrasP,
     avantBrasP: avantBrasP ?? this.avantBrasP,
@@ -316,6 +328,8 @@ class Pose3 {
       haussement: l(a.haussement, b.haussement),
       poignetP: l(a.poignetP, b.poignetP),
       poignetL: l(a.poignetL, b.poignetL),
+      pronationP: l(a.pronationP, b.pronationP),
+      pronationL: l(a.pronationL, b.pronationL),
       brasP: l(a.brasP, b.brasP),
       ecartBrasP: l(a.ecartBrasP, b.ecartBrasP),
       avantBrasP: l(a.avantBrasP, b.avantBrasP),
@@ -389,6 +403,9 @@ class Squelette3 {
   /// Une main posée À PLAT au sol : la direction de ses doigts (sinon
   /// `null`) et ses jointures, sur le sol.
   V3? doigtsAuSolP, doigtsAuSolL, jointuresP, jointuresL;
+
+  /// La pronation de chaque avant-bras ([Pose3.pronationP]).
+  double pronationP = 0, pronationL = 0;
 
   static double teteNaturelle(double tronc) {
     if (tronc > -165 && tronc < -15) return tronc - (tronc + 90) * 0.35;
@@ -514,6 +531,8 @@ class Squelette3 {
 
   void _construire(Pose3 p) {
     bassin = V3.zero;
+    pronationP = p.pronationP;
+    pronationL = p.pronationL;
     final sag = direction(p.tronc, 0, 1);
     final i = rad(p.inclinaison);
     dirTronc = (sag * math.cos(i) + V3.proche * math.sin(i)).unite;

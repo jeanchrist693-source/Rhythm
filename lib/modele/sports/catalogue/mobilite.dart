@@ -258,7 +258,7 @@ const List<ExerciceSport> exercicesMobilite = [
     'etirement_adducteurs',
     'Étirement des adducteurs',
     mobi,
-    'fente_laterale',
+    'etirement_adducteurs',
     principaux: [add],
     mesure: duree,
     parCote: true,

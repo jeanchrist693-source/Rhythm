@@ -22,6 +22,7 @@ import 'figure_exercice.dart';
 import 'geometrie3.dart';
 import 'squelette3.dart'
     show
+        Membre3,
         Squelette3,
         baisseEpaule,
         hDebout,
@@ -41,6 +42,7 @@ part 'mouvements/tronc.dart';
 part 'mouvements/cardio.dart';
 part 'mouvements/mobilite.dart';
 part 'mouvements/variantes.dart';
+part 'mouvements/distincts.dart';
 
 abstract final class Mouvements {
   /// Tous les mouvements, famille par famille.
@@ -52,6 +54,7 @@ abstract final class Mouvements {
     ..._cardio3,
     ..._mobilite3,
     ..._variantes3,
+    ..._distincts3,
   };
 
   static AnimCorps? de(String id) => tous[id];

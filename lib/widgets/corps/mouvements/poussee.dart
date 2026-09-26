@@ -569,7 +569,7 @@ final Map<String, AnimCorps> _poussee3 = {
     ba: 1.1,
     tenueA: 0.3,
     tenueB: 0.2,
-    accessoires: const Accessoires(haltereUne: true, banc: _bancPlat),
+    accessoires: const Accessoires(goblet: true, banc: _bancPlat),
   ),
   // ══ DIPS ═══════════════════════════════════════════════════════════════
   'dips_banc': _serie(
@@ -705,8 +705,8 @@ final Map<String, AnimCorps> _poussee3 = {
     accessoires: const Accessoires(elastique: Offset(0.47, kSol - 0.004)),
   ),
   'elevation_frontale': _serie(
-    _brasDirects(_pieds(_pose, 0.47, z: 0.06), 84, 6, 80, 4),
-    _brasDirects(_pieds(_pose, 0.47, z: 0.06), -2, 8, -4, 6),
+    _brasDirects(_pieds(_pose, 0.47, z: 0.06), 84, 12, 80, 9),
+    _brasDirects(_pieds(_pose, 0.47, z: 0.06), -2, 10, -4, 8),
     ab: 0.9,
     ba: 1.4,
     tenueA: 0.25,
@@ -722,21 +722,25 @@ final Map<String, AnimCorps> _poussee3 = {
     tenueB: 0.35,
     accessoires: const Accessoires(halteres: true),
   ),
+  // Bras tendus, haltères devant les cuisses ; ils montent le long du
+  // corps jusqu'à la poitrine, les COUDES ouverts sur les côtés, à hauteur
+  // d'épaules (ils montaient au-dessus de la tête, mains sur les hanches au
+  // départ).
   'rowing_menton': _serie(
     _mainsEn(
       _pieds(_pose, 0.47, z: 0.06),
-      0.52,
-      0.5,
-      0.06,
-      const V3(0, -1, 1.2),
-    ),
+      0.535,
+      0.565,
+      0.07,
+      const V3(0, 1, 0.4),
+    ).copier(pronationP: 90, pronationL: 90),
     _mainsEn(
       _pieds(_pose, 0.47, z: 0.06),
-      0.52,
-      0.29,
-      0.06,
-      const V3(0, -1, 1.2),
-    ),
+      0.53,
+      0.37,
+      0.16,
+      const V3(0, -1, 0.3),
+    ).copier(pronationP: 90, pronationL: 90),
     ab: 0.9,
     ba: 1.3,
     tenueA: 0.25,
@@ -769,13 +773,17 @@ final Map<String, AnimCorps> _poussee3 = {
   ], camera: Camera3.dessus),
   // ══ TRICEPS ════════════════════════════════════════════════════════════
   'extension_triceps': _serie(
-    _brasDirects(_pieds(_pose, 0.47, z: 0.06), -96, -7, -94, -10),
-    _brasDirects(_pieds(_pose, 0.47, z: 0.06), -100, -7, -214, -16),
+    _joindreMains(
+      _brasDirects(_pieds(_pose, 0.47, z: 0.06), -96, -7, -94, -10),
+    ),
+    _joindreMains(
+      _brasDirects(_pieds(_pose, 0.47, z: 0.06), -100, -7, -214, -16),
+    ),
     ab: 1.4,
     ba: 0.9,
     tenueA: 0.3,
     tenueB: 0.15,
-    accessoires: const Accessoires(haltereUne: true),
+    accessoires: const Accessoires(goblet: true),
   ),
   'extension_triceps_elastique': _serie(
     _brasDirects(_decale(_pose), -96, -7, -94, -10),
@@ -787,8 +795,8 @@ final Map<String, AnimCorps> _poussee3 = {
     accessoires: const Accessoires(elastique: Offset(0.37, kSol - 0.004)),
   ),
   'kickback': _serie(
-    _brasDirects(_penchePlat, 166, 4, 88, 2),
-    _brasDirects(_penchePlat, 170, 4, 168, 2),
+    _brasDirects(_penchePlat, 166, 12, 88, 10),
+    _brasDirects(_penchePlat, 170, 11, 168, 10),
     ab: 0.8,
     ba: 1.2,
     tenueA: 0.25,

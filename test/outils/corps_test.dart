@@ -8,6 +8,9 @@
 //   flutter test --dart-define=CAPTURES=<dossier> test/outils/corps_test.dart
 //
 // [MOUVEMENTS] (liste d'ids séparés par des virgules) restreint la planche ;
+// [EXERCICES] rend plutôt des exercices du CATALOGUE, avec LEUR matériel
+// (`animationDe` : kettlebell, barre, sans charge…) — des ids, « tous », ou
+// « charges » (ceux qui tiennent quelque chose) ;
 // [INSTANTS] (5 par défaut) et [TAILLE] (100) règlent le détail ;
 // [PRINCIPAUX] et [SECONDAIRES] (noms de muscles, ou « tous ») choisissent
 // les muscles teintés.
@@ -18,6 +21,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show RenderRepaintBoundary;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:rhythm/modele/sports/catalogue.dart';
 import 'package:rhythm/widgets/corps/animations_corps.dart';
 import 'package:rhythm/widgets/corps/corps_humain.dart';
 import 'package:rhythm/widgets/corps/figure_exercice.dart';
@@ -27,6 +31,31 @@ import 'polices.dart';
 
 const String _dossier = String.fromEnvironment('CAPTURES');
 const String _filtre = String.fromEnvironment('MOUVEMENTS');
+const String _exercices = String.fromEnvironment('EXERCICES');
+
+/// Les animations à rendre, par libellé : des exercices du catalogue
+/// ([EXERCICES]) ou des mouvements ([MOUVEMENTS], tous par défaut).
+Map<String, AnimCorps> _animations() {
+  if (_exercices.isNotEmpty) {
+    final liste = switch (_exercices) {
+      'tous' => Catalogue.tous,
+      'charges' => [
+        for (final e in Catalogue.tous)
+          if (animationDe(e).accessoires.tientUneCharge ||
+              animationDe(e).accessoires.elastique != null ||
+              animationDe(e).accessoires.bandeMains)
+            e,
+      ],
+      _ => [for (final id in _exercices.split(',')) Catalogue.de(id)!],
+    };
+    return {for (final e in liste) '${e.id} (${e.mouvement})': animationDe(e)};
+  }
+  final ids = _filtre.isEmpty
+      ? Mouvements.tous.keys.toList()
+      : _filtre.split(',');
+  return {for (final id in ids) id: Mouvements.de(id)!};
+}
+
 const String _principaux = String.fromEnvironment('PRINCIPAUX');
 const String _secondaires = String.fromEnvironment('SECONDAIRES');
 
@@ -43,9 +72,8 @@ void main() {
       return;
     }
     await chargerPolices();
-    final ids = _filtre.isEmpty
-        ? Mouvements.tous.keys.toList()
-        : _filtre.split(',');
+    final animations = _animations();
+    final ids = animations.keys.toList();
     const cote = 0.0 + int.fromEnvironment('TAILLE', defaultValue: 100);
     const n = int.fromEnvironment('INSTANTS', defaultValue: 5);
     final instants = [for (var i = 0; i < n; i++) i / n];
@@ -74,10 +102,10 @@ void main() {
                 SizedBox.square(
                   dimension: cote,
                   child: FigureExercice(
-                    animation: Mouvements.de(id)!,
+                    animation: animations[id]!,
                     animer: false,
                     instant: t,
-                    cadre: cadreDe(Mouvements.de(id)!),
+                    cadre: cadreDe(animations[id]!),
                     principaux: _muscles(_principaux, const {
                       Muscle.quadriceps,
                       Muscle.pectoraux,

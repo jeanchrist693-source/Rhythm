@@ -233,14 +233,28 @@ final Map<String, AnimCorps> _tronc3 = {
     tenueB: 0.45,
     courbeAB: Courbe.explosive,
   ),
+  // Les épaules décollées, la main va toucher le talon de son côté (la
+  // base du crunch tenait les mains aux tempes : elles y restaient).
   'toucher_talons': _suite([
     Cle(
-      _brasDirects(_crunch(0.75), 6, 8, 8, 6).copier(inclinaison: 13),
+      _crunch(0.75).copier(
+        inclinaison: 13,
+        mainP: const Cible(0.73, kSol - 0.02, 0.19),
+        mainL: const Cible(0.6, kSol - 0.03, -0.17),
+        coudeP: const V3(0, -0.3, 1),
+        coudeL: const V3(0, -0.3, -1),
+      ),
       duree: 0.5,
       tenue: 0.12,
     ),
     Cle(
-      _brasDirects(_crunch(0.75), 6, 8, 8, 6).copier(inclinaison: -13),
+      _crunch(0.75).copier(
+        inclinaison: -13,
+        mainP: const Cible(0.6, kSol - 0.03, 0.17),
+        mainL: const Cible(0.73, kSol - 0.02, -0.19),
+        coudeP: const V3(0, -0.3, 1),
+        coudeL: const V3(0, -0.3, -1),
+      ),
       duree: 0.5,
       tenue: 0.12,
     ),
@@ -253,7 +267,7 @@ final Map<String, AnimCorps> _tronc3 = {
       courbe: Courbe.lancee,
     ),
     Cle(
-      _brasCroises(_dosAuSol.copier(tronc: 282, tete: 296, dos: 4)),
+      _brasCroises(_dosAuSol.copier(tronc: 268, tete: 286, dos: 4)),
       duree: 0.45,
       courbe: Courbe.explosive,
       tenue: 0.3,
@@ -430,7 +444,7 @@ final Map<String, AnimCorps> _tronc3 = {
       Cle(_deadBug(haltere: true, jambeP: true), duree: 1.3, tenue: 0.4),
     ],
     camera: Camera3.dessus,
-    accessoires: const Accessoires(haltereUne: true),
+    accessoires: const Accessoires(goblet: true),
   ),
   // ══ ROTATIONS ══════════════════════════════════════════════════════════
   'russian_twist': _suite([
@@ -443,25 +457,29 @@ final Map<String, AnimCorps> _tronc3 = {
       Cle(_twist(-40), duree: 0.8, courbe: Courbe.douce, tenue: 0.1),
     ],
     camera: Camera3.dessus,
-    accessoires: const Accessoires(haltereUne: true),
+    accessoires: const Accessoires(goblet: true),
   ),
   'woodchop': _serie(
-    _largeur(_pose, z: 0.1).copier(
-      torsion: -34,
-      mainP: const Cible(0.52, 0.03, -0.17),
-      mainL: const Cible(0.52, 0.03, -0.21),
-      coudeP: const V3(0.3, 0.5, 1),
-      coudeL: const V3(0.3, 0.5, -1),
+    _joindreMains(
+      _largeur(_pose, z: 0.1).copier(
+        torsion: -22,
+        mainP: const Cible(0.66, 0.02, -0.17),
+        mainL: const Cible(0.66, 0.02, -0.21),
+        coudeP: const V3(0.3, 0.5, 1),
+        coudeL: const V3(0.3, 0.5, -1),
+      ),
     ),
-    _largeur(_pose, z: 0.1).copier(
-      y: 0.53,
-      x: 0.45,
-      tronc: -76,
-      torsion: 38,
-      mainP: const Cible(0.63, 0.66, 0.21),
-      mainL: const Cible(0.63, 0.66, 0.17),
-      coudeP: const V3(0, 1, 1),
-      coudeL: const V3(0, 1, -1),
+    _joindreMains(
+      _largeur(_pose, z: 0.1).copier(
+        y: 0.53,
+        x: 0.45,
+        tronc: -76,
+        torsion: 38,
+        mainP: const Cible(0.63, 0.66, 0.21),
+        mainL: const Cible(0.63, 0.66, 0.17),
+        coudeP: const V3(0, 1, 1),
+        coudeL: const V3(0, 1, -1),
+      ),
     ),
     ab: 0.7,
     ba: 1.2,
@@ -469,13 +487,13 @@ final Map<String, AnimCorps> _tronc3 = {
     tenueB: 0.25,
     courbeAB: Courbe.explosive,
     camera: Camera3.face,
-    accessoires: const Accessoires(haltereUne: true),
+    accessoires: const Accessoires(goblet: true),
   ),
   'woodchop_elastique': _serie(
     _largeur(_pose, z: 0.1).copier(
-      torsion: -34,
-      mainP: const Cible(0.52, 0.03, -0.17),
-      mainL: const Cible(0.52, 0.03, -0.21),
+      torsion: -22,
+      mainP: const Cible(0.66, 0.02, -0.17),
+      mainL: const Cible(0.66, 0.02, -0.21),
       coudeP: const V3(0.3, 0.5, 1),
       coudeL: const V3(0.3, 0.5, -1),
     ),
@@ -598,7 +616,7 @@ final Map<String, AnimCorps> _tronc3 = {
   ]),
   'planche_laterale_hanche': _serie(
     _lateralePlanche(),
-    _lateralePlanche(pente: 27, penteJambes: 11.4),
+    _lateralePlanche(pente: 36, penteJambes: 5),
     ab: 1.0,
     ba: 0.8,
     tenueA: 0.35,

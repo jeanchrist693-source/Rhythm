@@ -31,6 +31,26 @@ AnimCorps _tenir(
   accessoires: accessoires,
 );
 
+/// Comme [_tenir], en passant par [passage] pour entrer dans la posture et
+/// en sortir (un bras qui fait le tour au lieu de traverser le corps).
+AnimCorps _tenirPar(
+  Pose3 depart,
+  Pose3 passage,
+  Pose3 a,
+  Pose3 b, {
+  double entree = 1.4,
+  double souffle = 2.6,
+  Camera3 camera = Camera3.profil,
+}) => _suite([
+  Cle(depart, duree: entree * 0.6, tenue: 0.6),
+  Cle(passage, duree: entree * 0.6),
+  Cle(a, duree: entree * 0.6),
+  Cle(b, duree: souffle, courbe: Courbe.douce),
+  Cle(a, duree: souffle, courbe: Courbe.douce),
+  Cle(b, duree: souffle, courbe: Courbe.douce),
+  Cle(passage, duree: entree * 0.6),
+], camera: camera);
+
 /// Une posture tenue sans entrée : on respire dedans.
 AnimCorps _respirer(
   Pose3 a,
@@ -92,53 +112,67 @@ Pose3 _fenteBasse(double avance, {double torsion = 0}) {
 
 /// Le pigeon : la jambe proche pliée devant, le tibia en travers ; la
 /// jambe loin tendue loin derrière ; [penche] : le buste qui descend.
-Pose3 _pigeon(double penche) => _pose.copier(
-  x: 0.46,
-  y: kSol - 0.085,
-  tronc: -84 + penche * 90,
-  tete: -78 + penche * 110,
-  dos: penche * 8,
-  sansCibles: true,
-  cuisseP: 14,
-  ecartCuisseP: 34,
-  jambeP: 150,
-  ecartJambeP: -62,
-  piedP: 150,
-  cuisseL: 176,
-  ecartCuisseL: 2,
-  jambeL: 180,
-  piedL: 178,
-  brasP: 90 - penche * 80,
-  brasL: 90 - penche * 80,
-  avantBrasP: 90 - penche * 84,
-  avantBrasL: 90 - penche * 84,
-  ecartBrasP: 14,
-  ecartBrasL: 14,
-);
+Pose3 _pigeon(double penche) => _pose
+    .copier(
+      x: 0.46,
+      y: kSol - 0.085,
+      tronc: -84 + penche * 90,
+      tete: -78 + penche * 110,
+      dos: penche * 8,
+      sansCibles: true,
+      piedP: 40,
+      cuisseL: 176,
+      ecartCuisseL: 2,
+      jambeL: 180,
+      piedL: 178,
+      brasP: 90 - penche * 80,
+      brasL: 90 - penche * 80,
+      avantBrasP: 90 - penche * 84,
+      avantBrasL: 90 - penche * 84,
+      ecartBrasP: 14,
+      ecartBrasL: 14,
+    )
+    // La jambe de devant repliée À PLAT sur le sol, le tibia en travers
+    // devant le bassin (le pied passait sous le sol).
+    .copier(
+      piedCibleP: const Cible(0.575, kSol - 0.028, -0.06),
+      genouP: const V3(0.35, 0.3, 1),
+    );
 
 /// Allongé sur le dos, bras en croix au sol, les genoux pliés qui tombent
 /// de [cote] (−1 : vers le côté loin, 1 : vers nous, 0 : au centre).
-Pose3 _torsionCouchee(double cote) => _dosLibre.copier(
-  brasP: 180,
-  brasL: 180,
-  ecartBrasP: 84,
-  ecartBrasL: 84,
-  avantBrasP: 180,
-  avantBrasL: 180,
-  ecartAvantBrasP: 86,
-  ecartAvantBrasL: 86,
-  teteTourne: -30 * cote,
-  cuisseP: -62 + 50 * cote.abs(),
-  cuisseL: -62 + 50 * cote.abs(),
-  ecartCuisseP: 66 * cote,
-  ecartCuisseL: -66 * cote,
-  jambeP: 60 - 56 * cote.abs(),
-  jambeL: 60 - 56 * cote.abs(),
-  ecartJambeP: 60 * cote,
-  ecartJambeL: -60 * cote,
-  piedP: 20,
-  piedL: 20,
-);
+///
+/// Les genoux restent PLIÉS (ils se tendaient de côté, en l'air) : la jambe
+/// du côté où ils tombent se pose au sol, l'autre se couche par-dessus.
+Pose3 _torsionCouchee(double cote) {
+  final a = cote.abs();
+  final procheDessous = cote >= 0;
+  // La jambe du dessous, vers l'extérieur ; celle du dessus la rejoint.
+  final (cuisseDessous, ecartDessous) = (-62 + 72 * a, 72 * a);
+  final (cuisseDessus, ecartDessus) = (-62 + 52 * a, -58 * a);
+  final jambe = 60 - 36 * a;
+  return _dosLibre.copier(
+    brasP: 180,
+    brasL: 180,
+    ecartBrasP: 84,
+    ecartBrasL: 84,
+    avantBrasP: 180,
+    avantBrasL: 180,
+    ecartAvantBrasP: 86,
+    ecartAvantBrasL: 86,
+    teteTourne: -30 * cote,
+    cuisseP: procheDessous ? cuisseDessous : cuisseDessus,
+    cuisseL: procheDessous ? cuisseDessus : cuisseDessous,
+    ecartCuisseP: procheDessous ? ecartDessous : ecartDessus,
+    ecartCuisseL: procheDessous ? ecartDessus : ecartDessous,
+    jambeP: jambe,
+    jambeL: jambe,
+    ecartJambeP: 14 * cote,
+    ecartJambeL: -14 * cote,
+    piedP: 20,
+    piedL: 20,
+  );
+}
 
 /// Les mains posées sur les hanches (qui bougent avec le bassin).
 Pose3 _mainsHanches(Pose3 p) {
@@ -175,13 +209,13 @@ final Map<String, AnimCorps> _mobilite3 = {
   // ══ DEBOUT ═════════════════════════════════════════════════════════════
   'flexion_avant': _tenir(
     _plie(-90),
-    _plie(50).copier(
+    _plie(44).copier(
       mainP: const Cible(0.53, yPaume - 0.006, 0.09),
       mainL: const Cible(0.53, yPaume - 0.006, -0.09),
       coudeP: const V3(-0.2, 0, 1),
       coudeL: const V3(-0.2, 0, -1),
     ),
-    _plie(62).copier(
+    _plie(52).copier(
       mainP: const Cible(0.5, yPaume - 0.006, 0.1),
       mainL: const Cible(0.5, yPaume - 0.006, -0.1),
       coudeP: const V3(-0.2, 0, 1),
@@ -307,20 +341,29 @@ final Map<String, AnimCorps> _mobilite3 = {
     ),
     accessoires: const Accessoires(mur: 0.2),
   ),
-  'etirement_triceps': _tenir(
+  'etirement_triceps': _tenirPar(
     _pieds(_pose, 0.47, z: 0.06),
+    // Le bras loin passe par le côté, au-dessus de la tête, pour aller
+    // chercher le coude (il traversait la tête).
+    _brasDirects(
+      _pieds(_pose, 0.47, z: 0.06),
+      -96,
+      10,
+      104,
+      -18,
+    ).copier(brasL: -40, ecartBrasL: 60, avantBrasL: -80, ecartAvantBrasL: 30),
     _brasDirects(_pieds(_pose, 0.47, z: 0.06), -96, 10, 104, -18).copier(
       brasL: 90,
       avantBrasL: 88,
       ecartBrasL: 6,
       ecartAvantBrasL: 4,
-      mainL: const Cible(0.47, 0.13, 0.06),
-      coudeL: const V3(0.3, -1, -1),
+      mainL: const Cible(0.465, 0.095, 0.09),
+      coudeL: const V3(0.2, -1, -0.6),
     ),
     _brasDirects(_pieds(_pose, 0.47, z: 0.06), -98, 6, 104, -22).copier(
       inclinaison: -4,
-      mainL: const Cible(0.465, 0.13, 0.04),
-      coudeL: const V3(0.3, -1, -1),
+      mainL: const Cible(0.46, 0.095, 0.075),
+      coudeL: const V3(0.2, -1, -0.6),
     ),
     camera: Camera3.face,
   ),
@@ -329,21 +372,33 @@ final Map<String, AnimCorps> _mobilite3 = {
     _brasDirects(
       _pieds(_pose, 0.47, z: 0.06),
       2,
-      -62,
+      -46,
       2,
-      -66,
-    ).copier(mainL: const Cible(0.56, 0.29, -0.03), coudeL: const V3(0, 1, -1)),
+      -72,
+    ).copier(mainL: const Cible(0.58, 0.29, -0.03), coudeL: const V3(0, 1, -1)),
     _brasDirects(
       _pieds(_pose, 0.47, z: 0.06),
       2,
-      -70,
+      -52,
       2,
-      -74,
-    ).copier(mainL: const Cible(0.55, 0.29, -0.05), coudeL: const V3(0, 1, -1)),
+      -80,
+    ).copier(mainL: const Cible(0.57, 0.29, -0.05), coudeL: const V3(0, 1, -1)),
     camera: Camera3.face,
   ),
+  // Le bras monte PAR LE CÔTÉ (il passait devant le visage), passe
+  // au-dessus de la tête, le buste s'incline ; retour par le même chemin.
   'flexion_laterale': _suite([
-    Cle(_pieds(_pose, 0.47, z: 0.08), duree: 1.0, tenue: 0.3),
+    Cle(_pieds(_pose, 0.47, z: 0.08), duree: 0.8, tenue: 0.3),
+    Cle(
+      _brasDirects(
+        _pieds(_pose, 0.47, z: 0.08),
+        0,
+        88,
+        0,
+        88,
+      ).copier(brasL: 90, avantBrasL: 86, ecartBrasL: 8, ecartAvantBrasL: 6),
+      duree: 0.7,
+    ),
     Cle(
       _brasDirects(_pieds(_pose, 0.47, z: 0.08), -80, -34, -70, -60).copier(
         inclinaison: -22,
@@ -353,10 +408,28 @@ final Map<String, AnimCorps> _mobilite3 = {
         ecartBrasL: 14,
         ecartAvantBrasL: 20,
       ),
-      duree: 1.6,
+      duree: 1.1,
       tenue: 1.2,
     ),
-    Cle(_pieds(_pose, 0.47, z: 0.08), duree: 1.4, tenue: 0.3),
+    Cle(
+      _brasDirects(
+        _pieds(_pose, 0.47, z: 0.08),
+        0,
+        88,
+        0,
+        88,
+      ).copier(brasL: 90, avantBrasL: 86, ecartBrasL: 8, ecartAvantBrasL: 6),
+      duree: 0.9,
+    ),
+    Cle(_pieds(_pose, 0.47, z: 0.08), duree: 0.7, tenue: 0.3),
+    Cle(
+      _pieds(
+        _pose,
+        0.47,
+        z: 0.08,
+      ).copier(brasL: 0, ecartBrasL: 88, avantBrasL: 0, ecartAvantBrasL: 88),
+      duree: 0.7,
+    ),
     Cle(
       _pieds(_pose, 0.47, z: 0.08).copier(
         inclinaison: 22,
@@ -370,8 +443,16 @@ final Map<String, AnimCorps> _mobilite3 = {
         ecartBrasP: 14,
         ecartAvantBrasP: 20,
       ),
-      duree: 1.6,
+      duree: 1.1,
       tenue: 1.2,
+    ),
+    Cle(
+      _pieds(
+        _pose,
+        0.47,
+        z: 0.08,
+      ).copier(brasL: 0, ecartBrasL: 88, avantBrasL: 0, ecartAvantBrasL: 88),
+      duree: 0.9,
     ),
   ], camera: Camera3.face),
   'cercles_bras': _suite([
@@ -452,6 +533,17 @@ final Map<String, AnimCorps> _mobilite3 = {
       duree: 1.0,
       tenue: 0.3,
     ),
+    // Le bras s'ouvre par le côté avant de monter.
+    Cle(
+      _brasDirects(
+        _fenteBasse(0.02, torsion: -30).copier(tronc: -43),
+        20,
+        70,
+        10,
+        70,
+      ).copier(mainL: const Cible(0.56, yPaume, 0.0)),
+      duree: 0.6,
+    ),
     Cle(
       _brasDirects(
         _fenteBasse(0.02, torsion: -60).copier(tronc: -46),
@@ -462,6 +554,16 @@ final Map<String, AnimCorps> _mobilite3 = {
       ).copier(mainL: const Cible(0.56, yPaume, 0.0)),
       duree: 1.2,
       tenue: 1.0,
+    ),
+    Cle(
+      _brasDirects(
+        _fenteBasse(0.02, torsion: -30).copier(tronc: -43),
+        20,
+        70,
+        10,
+        70,
+      ).copier(mainL: const Cible(0.56, yPaume, 0.0)),
+      duree: 0.9,
     ),
   ]),
   'enfant': _respirer(_enfant(0), _enfant(1), souffle: 2.8),
@@ -529,16 +631,22 @@ final Map<String, AnimCorps> _mobilite3 = {
   ),
   'pigeon': _tenir(_pigeon(0), _pigeon(0.35), _pigeon(0.9), entree: 1.6),
   'assis_flexion': _tenir(
-    _brasDirects(_assisJambesTendues, 90, 10, 88, 8),
+    // Les mains posées au sol près des hanches (elles passaient dessous).
+    _assisJambesTendues.copier(
+      mainP: const Cible(0.38, yPaume, 0.13),
+      mainL: const Cible(0.38, yPaume, -0.13),
+      coudeP: const V3(-0.3, 0, 1),
+      coudeL: const V3(-0.3, 0, -1),
+    ),
     _brasDirects(
-      _assisJambesTendues.copier(tronc: -30, tete: -18, dos: 10),
+      _assisJambesTendues.copier(tronc: -44, tete: -26, dos: 12),
       14,
       8,
       12,
       6,
     ),
     _brasDirects(
-      _assisJambesTendues.copier(tronc: -20, tete: -6, dos: 12),
+      _assisJambesTendues.copier(tronc: -38, tete: -18, dos: 14),
       10,
       8,
       8,
@@ -638,7 +746,7 @@ Pose3 _rotationThoracique({required bool ouvert}) {
   final p = _quatrePattes().copier(torsion: ouvert ? 48 : -24, tete: -14);
   final (x, y) = _centreTete(p);
   return p.copier(
-    mainP: Cible(x - 0.02, y - 0.03, 0.03),
+    mainP: Cible(x - 0.03, y - 0.045, 0.075),
     coudeP: ouvert ? const V3(0, -1, 0.6) : const V3(0.2, 1, -0.4),
   );
 }
@@ -669,9 +777,9 @@ Pose3 _torsionAssise(double tour) => _assisJambesTendues
     .copier(
       torsion: -44 * tour,
       teteTourne: -30 * tour,
-      brasL: 70,
+      brasL: 62,
       avantBrasL: 20,
-      ecartBrasL: -30 * tour,
+      ecartBrasL: -20 * tour,
       ecartAvantBrasL: -40 * tour,
     )
     .copier(
